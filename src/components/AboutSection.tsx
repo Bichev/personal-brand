@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaCode, FaRocket, FaBrain, FaUsers } from 'react-icons/fa';
+import { FaCode, FaRocket, FaBrain, FaUsers, FaUserFriends, FaChalkboardTeacher } from 'react-icons/fa';
 import { PERSONAL_INFO, SKILLS } from '@/lib/constants';
 import { SectionProps } from '@/types';
 
@@ -15,17 +15,27 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
     {
       icon: <FaBrain className="w-8 h-8" />,
       title: 'AI/ML Pioneer',
-      description: 'Built production AI systems for Roku (70M+ devices), Travel + Leisure (Voya AI agent), and Lonely Planet (5M+ interactions)',
+      description: 'Built production AI systems for major streaming, travel, and media companies serving millions of users.',
     },
     {
       icon: <FaRocket className="w-8 h-8" />,
-      title: 'Enterprise Scale',
+      title: 'Enterprise Scale Expert',
       description: 'Led digital transformations processing 4B+ documents daily, 100M+ search queries, and millions of real-time transactions',
+    },
+    {
+      icon: <FaUserFriends className="w-8 h-8" />,
+      title: 'Team Scaler & Mentor',
+      description: 'Grew engineering organizations from 10 to 150+ members and mentored 5 managers into leadership roles.',
+    },
+    {
+      icon: <FaChalkboardTeacher className="w-8 h-8" />,
+      title: 'Public Speaker & Trainer',
+      description: 'Speaker at 10+ European conferences and trained over 350 professionals in AI, ML, and Data Architecture.',
     },
     {
       icon: <FaUsers className="w-8 h-8" />,
       title: 'Industry Recognition',
-      description: 'EPAM CEO Award recipient, Harvard & Wharton educated, 10+ conference speaker, 350+ training participants',
+      description: 'EPAM CEO Award recipient, Harvard & Wharton educated, and an AWS Certified Solution Architect.',
     },
   ];
 
@@ -43,7 +53,7 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
             About Me
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Technology visionary driving digital transformation at enterprise scale, delivering breakthrough AI solutions for Fortune 500 companies while pioneering the future of intelligent systems.
+            A Technical Program Manager and AI Engineering Leader driving digital transformation at enterprise scale, delivering cutting-edge solutions for Fortune 500 companies.
           </p>
         </motion.div>
 
@@ -60,9 +70,11 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
             </h3>
             <div className="prose prose-lg text-gray-600 dark:text-gray-300 max-w-none">
               {PERSONAL_INFO.longBio.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="mb-4">
-                  {paragraph}
-                </p>
+                <p
+                  key={index}
+                  className="mb-4"
+                  dangerouslySetInnerHTML={{ __html: paragraph }}
+                />
               ))}
             </div>
           </motion.div>

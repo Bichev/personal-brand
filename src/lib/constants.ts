@@ -2,19 +2,19 @@ import { Project, BlogPost, ContactInfo } from '@/types';
 
 export const SITE_CONFIG = {
   name: 'Vladimir Bichev',
-  title: 'Vladimir Bichev - Technology Visionary & AI Innovation Leader',
-  description: 'Technology visionary and AI innovation leader with 15+ years of experience driving digital transformation at scale. Currently Technical Program Manager at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
+  title: 'Vladimir Bichev - Technical Program Manager & AI Engineering Leader',
+  description: 'Technical Program Manager and AI Engineering Leader with 15+ years of experience driving digital transformation at scale. Currently at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
   url: 'https://vladimirbichev.com',
   ogImage: '/og-image.jpg',
-  tagline: 'Technology Visionary & AI Innovation Leader',
+  tagline: 'Technical Program Manager & AI Engineering Leader',
   shortBio: 'Bridging AI capabilities with real-world applications through innovative development and strategic leadership.',
 };
 
 export const PERSONAL_INFO = {
   name: 'Vladimir Bichev',
-  tagline: 'Technology Visionary & AI Innovation Leader',
-  shortBio: 'Technology visionary and AI innovation leader with 15+ years of experience driving digital transformation at scale. Currently Technical Program Manager at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
-  longBio: `My journey in technology has been driven by a simple belief: <strong>AI and emerging technologies should solve real-world problems at massive scale.</strong>
+  tagline: 'Technical Program Manager & AI Engineering Leader',
+  shortBio: 'Technical Program Manager and AI Engineering Leader with 15+ years of experience driving digital transformation at scale. Currently at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
+  longBio: `My journey in technology has been focused on one core principle: <strong>building AI solutions that create meaningful business impact.</strong>
 
 Over 15 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 150+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
 
