@@ -185,10 +185,10 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ## 📧 Contact
 
-- **Email**: vladimir.bichev@gmail.com
-- **LinkedIn**: [linkedin.com/in/vladimirbi](https://linkedin.com/in/vladimirbi)
-- **GitHub**: [github.com/vladimirbi](https://github.com/vladimirbi)
-- **Twitter**: [twitter.com/vladimirbi](https://twitter.com/vladimirbi)
+- **Email**: vl.bichev@gmail.com
+- **LinkedIn**: [https://www.linkedin.com/in/vladimir-bichev-383b1525/](https://www.linkedin.com/in/vladimir-bichev-383b1525/)
+- **GitHub**: [https://github.com/Bichev](https://github.com/Bichev)
+- **Twitter**: [https://x.com/_bichevhttps://x.com/_bichev)
 
 ---
 

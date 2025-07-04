@@ -24,7 +24,7 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
   };
 
   return (
-    <section id={id} className={`py-10 bg-gray-50 dark:bg-gray-800 ${className}`}>
+    <section id={id} className={`py-10 bg-white dark:bg-gray-900 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -36,21 +36,21 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
             Let's Connect
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          {/* <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Available for C-level consulting, enterprise AI transformations, conference speaking, and strategic technology partnerships. Harvard & Wharton educated, $15M+ revenue track record.
-          </p>
+          </p> */}
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
           {/* Contact Info */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
-            className="lg:col-span-1"
+            className="lg:col-span-1 flex"
           >
-            <Card>
+            <Card className="w-full">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                 Get in Touch
               </h3>
@@ -114,9 +114,9 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
             viewport={{ once: true }}
             className="lg:col-span-2"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
               {/* Collaboration Card */}
-              <Card>
+              {/* <Card>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FaEnvelope className="text-blue-600 dark:text-blue-400" size={24} />
@@ -136,11 +136,11 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                     Contact for Consulting
                   </Button>
                 </div>
-              </Card>
+              </Card> */}
 
               {/* Networking Card */}
-              <Card>
-                <div className="text-center">
+              <Card className="flex flex-col">
+                <div className="text-center flex-grow">
                   <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FaLinkedin className="text-green-600 dark:text-green-400" size={24} />
                   </div>
@@ -150,10 +150,12 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     Let's connect and discuss technology trends, AI developments, or industry insights.
                   </p>
+                </div>
+                <div className="text-center mt-auto">
                   <Button
                     variant="outline"
                     size="sm"
-                    href="https://linkedin.com/in/vladimirbi"
+                    href="https://www.linkedin.com/in/vladimir-bichev-383b1525/"
                     external
                   >
                     Connect on LinkedIn
@@ -162,8 +164,8 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
               </Card>
 
               {/* Open Source Card */}
-              <Card>
-                <div className="text-center">
+              <Card className="flex flex-col">
+                <div className="text-center flex-grow">
                   <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FaGithub className="text-purple-600 dark:text-purple-400" size={24} />
                   </div>
@@ -173,10 +175,12 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     Check out my open-source projects and contributions on GitHub.
                   </p>
+                </div>
+                <div className="text-center mt-auto">
                   <Button
                     variant="outline"
                     size="sm"
-                    href="https://github.com/vladimirbi"
+                    href="https://github.com/Bichev"
                     external
                   >
                     View GitHub
@@ -185,7 +189,7 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
               </Card>
 
               {/* Speaking Card */}
-              <Card>
+              {/* <Card>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FaTwitter className="text-orange-600 dark:text-orange-400" size={24} />
@@ -205,7 +209,7 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                     Book Speaking
                   </Button>
                 </div>
-              </Card>
+              </Card> */}
             </div>
           </motion.div>
         </div>

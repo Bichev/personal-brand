@@ -25,12 +25,12 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
     {
       icon: <FaUserFriends className="w-8 h-8" />,
       title: 'Team Scaler & Mentor',
-      description: 'Grew and Lead engineering organizations up to 100+ members and mentored 5 managers into leadership roles.',
+      description: 'Grew and Lead engineering organizations up to 50+ members and mentored 10 managers into leadership roles.',
     },
     {
       icon: <FaChalkboardTeacher className="w-8 h-8" />,
       title: 'Public Speaker & Trainer',
-      description: 'Speaker at 10+ European conferences and trained over 350 professionals in AI, Blockchain, and Data Architecture.',
+      description: 'Speaker at European and USA conferences and trained over 350 professionals in AI, Blockchain, and Data Architecture.',
     },
     {
       icon: <FaUsers className="w-8 h-8" />,

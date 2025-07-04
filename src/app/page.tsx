@@ -21,9 +21,9 @@ export default function Home() {
       <footer className="bg-gray-100 dark:bg-black text-gray-600 dark:text-gray-400 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-gray-400 mb-4">
+            {/* <p className="text-gray-400 mb-4">
               Built with Next.js, TypeScript, and Tailwind CSS
-            </p>
+            </p> */}
             <p className="text-gray-500 text-sm">
               © {new Date().getFullYear()} Vladimir Bichev. All rights reserved.
             </p>

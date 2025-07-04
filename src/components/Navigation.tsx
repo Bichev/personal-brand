@@ -6,11 +6,13 @@ import { FaSun, FaMoon, FaBars, FaTimes } from 'react-icons/fa';
 import { useTheme } from './ThemeProvider';
 import { NAVIGATION_ITEMS } from '@/lib/constants';
 import { scrollToSection } from '@/lib/utils';
+import { useActiveSection } from '@/hooks/useActiveSection';
 
 export function Navigation() {
   const { theme, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const activeSection = useActiveSection();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,17 +52,24 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {NAVIGATION_ITEMS.map((item) => (
-              <motion.button
-                key={item.name}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleNavClick(item.href)}
-                className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors font-medium"
-              >
-                {item.name}
-              </motion.button>
-            ))}
+            {NAVIGATION_ITEMS.map((item) => {
+              const isActive = activeSection === item.href.substring(1);
+              return (
+                <motion.button
+                  key={item.name}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleNavClick(item.href)}
+                  className={`transition-colors focus:outline-none ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 font-bold'
+                      : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium'
+                  }`}
+                >
+                  {item.name}
+                </motion.button>
+              );
+            })}
             
             {/* Theme Toggle */}
             <motion.button
@@ -103,17 +112,24 @@ export function Navigation() {
             exit={{ opacity: 0, y: -20 }}
             className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700"
           >
-            {NAVIGATION_ITEMS.map((item) => (
-              <motion.button
-                key={item.name}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleNavClick(item.href)}
-                className="block w-full text-left px-4 py-3 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors font-medium"
-              >
-                {item.name}
-              </motion.button>
-            ))}
+            {NAVIGATION_ITEMS.map((item) => {
+              const isActive = activeSection === item.href.substring(1);
+              return (
+                <motion.button
+                  key={item.name}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleNavClick(item.href)}
+                  className={`block w-full text-left px-4 py-3 transition-colors focus:outline-none ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-gray-800'
+                      : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium'
+                  }`}
+                >
+                  {item.name}
+                </motion.button>
+              );
+            })}
           </motion.div>
         )}
       </div>

@@ -20,7 +20,7 @@ Over 10 years at EPAM Systems, I've had the privilege of growing from an individ
 
 <strong>Current Focus:</strong> Leading AI-powered transformations for major travel and media companies, where I'm building systems that serve millions of users daily through personalized recommendations and intelligent content delivery.
 
-<strong>Career Milestones:</strong> I've led digital transformation processing 4B+ documents daily, drove AI forecasting system architecture for streaming platforms serving 70M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at Europe and USA tech conferences in AI, Blockchain, and Data Architecture.
+<strong>Career Milestones:</strong> I've led digital transformation processing 4B+ documents daily, drove AI forecasting system architecture for streaming platforms serving 5M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at Europe and USA tech conferences in AI, Blockchain, and Data Architecture.
 
 <strong>Continuous Learning:</strong> I believe in staying ahead of the curve through education - from Harvard Business School and Wharton to hands-on certifications like AWS Solution Architect.
 
@@ -38,7 +38,7 @@ export const ENTERPRISE_PROJECTS: Project[] = [
   {
     id: 'travel-ai-platform',
     title: 'AI Travel Intelligence Platform',
-    description: 'Leading AI-powered CMS migration and AI agent delivery for major travel media company, supporting 500k+ user interactions monthly.',
+    description: 'Leading AI-powered CMS migration and AI agent delivery for major travel media company, supporting 100k+ user interactions monthly.',
     technologies: ['AI/ML Personalization', 'React Native', 'AWS EKS', 'Contentful CMS', 'Terraform', 'AWS Bedrock', 'Python'],
     featured: true,
     icon: 'FaPlane',
@@ -56,7 +56,7 @@ export const ENTERPRISE_PROJECTS: Project[] = [
   {
     id: 'streaming-ai-forecasting',
     title: 'AI Ad Forecasting for Streaming Platform',
-    description: 'Led AI-driven advertisement forecasting for 70M+ streaming devices, processing millions of ad transactions for Real-Time Bidding system.',
+    description: 'Led AI-driven advertisement forecasting for 5M+ streaming devices, processing millions of ad transactions for Real-Time Bidding system.',
     technologies: ['Apache Spark MLlib', 'AWS EMR', 'Real-time Bidding', 'Machine Learning', 'DynamoDB', 'PostgreSQL'],
     featured: true,
     icon: 'FaTv',
@@ -257,7 +257,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
   // {
   //   id: 'real-time-ai-roku',
-  //   title: 'Building Real-Time AI at Roku Scale: 70M+ Devices, Sub-100ms Latency',
+  //   title: 'Building Real-Time AI at Roku Scale: 5M+ Devices, Sub-100ms Latency',
   //   excerpt: 'Technical deep-dive into architecting AI-powered ad forecasting systems that process millions of transactions per second with Apache Spark MLlib and AWS EMR.',
   //   content: '',
   //   date: '2024-10-10',
@@ -282,8 +282,8 @@ export const BLOG_POSTS: BlogPost[] = [
 ];
 
 export const CONTACT_INFO: ContactInfo = {
-  email: 'vladimir.bichev@gmail.com',
-  location: 'Jacksonville Beach, FL',
+  email: 'vl.bichev@gmail.com',
+  location: 'Jacksonville, FL',
   socialLinks: [
     {
       name: 'LinkedIn',
