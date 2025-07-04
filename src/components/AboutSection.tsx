@@ -10,7 +10,7 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
     {
       icon: <FaCode className="w-8 h-8" />,
       title: '$15M+ Revenue Driver',
-      description: 'Delivered over $15M in revenue growth at EPAM, scaling teams from 10 to 150+ engineers across Fortune 500 engagements',
+      description: 'Delivered over $15M in revenue growth at EPAM, scaling teams from 10 to 200+ engineers across Fortune 500 engagements',
     },
     {
       icon: <FaBrain className="w-8 h-8" />,
@@ -25,12 +25,12 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
     {
       icon: <FaUserFriends className="w-8 h-8" />,
       title: 'Team Scaler & Mentor',
-      description: 'Grew engineering organizations from 10 to 150+ members and mentored 5 managers into leadership roles.',
+      description: 'Grew and Lead engineering organizations up to 100+ members and mentored 5 managers into leadership roles.',
     },
     {
       icon: <FaChalkboardTeacher className="w-8 h-8" />,
       title: 'Public Speaker & Trainer',
-      description: 'Speaker at 10+ European conferences and trained over 350 professionals in AI, ML, and Data Architecture.',
+      description: 'Speaker at 10+ European conferences and trained over 350 professionals in AI, Blockchain, and Data Architecture.',
     },
     {
       icon: <FaUsers className="w-8 h-8" />,

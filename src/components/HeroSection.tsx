@@ -34,7 +34,7 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <div className="relative w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-8">
+            <div className="relative w-36 h-36 sm:w-48 sm:h-48 mx-auto mb-8">
               <Image
                 src={PERSONAL_INFO.photoUrl}
                 alt={PERSONAL_INFO.name}
@@ -70,17 +70,19 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mb-12"
           >
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
-                size="lg"
+                size="md"
                 onClick={() => scrollToSection('projects')}
+                className="w-48"
               >
                 View My Projects
               </Button>
               <Button
                 variant="outline"
-                size="lg"
+                size="md"
                 onClick={() => scrollToSection('contact')}
+                className="w-48"
               >
                 Get In Touch
               </Button>
@@ -101,9 +103,9 @@ export function HeroSection() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
+                  className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                  whileHover={{ y: -3, scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}

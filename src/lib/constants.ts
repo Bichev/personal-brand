@@ -14,13 +14,13 @@ export const PERSONAL_INFO = {
   name: 'Vladimir Bichev',
   tagline: 'Technical Program Manager & AI Engineering Leader',
   shortBio: 'Technical Program Manager and AI Engineering Leader with 15+ years of experience driving digital transformation at scale. Currently at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
-  longBio: `My journey in technology has been focused on one core principle: <strong>building AI solutions that create meaningful business impact.</strong>
+  longBio: `My journey in technology has been focused on one core principle: <strong>building solutions that create meaningful business impact.</strong>
 
-Over 15 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 150+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
+Over 10 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 200+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
 
 <strong>Current Focus:</strong> Leading AI-powered transformations for major travel and media companies, where I'm building systems that serve millions of users daily through personalized recommendations and intelligent content delivery.
 
-<strong>Career Milestones:</strong> I've architected AI forecasting systems for streaming platforms serving 70M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at 10+ European conferences.
+<strong>Career Milestones:</strong> I've led digital transformation processing 4B+ documents daily, drove AI forecasting system architecture for streaming platforms serving 70M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at 10+ European conferences.
 
 <strong>Continuous Learning:</strong> I believe in staying ahead of the curve through education - from Harvard Business School and Wharton to hands-on certifications like AWS Solution Architect.
 
@@ -211,6 +211,27 @@ export const CONTACT_INFO: ContactInfo = {
     },
   ],
 };
+
+export const INTERESTS = [
+  {
+    title: 'Angler & Outdoorsman',
+    description: 'When I\'m not architecting code, you can find me by the water, fishing rod in hand. It\'s my favorite way to disconnect, recharge, and enjoy the challenges of the outdoors.',
+    icon: 'FaFish',
+    image: '/interests/fishing.jpg',
+  },
+  {
+    title: 'Endurance Runner',
+    description: 'From 5K sprints to full marathons, I\'m passionate about the discipline and resilience of long-distance running. It\'s a powerful metaphor for tackling complex, long-term projects.',
+    icon: 'FaRunning',
+    image: '/interests/running.jpg',
+  },
+  {
+    title: 'Sourdough Baker',
+    description: 'I bake and sell sourdough bread at local farmers markets. The blend of science, patience, and craft is a perfect complement to my work in technology.',
+    icon: 'FaBreadSlice',
+    image: '/interests/baking.jpg',
+  },
+];
 
 export const SKILLS = [
   'AI/ML Leadership',

@@ -4,6 +4,7 @@ import { AboutSection } from '@/components/AboutSection';
 import { ProjectsSection } from '@/components/ProjectsSection';
 import { BlogSection } from '@/components/BlogSection';
 import { ContactSection } from '@/components/ContactSection';
+import { InterestsSection } from '@/components/InterestsSection';
 
 export default function Home() {
   return (
@@ -14,9 +15,10 @@ export default function Home() {
       <ProjectsSection />
       <BlogSection />
       <ContactSection />
+      <InterestsSection />
       
       {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-gray-800 text-white py-12">
+      <footer className="bg-gray-100 dark:bg-black text-gray-600 dark:text-gray-400 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-gray-400 mb-4">
