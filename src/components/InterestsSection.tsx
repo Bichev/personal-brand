@@ -15,7 +15,7 @@ const iconMap = {
 
 export function InterestsSection({ className, id = 'interests' }: SectionProps) {
   return (
-    <section id={id} className={`py-20 bg-gray-50 dark:bg-gray-800 ${className}`}>
+    <section id={id} className={`py-10 bg-gray-50 dark:bg-gray-800 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -2,11 +2,24 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { FaGithub, FaExternalLinkAlt, FaStar, FaBuilding, FaRocket } from 'react-icons/fa';
+import { 
+  FaGithub, FaExternalLinkAlt, FaRocket, FaPlane, FaRobot, 
+  FaTv, FaLink, FaPiggyBank, FaBookOpen, FaWifi, FaBuilding
+} from 'react-icons/fa';
 import { Card } from './Card';
 import { Button } from './Button';
 import { ENTERPRISE_PROJECTS, PERSONAL_PROJECTS } from '@/lib/constants';
 import { SectionProps, Project } from '@/types';
+
+const enterpriseIconMap = {
+  FaPlane: <FaPlane className="text-4xl mb-2 mx-auto" />,
+  FaRobot: <FaRobot className="text-4xl mb-2 mx-auto" />,
+  FaTv: <FaTv className="text-4xl mb-2 mx-auto" />,
+  FaLink: <FaLink className="text-4xl mb-2 mx-auto" />,
+  FaPiggyBank: <FaPiggyBank className="text-lg mt-1" />,
+  FaBookOpen: <FaBookOpen className="text-lg mt-1" />,
+  FaWifi: <FaWifi className="text-lg mt-1" />,
+};
 
 export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
   const featuredEnterpriseProjects = ENTERPRISE_PROJECTS.filter(project => project.featured);
@@ -14,8 +27,16 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
   const featuredPersonalProjects = PERSONAL_PROJECTS.filter(project => project.featured);
   const otherPersonalProjects = PERSONAL_PROJECTS.filter(project => !project.featured);
 
+  const getEnterpriseIcon = (iconName: string, isFeatured: boolean = false) => {
+    const icon = enterpriseIconMap[iconName as keyof typeof enterpriseIconMap];
+    if (isFeatured) {
+      return <div className="text-white">{icon}</div>;
+    }
+    return <div className="text-blue-600 dark:text-blue-400 flex-shrink-0">{icon}</div>;
+  };
+
   return (
-    <section id={id} className={`py-20 bg-gray-50 dark:bg-gray-800 ${className}`}>
+    <section id={id} className={`py-10 bg-gray-50 dark:bg-gray-800 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -62,12 +83,12 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card padding="none" className="overflow-hidden">
+                <Card padding="none" className="overflow-hidden group">
                   {/* Project Image */}
-                  <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
+                  <div className={`relative h-48 bg-gradient-to-r ${project.color || 'from-gray-500 to-gray-600'}`}>
                     <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
                       <div className="text-white text-center">
-                        <FaBuilding className="text-4xl mb-2 mx-auto" />
+                        {getEnterpriseIcon(project.icon!, true)}
                         <h3 className="text-xl font-bold">{project.title}</h3>
                       </div>
                     </div>
@@ -109,21 +130,24 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
+                  className="h-full"
                 >
-                  <Card>
-                    <div className="flex items-start gap-3 mb-3">
-                      <FaBuilding className="text-blue-600 dark:text-blue-400 text-lg mt-1" />
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {project.title}
-                      </h4>
+                  <Card className="h-full flex flex-col">
+                    <div className="flex-grow">
+                      <div className="flex items-start gap-3 mb-3">
+                        {getEnterpriseIcon(project.icon!)}
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {project.title}
+                        </h4>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                        {project.description}
+                      </p>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
-                      {project.description}
-                    </p>
                     
                     {/* Technologies */}
                     <div className="flex flex-wrap gap-1 mb-4">
-                      {project.technologies.slice(0, 3).map((tech: string) => (
+                      {project.technologies.map((tech: string) => (
                         <span
                           key={tech}
                           className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs"
@@ -131,11 +155,6 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                           {tech}
                         </span>
                       ))}
-                      {project.technologies.length > 3 && (
-                        <span className="text-gray-500 dark:text-gray-400 text-xs">
-                          +{project.technologies.length - 3} more
-                        </span>
-                      )}
                     </div>
                   </Card>
                 </motion.div>
@@ -173,15 +192,32 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card padding="none" className="overflow-hidden">
+                <Card padding="none" className="overflow-hidden group">
                   {/* Project Image */}
-                  <div className="relative h-48 bg-gradient-to-r from-green-500 to-teal-600">
-                    <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                      <div className="text-white text-center">
-                        <FaRocket className="text-4xl mb-2 mx-auto" />
-                        <h3 className="text-xl font-bold">{project.title}</h3>
+                  <div className="relative h-48">
+                    {project.image ? (
+                      <>
+                        <Image
+                          src={project.image}
+                          alt={project.title}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
+                        />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4 text-center transition-colors group-hover:bg-black/50">
+                           <div className="text-white text-center">
+                            <FaRocket className="text-4xl mb-2 mx-auto" />
+                            <h3 className="text-xl font-bold">{project.title}</h3>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center">
+                        <div className="text-white text-center">
+                          <FaRocket className="text-4xl mb-2 mx-auto" />
+                          <h3 className="text-xl font-bold">{project.title}</h3>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Project Content */}
@@ -245,57 +281,57 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
+                  className="h-full"
                 >
-                  <Card>
-                    <div className="flex items-start gap-3 mb-3">
-                      <FaRocket className="text-green-600 dark:text-green-400 text-lg mt-1" />
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {project.title}
-                      </h4>
+                  <Card className="h-full flex flex-col">
+                    <div className="flex-grow">
+                      <div className="flex items-start gap-3 mb-3">
+                        <FaRocket className="text-green-600 dark:text-green-400 text-lg mt-1" />
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {project.title}
+                        </h4>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                        {project.description}
+                      </p>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
-                      {project.description}
-                    </p>
                     
-                    {/* Technologies */}
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {project.technologies.slice(0, 3).map((tech: string) => (
-                        <span
-                          key={tech}
-                          className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                      {project.technologies.length > 3 && (
-                        <span className="text-gray-500 dark:text-gray-400 text-xs">
-                          +{project.technologies.length - 3} more
-                        </span>
-                      )}
-                    </div>
+                    <div>
+                      {/* Technologies */}
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {project.technologies.map((tech: string) => (
+                          <span
+                            key={tech}
+                            className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
 
-                    {/* Links */}
-                    <div className="flex gap-2">
-                      {project.githubUrl && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          href={project.githubUrl}
-                          external
-                        >
-                          <FaGithub size={16} />
-                        </Button>
-                      )}
-                      {project.liveUrl && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          href={project.liveUrl}
-                          external
-                        >
-                          <FaExternalLinkAlt size={14} />
-                        </Button>
-                      )}
+                      {/* Links */}
+                      <div className="flex gap-2">
+                        {project.githubUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            href={project.githubUrl}
+                            external
+                          >
+                            <FaGithub size={16} />
+                          </Button>
+                        )}
+                        {project.liveUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            href={project.liveUrl}
+                            external
+                          >
+                            <FaExternalLinkAlt size={14} />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 </motion.div>

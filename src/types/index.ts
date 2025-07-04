@@ -7,6 +7,8 @@ export interface Project {
   liveUrl?: string;
   image?: string;
   featured?: boolean;
+  icon?: string;
+  color?: string;
 }
 
 export interface BlogPost {

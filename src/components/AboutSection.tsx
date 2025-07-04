@@ -40,7 +40,7 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
   ];
 
   return (
-    <section id={id} className={`py-20 bg-white dark:bg-gray-900 ${className}`}>
+    <section id={id} className={`py-10 bg-white dark:bg-gray-900 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
