@@ -2,30 +2,88 @@ import { Project, BlogPost, ContactInfo } from '@/types';
 
 export const SITE_CONFIG = {
   name: 'Vladimir Bichev',
-  title: 'Vladimir Bichev - AI/LLM Developer & Engineering Leader',
-  description: 'Experienced developer specializing in AI/LLM integration, automation, and scalable web applications. 15+ years building innovative solutions.',
+  title: 'Vladimir Bichev - Technology Visionary & AI Innovation Leader',
+  description: 'Technology visionary and AI innovation leader with 15+ years of experience driving digital transformation at scale. Currently Technical Program Manager at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
   url: 'https://vladimirbichev.com',
   ogImage: '/og-image.jpg',
-  tagline: 'AI/LLM Developer & Engineering Leader',
+  tagline: 'Technology Visionary & AI Innovation Leader',
   shortBio: 'Bridging AI capabilities with real-world applications through innovative development and strategic leadership.',
 };
 
 export const PERSONAL_INFO = {
   name: 'Vladimir Bichev',
-  tagline: 'AI/LLM Developer & Engineering Leader',
-  shortBio: 'Experienced developer with 15+ years specializing in AI/LLM integration, automation, and scalable web applications.',
-  longBio: `With over 15 years of experience in software development, I specialize in AI/LLM integration, automation, and building scalable web applications. 
+  tagline: 'Technology Visionary & AI Innovation Leader',
+  shortBio: 'Technology visionary and AI innovation leader with 15+ years of experience driving digital transformation at scale. Currently Technical Program Manager at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
+  longBio: `My journey in technology has been driven by a simple belief: <strong>AI and emerging technologies should solve real-world problems at massive scale.</strong>
 
-I'm passionate about bridging the gap between cutting-edge AI technologies and practical business solutions. My recent work includes developing AI-powered market analysis platforms, Reddit discussion analyzers, and innovative blockchain integration tools.
+Over 15 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 150+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
 
-Currently exploring the intersection of AI, financial technology, and developer productivity through projects like AssetRadars.com and advanced MCP (Model Context Protocol) implementations.`,
+<strong>Current Focus:</strong> Leading AI-powered transformations for major travel and media companies, where I'm building systems that serve millions of users daily through personalized recommendations and intelligent content delivery.
+
+<strong>Career Milestones:</strong> I've architected AI forecasting systems for streaming platforms serving 70M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at 10+ European conferences.
+
+<strong>Continuous Learning:</strong> I believe in staying ahead of the curve through education - from Harvard Business School and Wharton to hands-on certifications like AWS Solution Architect.
+
+<strong>Beyond Work:</strong> I channel my passion for innovation into personal AI projects - some have even been acquired by private investors, proving that good ideas can come from anywhere.
+
+What drives me is the intersection of cutting-edge technology and practical business impact. Every line of code, every architectural decision, every team I build - it's all aimed at creating solutions that make a real difference in how people work and live.`,
   email: 'vladimir.bichev@gmail.com',
   location: 'Jacksonville Beach, FL',
   resumeUrl: '/Vladimir_Bichev_CV.pdf',
   photoUrl: '/profile-photo.jpg',
 };
 
-export const PROJECTS: Project[] = [
+// Enterprise Projects (EPAM Client Work)
+export const ENTERPRISE_PROJECTS: Project[] = [
+  {
+    id: 'travel-ai-platform',
+    title: 'AI Travel Intelligence Platform',
+    description: 'Leading AI-powered CMS migration and mobile app delivery for major travel media company, supporting 5M+ user interactions monthly with hyper-personalized recommendations and 1M+ Points of Interest.',
+    technologies: ['AI/ML Personalization', 'React Native', 'AWS EKS', 'Contentful CMS', 'Terraform', 'Databricks'],
+    featured: true,
+    image: '/projects/travel-ai.jpg',
+  },
+  {
+    id: 'generative-ai-agent',
+    title: 'Generative AI Virtual Assistant',
+    description: 'Developed and deployed enterprise generative AI agent in 5 months, delivering personalized assistance and real-time recommendations using AWS Bedrock and LangChain for major travel brand.',
+    technologies: ['AWS Bedrock', 'LangChain', 'Claude AI', 'Vector Search', 'Python', 'Pinecone'],
+    featured: true,
+    image: '/projects/ai-agent.jpg',
+  },
+  {
+    id: 'streaming-ai-forecasting',
+    title: 'AI Ad Forecasting for Streaming Platform',
+    description: 'Led AI-driven advertisement forecasting for 70M+ streaming devices, processing millions of ad transactions per second with sub-100ms latency, improving targeting accuracy by 30%.',
+    technologies: ['Apache Spark MLlib', 'AWS EMR', 'Real-time Bidding', 'Machine Learning', 'DynamoDB', 'PostgreSQL'],
+    featured: true,
+    image: '/projects/streaming-ai.jpg',
+  },
+  {
+    id: 'fintech-transformation',
+    title: 'Financial Services Digital Transformation',
+    description: 'Led large-scale digital transformation for major US financial services provider, managing 50+ engineers across BI analytics, microservices migration, and frontend modernization.',
+    technologies: ['Power BI', 'AWS Redshift', 'Microservices', 'Angular', 'Java Spring Boot', 'Kubernetes'],
+    image: '/projects/fintech.jpg',
+  },
+  {
+    id: 'publishing-cloud-migration',
+    title: 'Publishing Platform AWS Migration',
+    description: 'Scaled engineering team from 10 to 150+ members, delivered cloud-native content processing pipeline handling 4B documents daily and 100M search queries for major publisher.',
+    technologies: ['AWS EKS', 'Apache Flink', 'ElasticSearch', 'React', 'Terraform', 'Jenkins'],
+    image: '/projects/publishing.jpg',
+  },
+  {
+    id: 'banking-blockchain',
+    title: 'Enterprise Blockchain Identity System',
+    description: 'Architected and implemented major European bank\'s first blockchain-based identity management solution using IBM Hyperledger Fabric, improving processing efficiency by 70%.',
+    technologies: ['IBM Hyperledger Fabric', 'Smart Contracts', 'Go SDK', 'CouchDB', 'Spring Boot'],
+    image: '/projects/blockchain.jpg',
+  },
+];
+
+// Personal Projects & Innovations
+export const PERSONAL_PROJECTS: Project[] = [
   {
     id: 'assetradars',
     title: 'AssetRadars.com',
@@ -37,14 +95,12 @@ export const PROJECTS: Project[] = [
     image: '/projects/assetradars.jpg',
   },
   {
-    id: 'reddit-ai',
-    title: 'Ask Reddit AI',
-    description: 'AI-powered platform that analyzes Reddit discussions and provides intelligent answers using OpenAI GPT-4o-mini and Reddit API integration.',
-    technologies: ['Next.js', 'TypeScript', 'OpenAI GPT-4', 'Reddit API', 'Tailwind CSS'],
-    githubUrl: 'https://github.com/vladimirbi/ask-reddit-ai',
-    liveUrl: 'https://ask-reddit-ai.vercel.app',
+    id: 'ai-stock-news',
+    title: 'AI Stock Market News Summarizer',
+    description: 'Automated system that aggregates information from multiple financial news sources and provides condensed, AI-generated market overviews with sentiment analysis and key insights.',
+    technologies: ['Python', 'OpenAI API', 'News APIs', 'NLP', 'Sentiment Analysis', 'Telegram Bot'],
     featured: true,
-    image: '/projects/reddit-ai.jpg',
+    image: '/projects/stock-news.jpg',
   },
   {
     id: 'coinbase-mcp',
@@ -56,46 +112,74 @@ export const PROJECTS: Project[] = [
     image: '/projects/coinbase-mcp.jpg',
   },
   {
-    id: 'ai-automation',
-    title: 'AI Automation Suite',
-    description: 'Collection of AI-powered automation tools and workflows for productivity enhancement and business process optimization.',
-    technologies: ['Python', 'OpenAI API', 'Automation', 'Webhooks', 'API Integration'],
-    githubUrl: 'https://github.com/vladimirbi/ai-automation',
-    image: '/projects/ai-automation.jpg',
+    id: 'reddit-ai',
+    title: 'Ask Reddit AI',
+    description: 'AI-powered platform that analyzes Reddit discussions and provides intelligent answers using OpenAI GPT-4o-mini and Reddit API integration.',
+    technologies: ['Next.js', 'TypeScript', 'OpenAI GPT-4', 'Reddit API', 'Tailwind CSS'],
+    githubUrl: 'https://github.com/vladimirbi/ask-reddit-ai',
+    liveUrl: 'https://ask-reddit-ai.vercel.app',
+    image: '/projects/reddit-ai.jpg',
+  },
+  {
+    id: 'crypto-trading-ai',
+    title: 'AI-Powered Crypto Trading System (Sold)',
+    description: 'Built and sold to private investor: AI-powered crypto scanner analyzing 270+ trading pairs across 25+ technical indicators every 5 minutes with LLM-driven trading insights.',
+    technologies: ['OpenAI API', 'LangChain', 'Python', 'Coinbase API', 'Technical Analysis', 'Telegram API'],
+    image: '/projects/crypto-ai.jpg',
+  },
+  {
+    id: 'real-estate-ai',
+    title: 'Real Estate AI Description Generator',
+    description: 'LLM-powered platform that generates and fine-tunes property descriptions tailored to target buyer demographics. Gifted to local real estate agency.',
+    technologies: ['OpenAI API', 'Node.js', 'React.js', 'NLP', 'Demographic Analysis'],
+    image: '/projects/real-estate.jpg',
   },
 ];
 
+export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS];
+
 export const BLOG_POSTS: BlogPost[] = [
   {
-    id: 'ai-market-analysis',
-    title: 'Building AI-Powered Market Analysis: Lessons from AssetRadars.com',
-    excerpt: 'Deep dive into the technical challenges and solutions in building a real-time cryptocurrency analysis platform.',
+    id: 'scaling-ai-enterprise',
+    title: 'Scaling AI to Enterprise: From Voya to Lonely Planet\'s 5M+ Users',
+    excerpt: 'How I led the development and deployment of production AI systems that serve millions of users daily, sharing lessons from AWS Bedrock, LangChain, and vector search implementations.',
     content: '',
-    date: '2024-01-15',
+    date: '2024-12-15',
+    readTime: '12 min read',
+    tags: ['AI/ML', 'AWS Bedrock', 'Enterprise Scale', 'LangChain', 'Production AI'],
+    published: true,
+    source: 'internal',
+  },
+  {
+    id: 'team-scaling-playbook',
+    title: 'The $15M Playbook: Scaling Engineering Teams from 10 to 150+',
+    excerpt: 'Strategic insights from growing EPAM delivery teams across Fortune 500 engagements, including team structure, hiring, and revenue optimization.',
+    content: '',
+    date: '2024-11-20',
+    readTime: '10 min read',
+    tags: ['Leadership', 'Team Scaling', 'EPAM', 'Revenue Growth', 'Engineering Management'],
+    published: true,
+    source: 'internal',
+  },
+  {
+    id: 'real-time-ai-roku',
+    title: 'Building Real-Time AI at Roku Scale: 70M+ Devices, Sub-100ms Latency',
+    excerpt: 'Technical deep-dive into architecting AI-powered ad forecasting systems that process millions of transactions per second with Apache Spark MLlib and AWS EMR.',
+    content: '',
+    date: '2024-10-10',
+    readTime: '15 min read',
+    tags: ['Apache Spark', 'Real-time AI', 'AWS EMR', 'Machine Learning', 'Scale'],
+    published: true,
+    source: 'internal',
+  },
+  {
+    id: 'blockchain-banking',
+    title: 'Implementing Blockchain in Banking: From PoC to Production',
+    excerpt: 'Case study of architecting Eastern Europe\'s largest bank\'s first blockchain identity management solution using IBM Hyperledger Fabric.',
+    content: '',
+    date: '2024-09-05',
     readTime: '8 min read',
-    tags: ['AI', 'FinTech', 'Technical Analysis', 'Next.js'],
-    published: true,
-    source: 'internal',
-  },
-  {
-    id: 'reddit-api-integration',
-    title: 'Integrating Reddit API with AI: A Complete Guide',
-    excerpt: 'How to build intelligent Reddit analysis tools using OpenAI and Reddit API with proper rate limiting and OAuth2.',
-    content: '',
-    date: '2024-01-10',
-    readTime: '6 min read',
-    tags: ['Reddit API', 'OpenAI', 'AI Integration', 'OAuth2'],
-    published: true,
-    source: 'internal',
-  },
-  {
-    id: 'mcp-coinbase',
-    title: 'Model Context Protocol: The Future of AI-Crypto Integration',
-    excerpt: 'Exploring the potential of MCP for building sophisticated cryptocurrency AI applications.',
-    content: '',
-    date: '2024-01-05',
-    readTime: '5 min read',
-    tags: ['MCP', 'Crypto', 'AI', 'Integration'],
+    tags: ['Blockchain', 'IBM Hyperledger', 'Banking', 'Smart Contracts', 'Identity Management'],
     published: true,
     source: 'internal',
   },
@@ -129,21 +213,26 @@ export const CONTACT_INFO: ContactInfo = {
 };
 
 export const SKILLS = [
-  'JavaScript/TypeScript',
-  'React/Next.js',
-  'Node.js',
-  'Python',
-  'AI/LLM Integration',
-  'OpenAI API',
-  'MongoDB',
-  'PostgreSQL',
-  'Redis',
-  'Docker',
-  'AWS',
-  'API Design',
-  'Microservices',
-  'Technical Leadership',
-  'Agile/Scrum',
+  'AI/ML Leadership',
+  'AWS Bedrock/Claude AI',
+  'LangChain/Vector Search',
+  'Apache Spark MLlib',
+  'Real-time Data Processing',
+  'Enterprise Architecture',
+  'Team Scaling (10→150+ engineers)',
+  'Revenue Generation ($15M+)',
+  'AWS/Azure/GCP',
+  'Kubernetes/Terraform',
+  'React/Angular/Node.js',
+  'Python/Java/.NET',
+  'Blockchain/Smart Contracts',
+  'Technical Program Management',
+  'Digital Transformation',
+  'Agile/SAFe Methodologies',
+  'C-Level Stakeholder Management',
+  'Conference Speaking',
+  'Team Mentoring',
+  'Cost Optimization',
 ];
 
 export const NAVIGATION_ITEMS = [

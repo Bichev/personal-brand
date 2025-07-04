@@ -7,6 +7,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_CONFIG.url),
   title: SITE_CONFIG.title,
   description: SITE_CONFIG.description,
   keywords: ['AI', 'LLM', 'Developer', 'Full Stack', 'Engineering', 'Technical Leadership', 'OpenAI', 'Next.js', 'React'],

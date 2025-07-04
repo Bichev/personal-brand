@@ -9,23 +9,23 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
   const highlights = [
     {
       icon: <FaCode className="w-8 h-8" />,
-      title: '15+ Years Experience',
-      description: 'Extensive experience in full-stack development and system architecture',
+      title: '$15M+ Revenue Driver',
+      description: 'Delivered over $15M in revenue growth at EPAM, scaling teams from 10 to 150+ engineers across Fortune 500 engagements',
     },
     {
       icon: <FaBrain className="w-8 h-8" />,
-      title: 'AI/LLM Specialist',
-      description: 'Expert in AI integration, OpenAI API, and machine learning implementations',
+      title: 'AI/ML Pioneer',
+      description: 'Built production AI systems for Roku (70M+ devices), Travel + Leisure (Voya AI agent), and Lonely Planet (5M+ interactions)',
     },
     {
       icon: <FaRocket className="w-8 h-8" />,
-      title: 'Innovation Focus',
-      description: 'Building cutting-edge solutions that bridge technology and business needs',
+      title: 'Enterprise Scale',
+      description: 'Led digital transformations processing 4B+ documents daily, 100M+ search queries, and millions of real-time transactions',
     },
     {
       icon: <FaUsers className="w-8 h-8" />,
-      title: 'Technical Leadership',
-      description: 'Leading development teams and driving technical strategy decisions',
+      title: 'Industry Recognition',
+      description: 'EPAM CEO Award recipient, Harvard & Wharton educated, 10+ conference speaker, 350+ training participants',
     },
   ];
 
@@ -43,7 +43,7 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
             About Me
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Passionate about leveraging technology to solve real-world problems through innovative development and strategic leadership.
+            Technology visionary driving digital transformation at enterprise scale, delivering breakthrough AI solutions for Fortune 500 companies while pioneering the future of intelligent systems.
           </p>
         </motion.div>
 

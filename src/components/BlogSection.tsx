@@ -25,7 +25,7 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
             Latest Insights
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Thoughts on AI, development, and the future of technology
+            Enterprise AI insights from 10+ European conferences, Harvard & Wharton education, and real-world implementations at Fortune 500 scale
           </p>
         </motion.div>
 
@@ -88,8 +88,8 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
               Want to stay updated?
             </h3>
             <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-              I regularly share insights about AI development, technical leadership, and innovative solutions. 
-              Connect with me on LinkedIn to stay in the loop.
+              Join 350+ professionals who've attended my training sessions (4.55/5 rating) and follow my insights on scaling AI at enterprise level. 
+              Connect with me on LinkedIn for exclusive content from Fortune 500 engagements.
             </p>
             <Button
               variant="outline"

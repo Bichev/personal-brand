@@ -37,7 +37,7 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
             Let's Connect
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Open to discussing opportunities, collaborations, or just having a conversation about technology and innovation
+            Available for C-level consulting, enterprise AI transformations, conference speaking, and strategic technology partnerships. Harvard & Wharton educated, $15M+ revenue track record.
           </p>
         </motion.div>
 
@@ -122,18 +122,18 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                     <FaEnvelope className="text-blue-600 dark:text-blue-400" size={24} />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Collaboration
+                    Enterprise Consulting
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                    Interested in working together on AI/LLM projects or technical consulting?
+                    C-level AI strategy consulting, digital transformation leadership, and Fortune 500 technical advisory services.
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    href={`mailto:${CONTACT_INFO.email}?subject=Collaboration Opportunity`}
+                    href={`mailto:${CONTACT_INFO.email}?subject=Enterprise AI Consulting Inquiry`}
                     external
                   >
-                    Send Email
+                    Contact for Consulting
                   </Button>
                 </div>
               </Card>
@@ -191,15 +191,15 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                     <FaTwitter className="text-orange-600 dark:text-orange-400" size={24} />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Speaking
+                    Conference Speaking
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                    Available for speaking engagements about AI, technical leadership, and innovation.
+                    10+ European conferences speaker on enterprise AI, machine learning, and blockchain technologies.
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    href={`mailto:${CONTACT_INFO.email}?subject=Speaking Opportunity`}
+                    href={`mailto:${CONTACT_INFO.email}?subject=Conference Speaking Engagement`}
                     external
                   >
                     Book Speaking
