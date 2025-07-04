@@ -34,6 +34,7 @@ export function getInitials(name: string): string {
     .toUpperCase();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function debounce<F extends (...args: any[]) => any>(func: F, delay: number) {
   let timeoutId: NodeJS.Timeout | null = null;
 
