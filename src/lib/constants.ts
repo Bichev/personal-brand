@@ -60,6 +60,14 @@ export const ENTERPRISE_PROJECTS: Project[] = [
     image: '/projects/streaming-ai.jpg',
   },
   {
+    id: 'banking-blockchain',
+    title: 'Enterprise Blockchain Identity System',
+    description: 'Architected and implemented major European bank\'s first blockchain-based identity management solution using IBM Hyperledger Fabric, improving processing efficiency by 70%.',
+    technologies: ['IBM Hyperledger Fabric', 'Smart Contracts', 'Go SDK', 'CouchDB', 'Spring Boot'],
+    featured: true,
+    image: '/projects/blockchain.jpg',
+  },
+  {
     id: 'fintech-transformation',
     title: 'Financial Services Digital Transformation',
     description: 'Led large-scale digital transformation for major US financial services provider, managing 50+ engineers across BI analytics, microservices migration, and frontend modernization.',
@@ -73,13 +81,7 @@ export const ENTERPRISE_PROJECTS: Project[] = [
     technologies: ['AWS EKS', 'Apache Flink', 'ElasticSearch', 'React', 'Terraform', 'Jenkins'],
     image: '/projects/publishing.jpg',
   },
-  {
-    id: 'banking-blockchain',
-    title: 'Enterprise Blockchain Identity System',
-    description: 'Architected and implemented major European bank\'s first blockchain-based identity management solution using IBM Hyperledger Fabric, improving processing efficiency by 70%.',
-    technologies: ['IBM Hyperledger Fabric', 'Smart Contracts', 'Go SDK', 'CouchDB', 'Spring Boot'],
-    image: '/projects/blockchain.jpg',
-  },
+
 ];
 
 // Personal Projects & Innovations
@@ -191,22 +193,22 @@ export const CONTACT_INFO: ContactInfo = {
   socialLinks: [
     {
       name: 'LinkedIn',
-      url: 'https://linkedin.com/in/vladimirbi',
+      url: 'https://www.linkedin.com/in/vladimir-bichev-383b1525/',
       icon: 'FaLinkedin',
     },
     {
       name: 'GitHub',
-      url: 'https://github.com/vladimirbi',
+      url: 'https://github.com/Bichev',
       icon: 'FaGithub',
     },
     {
       name: 'Twitter',
-      url: 'https://twitter.com/vladimirbi',
+      url: 'https://x.com/_bichev',
       icon: 'FaTwitter',
     },
     {
       name: 'Email',
-      url: 'mailto:vladimir.bichev@gmail.com',
+      url: 'mailto:vl.bichev@gmail.com',
       icon: 'FaEnvelope',
     },
   ],
@@ -240,8 +242,8 @@ export const SKILLS = [
   'Apache Spark MLlib',
   'Real-time Data Processing',
   'Enterprise Architecture',
-  'Team Scaling (10→150+ engineers)',
-  'Revenue Generation ($15M+)',
+  //'Team Scaling (10→150+ engineers)',
+  // 'Revenue Generation ($15M+)',
   'AWS/Azure/GCP',
   'Kubernetes/Terraform',
   'React/Angular/Node.js',
