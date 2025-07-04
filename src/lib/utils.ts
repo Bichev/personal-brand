@@ -34,15 +34,19 @@ export function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export function debounce<T extends (...args: any[]) => void>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
+export function debounce<F extends (...args: any[]) => any>(func: F, delay: number) {
+  let timeoutId: NodeJS.Timeout | null = null;
+
+  const debouncedFunc = (...args: Parameters<F>): void => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
   };
+
+  return debouncedFunc;
 }
 
 export function generateSlug(text: string): string {

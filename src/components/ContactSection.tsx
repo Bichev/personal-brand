@@ -34,7 +34,7 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            Let's Connect
+            Let&apos;s Connect
           </h2>
           {/* <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Available for C-level consulting, enterprise AI transformations, conference speaking, and strategic technology partnerships. Harvard & Wharton educated, $15M+ revenue track record.
@@ -148,7 +148,7 @@ export function ContactSection({ className, id = 'contact' }: SectionProps) {
                     Networking
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                    Let's connect and discuss technology trends, AI developments, or industry insights.
+                    Let&apos;s connect and discuss technology trends, AI developments, or industry insights.
                   </p>
                 </div>
                 <div className="text-center mt-auto">
