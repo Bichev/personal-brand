@@ -60,7 +60,8 @@ export function Navigation() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleNavClick(item.href)}
-                  className={`transition-colors focus:outline-none ${
+                  style={{ outline: 'none', boxShadow: 'none' }}
+                  className={`transition-colors focus:outline-none focus-visible:ring-0 ${
                     isActive
                       ? 'text-blue-600 dark:text-blue-400 font-bold'
                       : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium'
@@ -120,7 +121,8 @@ export function Navigation() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleNavClick(item.href)}
-                  className={`block w-full text-left px-4 py-3 transition-colors focus:outline-none ${
+                  style={{ outline: 'none', boxShadow: 'none' }}
+                  className={`block w-full text-left px-4 py-3 transition-colors focus:outline-none focus-visible:ring-0 ${
                     isActive
                       ? 'text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-gray-800'
                       : 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium'
