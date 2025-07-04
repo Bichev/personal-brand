@@ -41,24 +41,22 @@ export function InterestsSection({ className, id = 'interests' }: SectionProps) 
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <Card padding="none" className="overflow-hidden h-full">
-                <div className="relative h-56 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600">
+              <Card padding="none" className="overflow-hidden h-full group flex flex-col">
+                <div className="relative h-56 flex-shrink-0">
                   <Image
                     src={interest.image}
                     alt={interest.title}
                     fill
-                    className="object-cover opacity-80"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-                    <div className="text-white text-center p-4 bg-black bg-opacity-30 rounded-lg">
-                      <div className="mb-2 flex justify-center">
-                        {iconMap[interest.icon as keyof typeof iconMap]}
-                      </div>
-                      <h3 className="text-xl font-bold">{interest.title}</h3>
+                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-4 text-center transition-colors group-hover:bg-black/50">
+                    <div className="text-white mb-3">
+                      {iconMap[interest.icon as keyof typeof iconMap]}
                     </div>
+                    <h3 className="text-xl font-bold text-white">{interest.title}</h3>
                   </div>
                 </div>
-                <div className="p-6">
+                <div className="p-6 bg-white dark:bg-gray-900 flex-grow">
                   <p className="text-gray-600 dark:text-gray-300">
                     {interest.description}
                   </p>

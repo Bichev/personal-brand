@@ -4,7 +4,7 @@ export const SITE_CONFIG = {
   name: 'Vladimir Bichev',
   title: 'Vladimir Bichev - Technical Program Manager & AI Engineering Leader',
   description: 'Technical Program Manager and AI Engineering Leader with 15+ years of experience driving digital transformation at scale. Currently at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
-  url: 'https://vladimirbichev.com',
+  url: 'https://vladbichev.com',
   ogImage: '/og-image.jpg',
   tagline: 'Technical Program Manager & AI Engineering Leader',
   shortBio: 'Bridging AI capabilities with real-world applications through innovative development and strategic leadership.',
@@ -20,15 +20,15 @@ Over 10 years at EPAM Systems, I've had the privilege of growing from an individ
 
 <strong>Current Focus:</strong> Leading AI-powered transformations for major travel and media companies, where I'm building systems that serve millions of users daily through personalized recommendations and intelligent content delivery.
 
-<strong>Career Milestones:</strong> I've led digital transformation processing 4B+ documents daily, drove AI forecasting system architecture for streaming platforms serving 70M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at 10+ European conferences.
+<strong>Career Milestones:</strong> I've led digital transformation processing 4B+ documents daily, drove AI forecasting system architecture for streaming platforms serving 70M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at Europe and USA tech conferences in AI, Blockchain, and Data Architecture.
 
 <strong>Continuous Learning:</strong> I believe in staying ahead of the curve through education - from Harvard Business School and Wharton to hands-on certifications like AWS Solution Architect.
 
 <strong>Beyond Work:</strong> I channel my passion for innovation into personal AI projects - some have even been acquired by private investors, proving that good ideas can come from anywhere.
 
 What drives me is the intersection of cutting-edge technology and practical business impact. Every line of code, every architectural decision, every team I build - it's all aimed at creating solutions that make a real difference in how people work and live.`,
-  email: 'vladimir.bichev@gmail.com',
-  location: 'Jacksonville Beach, FL',
+  email: 'vl.bichev@gmail.com',
+  location: 'Jacksonville, FL',
   resumeUrl: '/Vladimir_Bichev_CV.pdf',
   photoUrl: '/profile-photo.jpg',
 };
@@ -220,16 +220,16 @@ export const INTERESTS = [
     image: '/interests/fishing.jpg',
   },
   {
-    title: 'Endurance Runner',
-    description: 'From 5K sprints to full marathons, I\'m passionate about the discipline and resilience of long-distance running. It\'s a powerful metaphor for tackling complex, long-term projects.',
-    icon: 'FaRunning',
-    image: '/interests/running.jpg',
-  },
-  {
     title: 'Sourdough Baker',
     description: 'I bake and sell sourdough bread at local farmers markets. The blend of science, patience, and craft is a perfect complement to my work in technology.',
     icon: 'FaBreadSlice',
     image: '/interests/baking.jpg',
+  },
+  {
+    title: 'Endurance Runner',
+    description: 'From 5K sprints to full marathons, I\'m passionate about the discipline and resilience of long-distance running. It\'s a powerful metaphor for tackling complex, long-term projects.',
+    icon: 'FaRunning',
+    image: '/interests/running.jpg',
   },
 ];
 
@@ -260,5 +260,6 @@ export const NAVIGATION_ITEMS = [
   { name: 'About', href: '#about' },
   { name: 'Projects', href: '#projects' },
   { name: 'Blog', href: '#blog' },
+  { name: 'Interests', href: '#interests' },
   { name: 'Contact', href: '#contact' },
 ]; 

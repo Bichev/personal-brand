@@ -14,8 +14,8 @@ export default function Home() {
       <AboutSection />
       <ProjectsSection />
       <BlogSection />
-      <ContactSection />
       <InterestsSection />
+      <ContactSection />
       
       {/* Footer */}
       <footer className="bg-gray-100 dark:bg-black text-gray-600 dark:text-gray-400 py-8">
