@@ -10,7 +10,7 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
     {
       icon: <FaCode className="w-8 h-8" />,
       title: '$15M+ Revenue Driver',
-      description: 'Delivered over $15M in revenue growth at EPAM, scaling teams from 10 to 200+ engineers across Fortune 500 engagements',
+      description: 'Delivered over $15M in revenue growth at EPAM, scaling teams from 10 to 150+ engineers across Fortune 500 engagements',
     },
     {
       icon: <FaBrain className="w-8 h-8" />,
@@ -52,9 +52,9 @@ export function AboutSection({ className, id = 'about' }: SectionProps) {
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
             About Me
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          {/* <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             A Technical Program Manager and AI Engineering Leader driving digital transformation at enterprise scale, delivering cutting-edge solutions for Fortune 500 companies.
-          </p>
+          </p> */}
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

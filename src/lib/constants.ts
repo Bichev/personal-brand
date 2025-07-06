@@ -16,7 +16,7 @@ export const PERSONAL_INFO = {
   shortBio: 'Technical Program Manager and AI Engineering Leader with 15+ years of experience driving digital transformation at scale. Currently at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
   longBio: `My journey in technology has been focused on one core principle: <strong>building solutions that create meaningful business impact.</strong>
 
-Over 10 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 200+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
+Over 10 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 150+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
 
 <strong>Current Focus:</strong> Leading AI-powered transformations for major travel and media companies, where I'm building systems that serve millions of users daily through personalized recommendations and intelligent content delivery.
 
@@ -81,14 +81,14 @@ export const ENTERPRISE_PROJECTS: Project[] = [
   {
     id: 'publishing-cloud-migration',
     title: 'Publishing Platform AWS Migration',
-    description: 'Scaled team from 10 to 200+, delivering a cloud-native pipeline handling 4B+ documents daily for a major publisher.',
+    description: 'Scaled team from 10 to 150+, delivering a cloud-native pipeline handling 4B+ documents daily for a major publisher.',
     technologies: ['AWS EKS', 'Apache Flink', 'ElasticSearch', 'React', 'Terraform', 'Jenkins', 'Streamsets', 'MongoDB'],
     icon: 'FaBookOpen',
   },
   {
     id: 'telecom-recommendation-engine',
     title: 'AI Recommendation Engine for Telecom',
-    description: 'Led development of an AI recommendation engine for a major telecom, increasing ad revenue by $2M in the first year.',
+    description: 'Led development of an AI recommendation engine for a major telecom, increasing ad revenue by $500k in the first year.',
     technologies: ['Apache Spark', 'Apache Ignite', 'Real-time Analytics', 'Machine Learning', 'Docker', 'Kubernetes'],
     icon: 'FaWifi',
   }
@@ -346,7 +346,7 @@ export const SKILLS = [
   'Technical Program Management',
   'Digital Transformation',
   'Agile/SAFe Methodologies',
-  'C-Level Stakeholder Management',
+  'Stakeholder Management',
   'Conference Speaking',
   'Team Mentoring',
   'Cost Optimization',
