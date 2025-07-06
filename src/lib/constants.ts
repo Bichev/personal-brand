@@ -105,6 +105,7 @@ export const PERSONAL_PROJECTS: Project[] = [
     // githubUrl: 'https://github.com/vladimirbi/assetradars',
     featured: true,
     image: '/projects/assetradars.jpg',
+    icon: 'FaChartLine',
   },
   {
     id: 'ai-stock-news',
@@ -114,6 +115,7 @@ export const PERSONAL_PROJECTS: Project[] = [
     featured: true,
     image: '/projects/stock-news.jpg',
     liveUrl: 'https://t.me/wsb_sum',
+    icon: 'FaNewspaper',
   },
   {
     id: 'coinbase-mcp',
@@ -124,6 +126,7 @@ export const PERSONAL_PROJECTS: Project[] = [
     liveUrl: 'http://54.81.70.175:3005',
     githubUrl: 'https://github.com/Bichev/coinbase-chat-mcp',
     image: '/projects/coinbase-mcp.jpg',
+    icon: 'FaExchangeAlt',
   },
   {
     id: 'reddit-ai',
@@ -134,6 +137,7 @@ export const PERSONAL_PROJECTS: Project[] = [
     liveUrl: 'https://ask-reddit-ai.vercel.app',
     image: '/projects/reddit-ai.jpg',
     featured: true,
+    icon: 'FaRedditAlien',
   },
   // {
   //   id: 'crypto-trading-ai',

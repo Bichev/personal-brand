@@ -4,14 +4,15 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { 
   FaGithub, FaExternalLinkAlt, FaRocket, FaPlane, FaRobot, 
-  FaTv, FaLink, FaPiggyBank, FaBookOpen, FaWifi, FaBuilding
+  FaTv, FaLink, FaPiggyBank, FaBookOpen, FaWifi, FaBuilding,
+  FaChartLine, FaNewspaper, FaExchangeAlt, FaRedditAlien
 } from 'react-icons/fa';
 import { Card } from './Card';
 import { Button } from './Button';
 import { ENTERPRISE_PROJECTS, PERSONAL_PROJECTS } from '@/lib/constants';
 import { SectionProps, Project } from '@/types';
 
-const enterpriseIconMap = {
+const iconMap = {
   FaPlane: <FaPlane className="text-4xl mb-2 mx-auto" />,
   FaRobot: <FaRobot className="text-4xl mb-2 mx-auto" />,
   FaTv: <FaTv className="text-4xl mb-2 mx-auto" />,
@@ -19,6 +20,11 @@ const enterpriseIconMap = {
   FaPiggyBank: <FaPiggyBank className="text-lg mt-1" />,
   FaBookOpen: <FaBookOpen className="text-lg mt-1" />,
   FaWifi: <FaWifi className="text-lg mt-1" />,
+  FaChartLine: <FaChartLine className="text-4xl mb-2 mx-auto" />,
+  FaNewspaper: <FaNewspaper className="text-4xl mb-2 mx-auto" />,
+  FaExchangeAlt: <FaExchangeAlt className="text-4xl mb-2 mx-auto" />,
+  FaRedditAlien: <FaRedditAlien className="text-4xl mb-2 mx-auto" />,
+  FaRocket: <FaRocket className="text-4xl mb-2 mx-auto" />,
 };
 
 export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
@@ -28,12 +34,28 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
   const otherPersonalProjects = PERSONAL_PROJECTS.filter(project => !project.featured);
 
   const getEnterpriseIcon = (iconName: string, isFeatured: boolean = false) => {
-    const icon = enterpriseIconMap[iconName as keyof typeof enterpriseIconMap];
+    const icon = iconMap[iconName as keyof typeof iconMap];
     if (isFeatured) {
       return <div className="text-white">{icon}</div>;
     }
     return <div className="text-blue-600 dark:text-blue-400 flex-shrink-0">{icon}</div>;
   };
+
+  const getPersonalIcon = (iconName: string, isFeatured: boolean = false) => {
+    const iconKey = iconName || 'FaRocket';
+    const icon = iconMap[iconKey as keyof typeof iconMap];
+
+    if (isFeatured) {
+      // For featured cards, the icon is large and white, overlaying an image or gradient
+      return <div className="text-white">{icon}</div>;
+    }
+    // For non-featured cards, the icon is smaller and has the green brand color
+    const smallIcon = {
+      ...icon,
+      props: { ...icon.props, className: 'text-lg mt-1' }
+    };
+    return <div className="text-green-600 dark:text-green-400 flex-shrink-0">{smallIcon}</div>;
+  }
 
   return (
     <section id={id} className={`py-10 bg-gray-50 dark:bg-gray-800 ${className}`}>
@@ -205,7 +227,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                         />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4 text-center transition-colors group-hover:bg-black/50">
                            <div className="text-white text-center">
-                            <FaRocket className="text-4xl mb-2 mx-auto" />
+                            {getPersonalIcon(project.icon!, true)}
                             <h3 className="text-xl font-bold">{project.title}</h3>
                           </div>
                         </div>
@@ -213,7 +235,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center">
                         <div className="text-white text-center">
-                          <FaRocket className="text-4xl mb-2 mx-auto" />
+                          {getPersonalIcon(project.icon!, true)}
                           <h3 className="text-xl font-bold">{project.title}</h3>
                         </div>
                       </div>
@@ -286,7 +308,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                   <Card className="h-full flex flex-col">
                     <div className="flex-grow">
                       <div className="flex items-start gap-3 mb-3">
-                        <FaRocket className="text-green-600 dark:text-green-400 text-lg mt-1" />
+                        {getPersonalIcon(project.icon!)}
                         <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {project.title}
                         </h4>
