@@ -159,6 +159,32 @@ export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: 'machiavelli-ai-framework',
+    title: 'The Prince & The AI Revolution: A Machiavellian Power Analysis',
+    excerpt: 'Applying Niccolò Machiavelli\'s strategic framework from "The Prince" to the modern AI revolution — analyzing power dynamics, Fortune vs. Virtù, and the strategic mistakes companies make today.',
+    content: '',
+    date: '2026-02-22',
+    readTime: '12 min read',
+    tags: ['Strategy', 'AI Revolution', 'Leadership', 'Power Dynamics'],
+    published: true,
+    source: 'internal',
+    localPath: '/blog/machiavelli-ai-framework.html',
+    featured: true,
+  },
+  {
+    id: 'machiavelli-flowchart',
+    title: 'The Prince — Strategic Decision Flowchart',
+    excerpt: 'An interactive visual flowchart mapping Machiavelli\'s strategic decision framework: from acquiring power through maintaining it, adapted for the age of AI and technological disruption.',
+    content: '',
+    date: '2026-02-22',
+    readTime: '8 min read',
+    tags: ['Strategy', 'Decision Framework', 'Interactive', 'Visualization'],
+    published: true,
+    source: 'internal',
+    localPath: '/blog/machiavelli-flowchart.html',
+    featured: true,
+  },
+  {
     id: 'building-coinbase-mcp',
     title: 'I Built a Coinbase Chat Agent to Understand Model Context Protocol',
     excerpt: 'An open-source agent that turns the Coinbase API into a conversational tool using MCP, allowing natural language queries for real-time crypto data.',

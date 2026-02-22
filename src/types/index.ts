@@ -22,6 +22,8 @@ export interface BlogPost {
   published: boolean;
   url?: string;
   source?: 'internal' | 'linkedin' | 'external';
+  localPath?: string;
+  featured?: boolean;
 }
 
 export interface SocialLink {

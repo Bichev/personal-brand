@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Prince & The AI Revolution</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0c08;
+    --parchment: #f5f0e8;
+    --gold: #c9a84c;
+    --gold-light: #e8c96e;
+    --crimson: #8b1a1a;
+    --crimson-light: #c0392b;
+    --steel: #2c3e50;
+    --fog: #d4cfc4;
+    --accent: #1a3a2e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .back-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 12px 40px;
+    background: rgba(14, 12, 8, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .back-nav a {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .back-nav a:hover { opacity: 1; }
+  .back-nav .site-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--fog);
+    opacity: 0.5;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 100px 40px 60px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 80px;
+    position: relative;
+  }
+
+  .header::before {
+    content: '✦ STRATEGIC INTELLIGENCE BRIEF ✦';
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    margin-bottom: 24px;
+    opacity: 0.8;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 7vw, 82px);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -2px;
+    color: var(--parchment);
+  }
+
+  .header h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .header-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--fog);
+    margin-top: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .divider span {
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  /* ── SECTION TITLES ── */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 32px;
+    color: var(--parchment);
+  }
+
+  /* ── POWER MAP ── */
+  .power-map {
+    margin-bottom: 80px;
+  }
+
+  .power-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 2px;
+    background: var(--gold);
+    border: 1px solid var(--gold);
+  }
+
+  .quadrant {
+    background: var(--ink);
+    padding: 28px;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .quadrant:hover { background: #15120a; }
+
+  .quadrant-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  .quadrant h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--parchment);
+  }
+
+  .quadrant p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--fog);
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+
+  .company-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid;
+    letter-spacing: 1px;
+  }
+
+  .tag-gold { border-color: var(--gold); color: var(--gold); }
+  .tag-crimson { border-color: var(--crimson-light); color: var(--crimson-light); }
+  .tag-fog { border-color: var(--fog); color: var(--fog); opacity: 0.7; }
+  .tag-green { border-color: #4a9e6b; color: #4a9e6b; }
+
+  .quadrant-status {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .status-win { background: #4a9e6b; box-shadow: 0 0 8px #4a9e6b; }
+  .status-watch { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+  .status-fall { background: var(--crimson-light); box-shadow: 0 0 8px var(--crimson-light); }
+  .status-dead { background: #555; }
+
+  /* ── AXIS LABELS ── */
+  .axis-container {
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .axis-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .axis-x {
+    display: flex;
+    justify-content: space-around;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 2px;
+  }
+
+  /* ── ROLES MAP ── */
+  .roles-section { margin-bottom: 80px; }
+
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: rgba(201, 168, 76, 0.15);
+  }
+
+  .role-card {
+    background: var(--ink);
+    padding: 24px 20px;
+    border-left: 3px solid transparent;
+    transition: all 0.3s;
+  }
+
+  .role-card:hover { background: #141009; transform: translateY(-2px); }
+
+  .role-card.win { border-left-color: #4a9e6b; }
+  .role-card.watch { border-left-color: var(--gold); }
+  .role-card.fall { border-left-color: var(--crimson-light); }
+  .role-card.dead { border-left-color: #444; }
+
+  .role-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .role-machiavelli {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .role-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--fog);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .role-example {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    background: rgba(201, 168, 76, 0.08);
+    border-left: 2px solid var(--gold);
+    color: var(--gold-light);
+  }
+
+  /* ── FORTUNE WHEEL ── */
+  .fortune-section { margin-bottom: 80px; }
+
+  .fortune-canvas {
+    background: #080705;
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fortune-canvas::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 168, 76, 0.05);
+  }
+
+  .fortune-canvas::after {
+    content: '';
+    position: absolute;
+    top: -150px;
+    right: -150px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 168, 76, 0.03);
+  }
+
+  .principles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .principle {
+    padding: 20px;
+    border: 1px solid rgba(201, 168, 76, 0.15);
+    position: relative;
+  }
+
+  .principle-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: rgba(201, 168, 76, 0.12);
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    line-height: 1;
+  }
+
+  .principle h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--gold-light);
+  }
+
+  .principle p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--fog);
+    line-height: 1.7;
+  }
+
+  .principle .verdict {
+    margin-top: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--crimson-light);
+  }
+
+  .principle .verdict.good { color: #4a9e6b; }
+
+  /* ── WINDOW ── */
+  .window-section { margin-bottom: 80px; }
+
+  .timeline {
+    position: relative;
+    padding: 20px 0;
+  }
+
+  .timeline-track {
+    height: 4px;
+    background: linear-gradient(90deg, var(--crimson) 0%, var(--gold) 40%, #4a9e6b 70%, #2a5e3f 100%);
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--fog);
+    opacity: 0.7;
+  }
+
+  .timeline-events {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .t-event {
+    padding: 16px;
+    border-top: 2px solid;
+  }
+
+  .t-event.past { border-color: var(--crimson); }
+  .t-event.now { border-color: var(--gold); background: rgba(201, 168, 76, 0.05); }
+  .t-event.near { border-color: #4a9e6b; }
+  .t-event.future { border-color: #2a5e3f; }
+
+  .t-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    color: inherit;
+  }
+
+  .t-event.past .t-date { color: var(--crimson-light); }
+  .t-event.now .t-date { color: var(--gold); }
+  .t-event.near .t-date { color: #4a9e6b; }
+  .t-event.future .t-date { color: #2a5e3f; }
+
+  .t-event h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--parchment);
+  }
+
+  .t-event p {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--fog);
+    line-height: 1.6;
+  }
+
+  /* ── MISTAKES ── */
+  .mistakes-section { margin-bottom: 80px; }
+
+  .mistakes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .mistake-card {
+    padding: 20px;
+    border: 1px solid rgba(139, 26, 26, 0.4);
+    background: rgba(139, 26, 26, 0.05);
+    position: relative;
+  }
+
+  .mistake-card::before {
+    content: '✗';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    color: var(--crimson-light);
+    font-size: 16px;
+    opacity: 0.6;
+  }
+
+  .mistake-company {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--crimson-light);
+    margin-bottom: 6px;
+  }
+
+  .mistake-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--parchment);
+  }
+
+  .mistake-card p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--fog);
+    line-height: 1.7;
+  }
+
+  .quote-block {
+    border-left: 3px solid var(--gold);
+    padding: 20px 24px;
+    background: rgba(201, 168, 76, 0.04);
+    margin: 32px 0;
+  }
+
+  .quote-block blockquote {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--parchment);
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .quote-block cite {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 3px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding-top: 40px;
+    border-top: 1px solid rgba(201, 168, 76, 0.2);
+  }
+
+  .footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--fog);
+    opacity: 0.5;
+    letter-spacing: 2px;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--fog);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  @media (max-width: 700px) {
+    .power-grid, .roles-grid, .principles-grid, .timeline-events, .mistakes-grid {
+      grid-template-columns: 1fr;
+    }
+    .page { padding: 30px 20px; }
+  }
+
+  /* Staggered reveal animation */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate {
+    animation: fadeUp 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.5s; }
+  .delay-6 { animation-delay: 0.6s; }
+</style>
+</head>
+<body>
+<div class="back-nav">
+  <a href="/">← BACK TO SITE</a>
+  <span class="site-name">VLADIMIR BICHEV</span>
+</div>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header animate delay-1">
+    <h1>The Prince &amp;<br><em>The AI Revolution</em></h1>
+    <p class="header-sub">A Machiavellian Power Map of the Technology Disruption — 2024–2026</p>
+  </div>
+
+  <div class="divider animate delay-2"><span>◆</span></div>
+
+  <div class="quote-block animate delay-2">
+    <blockquote>"There is nothing more difficult to take in hand, more perilous to conduct, or more uncertain in its success than to take the lead in the introduction of a new order of things."</blockquote>
+    <cite>— Niccolò Machiavelli, The Prince, 1532</cite>
+  </div>
+
+  <!-- POWER MAP -->
+  <div class="power-map animate delay-3">
+    <div class="section-label">Chapter I</div>
+    <div class="section-title">The Power Map: Who Holds What Territory</div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4a9e6b;box-shadow:0 0 6px #4a9e6b"></div> Winning</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></div> Adapting / Uncertain</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--crimson-light);box-shadow:0 0 6px var(--crimson-light)"></div> Declining</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#555"></div> Structurally Doomed</div>
+    </div>
+
+    <div class="axis-x" style="margin-bottom:4px;">
+      <span>◄ INHERITED POWER</span>
+      <span>ACQUIRED POWER ►</span>
+    </div>
+
+    <div class="power-grid">
+
+      <!-- Q1: New Prince -->
+      <div class="quadrant">
+        <div class="quadrant-status status-watch"></div>
+        <div class="quadrant-label">ACQUIRED POWER · HIGH CAPABILITY</div>
+        <h3>The New Prince</h3>
+        <p>Seized territory through boldness, not birthright. Won through virtù — decisive action while the old order deliberated. Now faces the harder challenge: governing what was conquered.</p>
+        <div class="company-tags">
+          <span class="tag tag-gold">OpenAI</span>
+          <span class="tag tag-gold">Anthropic</span>
+          <span class="tag tag-gold">Mistral</span>
+          <span class="tag tag-gold">Perplexity</span>
+        </div>
+        <div style="margin-top:12px; font-family:'DM Mono'; font-size:10px; color:var(--crimson-light); letter-spacing:1px;">
+          ⚠ Risk: Conquest ≠ Governance
+        </div>
+      </div>
+
+      <!-- Q2: Adaptive Hereditary -->
+      <div class="quadrant">
+        <div class="quadrant-status status-win"></div>
+        <div class="quadrant-label">INHERITED POWER · SUCCESSFULLY ADAPTED</div>
+        <h3>The Adaptive Prince</h3>
+        <p>Recognized the wave before it arrived. Fused inherited power — relationships, distribution, trust — with new capability. The highest Machiavellian praise: reading Fortune correctly.</p>
+        <div class="company-tags">
+          <span class="tag tag-green">Microsoft</span>
+          <span class="tag tag-green">Nvidia</span>
+          <span class="tag tag-green">Amazon AWS</span>
+        </div>
+        <div style="margin-top:12px; font-family:'DM Mono'; font-size:10px; color:#4a9e6b; letter-spacing:1px;">
+          ✓ Mountain Pass Strategy
+        </div>
+      </div>
+
+      <!-- Q3: Declining Hereditary -->
+      <div class="quadrant">
+        <div class="quadrant-status status-fall"></div>
+        <div class="quadrant-label">INHERITED POWER · STRUCTURAL COWARDICE</div>
+        <h3>The Paralyzed Prince</h3>
+        <p>Had the talent, data, and compute — but could not destroy their own castle. Half-measures bred rebellion. The enemy was already inside the walls while they deliberated.</p>
+        <div class="company-tags">
+          <span class="tag tag-crimson">Google / Alphabet</span>
+          <span class="tag tag-crimson">IBM</span>
+          <span class="tag tag-crimson">Meta (AI)</span>
+          <span class="tag tag-fog">Oracle</span>
+        </div>
+        <div style="margin-top:12px; font-family:'DM Mono'; font-size:10px; color:var(--crimson-light); letter-spacing:1px;">
+          ✗ Cannot Kill Own Revenue Model
+        </div>
+      </div>
+
+      <!-- Q4: Mercenary/Doomed -->
+      <div class="quadrant">
+        <div class="quadrant-status status-dead"></div>
+        <div class="quadrant-label">LEGACY MODEL · NO MOAT</div>
+        <h3>The Mercenary Army</h3>
+        <p>Selling human hours in a world where AI collapses the hour-to-output ratio. No real stake in the outcome. Will fight well when winning is easy. Will collapse when the battle turns.</p>
+        <div class="company-tags">
+          <span class="tag tag-fog">McKinsey AI</span>
+          <span class="tag tag-fog">Accenture</span>
+          <span class="tag tag-fog">Big 4 Tech Arms</span>
+          <span class="tag tag-fog">Legacy IT Outsourcing</span>
+        </div>
+        <div style="margin-top:12px; font-family:'DM Mono'; font-size:10px; color:#555; letter-spacing:1px;">
+          ✗ Model Incompatible With New Order
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"><span>◆</span></div>
+
+  <!-- ROLES MAPPING -->
+  <div class="roles-section animate delay-3">
+    <div class="section-label">Chapter II</div>
+    <div class="section-title">The Roles: Who Are You in This War?</div>
+
+    <div class="roles-grid">
+
+      <div class="role-card win">
+        <div class="role-title" style="color:#4a9e6b">The New Prince</div>
+        <div class="role-machiavelli">Virtù incarnate — took territory others feared to claim</div>
+        <div class="role-desc">Moves before permission. Creates facts on the ground. Wins through capability and speed, not credentials. The danger is governance after conquest.</div>
+        <div class="role-example">→ Sam Altman, Andrej Karpathy (independent), AI-native startup founders</div>
+      </div>
+
+      <div class="role-card win">
+        <div class="role-title" style="color:#4a9e6b">The Mountain Pass Owner</div>
+        <div class="role-machiavelli">Controls what every army must cross — wins regardless of who prevails</div>
+        <div class="role-desc">Doesn't fight in the AI race. Owns the infrastructure the race requires. More durable than any single contestant.</div>
+        <div class="role-example">→ Jensen Huang / Nvidia, AWS, Azure AI infrastructure teams</div>
+      </div>
+
+      <div class="role-card watch">
+        <div class="role-title" style="color:var(--gold-light)">The Fox</div>
+        <div class="role-machiavelli">Cunning over force — reads terrain before moving</div>
+        <div class="role-desc">AI implementation specialist who knows which clients are ready, which legacy vendors to ally with, how to frame capability as safety. Does not fight AI debates — navigates them.</div>
+        <div class="role-example">→ Independent AI consultants, embedded enterprise AI leads</div>
+      </div>
+
+      <div class="role-card watch">
+        <div class="role-title" style="color:var(--gold-light)">The Adaptive Courtier</div>
+        <div class="role-machiavelli">Serves the new prince — transfers loyalty before forced to</div>
+        <div class="role-desc">Senior engineer or consultant who adopted AI tools before being pressured to. Now advises leadership, shapes strategy, retains status through genuine capability.</div>
+        <div class="role-example">→ Engineering leads actively shipping AI-native products, Satya Nadella archetype</div>
+      </div>
+
+      <div class="role-card fall">
+        <div class="role-title" style="color:var(--crimson-light)">The Mercenary</div>
+        <div class="role-machiavelli">No real stake — fights for pay, not conviction</div>
+        <div class="role-desc">Traditional software engineer or consultant selling hours without AI leverage. Billing rate unjustifiable. Replaced by someone junior who uses the tools they refused.</div>
+        <div class="role-example">→ Legacy SE refusing AI tools, Big 4 consultants doing AI "sprints" in old billing models</div>
+      </div>
+
+      <div class="role-card fall">
+        <div class="role-title" style="color:var(--crimson-light)">The Rebel Loyalist</div>
+        <div class="role-machiavelli">Cannot be reconciled — fights to restore the old order</div>
+        <div class="role-desc">Publicly opposes AI adoption. Cites craft, ethics, quality. Will fight hard and lose anyway because the structural economics have already shifted. Most dangerous to themselves.</div>
+        <div class="role-example">→ "AI is a bubble" senior devs, craft-over-tooling absolutists in mid-2020s</div>
+      </div>
+
+      <div class="role-card dead">
+        <div class="role-title" style="color:#888">The Neutral Prince</div>
+        <div class="role-machiavelli">"Neutral princes are always destroyed"</div>
+        <div class="role-desc">Waiting to see how AI plays out before committing. The most dangerous position. Gets consumed by whoever wins. The wait-and-see middle manager.</div>
+        <div class="role-example">→ Companies "exploring AI" with no shipped products after 2 years of pilots</div>
+      </div>
+
+      <div class="role-card watch" style="border-left-color:#6a8fc0">
+        <div class="role-title" style="color:#8ab4d4">The Arms Dealer</div>
+        <div class="role-machiavelli">Sells weapons to every side — survives any outcome</div>
+        <div class="role-desc">Builds tooling, infrastructure, or platforms that all AI contestants need. Doesn't bet on a winner. Becomes essential to the ecosystem itself.</div>
+        <div class="role-example">→ Cursor, LangChain, Weights & Biases, Cloudflare (AI gateway), Vercel</div>
+      </div>
+
+      <div class="role-card win">
+        <div class="role-title" style="color:#4a9e6b">The Trusted Advisor</div>
+        <div class="role-machiavelli">The scarcest resource: verified judgment with skin in the game</div>
+        <div class="role-desc">As AI floods every domain with frictionless output, the human who says "I built this, I stand behind it, I'm reachable" becomes extraordinarily rare and valuable.</div>
+        <div class="role-example">→ Boutique AI implementation firms, domain experts with public track records</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"><span>◆</span></div>
+
+  <!-- PRINCIPLES -->
+  <div class="fortune-section animate delay-4">
+    <div class="section-label">Chapter III</div>
+    <div class="section-title">The Principles: Signs of Right &amp; Wrong Moves</div>
+
+    <div class="fortune-canvas">
+      <div class="principles-grid">
+
+        <div class="principle">
+          <div class="principle-num">I</div>
+          <h4>Destroy Your Own Castle First</h4>
+          <p>Half-measures against your own revenue model are fatal. The prince who threatens the old order but preserves it breeds permanent rebellion. Only total transformation holds.</p>
+          <p class="verdict">✓ Netflix killed DVD before streaming killed them<br>✓ Satya killed Windows-first culture</p>
+          <p class="verdict">✗ Google protecting search from AI answers<br>✗ Consulting firms using AI to make more decks</p>
+        </div>
+
+        <div class="principle">
+          <div class="principle-num">II</div>
+          <h4>Build Loyal Armies, Not Mercenaries</h4>
+          <p>Mercenaries have no real stake. Proprietary data, fine-tuned models, internal capability — these are your loyal army. API dependency is renting mercenaries.</p>
+          <p class="verdict good">✓ Building proprietary training data moats<br>✓ Internal AI capability teams</p>
+          <p class="verdict">✗ "Our AI strategy is ChatGPT Plus licenses"<br>✗ AI wrapper startups with no data moat</p>
+        </div>
+
+        <div class="principle">
+          <div class="principle-num">III</div>
+          <h4>Seize Narrative, Not Just Capability</h4>
+          <p>The prince who arrives late with superior capability faces a legitimacy deficit that force cannot overcome. Narrative is territory. Whoever defines what the technology is for controls the politics around it.</p>
+          <p class="verdict good">✓ OpenAI named "ChatGPT" not "GPT API Consumer App"<br>✓ Anthropic owns "safe AI" narrative</p>
+          <p class="verdict">✗ Google Gemini arriving after the story was told<br>✗ IBM rebranding Watson as "IBM AI"</p>
+        </div>
+
+        <div class="principle">
+          <div class="principle-num">IV</div>
+          <h4>Control the Mountain Pass</h4>
+          <p>The most durable position is not winning the war but controlling the resource every army requires — regardless of who prevails. The pass owner wins any outcome.</p>
+          <p class="verdict good">✓ Nvidia's CUDA moat on AI compute<br>✓ Microsoft's enterprise distribution for OpenAI</p>
+          <p class="verdict">✗ Building another foundation model without differentiation<br>✗ Becoming dependent on one pass owner (single vendor risk)</p>
+        </div>
+
+        <div class="principle">
+          <div class="principle-num">V</div>
+          <h4>Fortune Favors Speed in the Window</h4>
+          <p>The window between old order collapse and new order stabilization is when the most power is available — and when the most catastrophic mistakes happen. Speed is not recklessness. Hesitation in this window is strategic suicide.</p>
+          <p class="verdict good">✓ Moving in 2023-2024 when AI implementation was rare<br>✓ Cursor capturing developer loyalty before incumbents noticed</p>
+          <p class="verdict">✗ "We're evaluating AI strategy for 2026"<br>✗ Waiting for enterprise procurement cycles to catch up</p>
+        </div>
+
+        <div class="principle">
+          <div class="principle-num">VI</div>
+          <h4>Neutral Princes Are Always Destroyed</h4>
+          <p>There is no safe middle ground in a genuine power transition. The neutral position feels safe but is consumed by whoever wins. Every company trying to "wait and see" is making the most dangerous choice.</p>
+          <p class="verdict good">✓ Any definitive bet — even an imperfect one — beats neutrality<br>✓ Committing to a vertical before the market clarifies</p>
+          <p class="verdict">✗ "We're exploring AI across all our business units"<br>✗ Running AI pilots with no path to production for 18+ months</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"><span>◆</span></div>
+
+  <!-- TIMELINE -->
+  <div class="window-section animate delay-5">
+    <div class="section-label">Chapter IV</div>
+    <div class="section-title">The Window: 2022 – 2027</div>
+
+    <div class="timeline">
+      <div class="timeline-labels">
+        <span>2022</span>
+        <span>2023</span>
+        <span>2024</span>
+        <span style="color:var(--gold); font-weight:bold;">FEB 2026 ◄</span>
+        <span>2027</span>
+        <span>2027</span>
+      </div>
+      <div class="timeline-track"></div>
+
+      <div class="timeline-events">
+
+        <div class="t-event past">
+          <div class="t-date">2022 – 2023</div>
+          <h4>The Conquest</h4>
+          <p>ChatGPT launches. New princes seize territory. Old order in denial. Maximum narrative opportunity. Those who moved here hold the field.</p>
+        </div>
+
+        <div class="t-event now">
+          <div class="t-date">FEB 2026 — WE ARE HERE ◄</div>
+          <h4>The Interregnum</h4>
+          <p>Old order hasn't collapsed. New order not yet stable. Maximum volatility, maximum opportunity. Undefended positions everywhere. Fortune watching.</p>
+        </div>
+
+        <div class="t-event near">
+          <div class="t-date">2026 – 2027</div>
+          <h4>Consolidation</h4>
+          <p>Infrastructure layers emerge. Switching costs form. Vertical moats established. Late movers face legitimacy deficit. The territory is claimed.</p>
+        </div>
+
+        <div class="t-event future">
+          <div class="t-date">2027+</div>
+          <h4>The New Hereditary Order</h4>
+          <p>New princes become old guard. New disruption cycle begins. The pattern restarts. Machiavelli is always current.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"><span>◆</span></div>
+
+  <!-- CURRENT MISTAKES -->
+  <div class="mistakes-section animate delay-5">
+    <div class="section-label">Chapter V</div>
+    <div class="section-title">Visible Mistakes Right Now</div>
+
+    <div class="mistakes-grid">
+
+      <div class="mistake-card">
+        <div class="mistake-company">SALESFORCE · SERVICENOW · ENTERPRISE SaaS</div>
+        <h4>Old-World Pricing on New-World Tech</h4>
+        <p>Agentforce and similar products package genuine AI capability inside CRM-era licensing, implementation timelines, and contract structures. The technology is real. The delivery model is the old world. Clients will route around it.</p>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-company">BIG 4 CONSULTING ARMS</div>
+        <h4>AI to Produce More Deliverables, Not Rethink Them</h4>
+        <p>Using AI to generate 10x more PowerPoint slides is not transformation. It's a faster version of a dying model. The client sophistication curve will outrun them within 24 months.</p>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-company">GOOGLE / ALPHABET</div>
+        <h4>The Fortress With No Loyal Population</h4>
+        <p>Gemini is technically competitive. But the fortress of search-first culture and ad-revenue preservation means every AI product is constrained by what it cannot do to the crown jewels. A prince who cannot make the decisive move loses to one who can.</p>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-company">AI WRAPPER STARTUPS · VC PORTFOLIO 2023</div>
+        <h4>Fortresses With No Army</h4>
+        <p>A product built entirely on someone else's API with no proprietary data, no workflow lock-in, and no switching cost is a fortress with no loyal population. When the model provider moves downstream, the fortress falls in a day.</p>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-company">LEGACY IT OUTSOURCING · GLOBAL DELIVERY FIRMS</div>
+        <h4>The Overhead That Outlived Its Justification</h4>
+        <p>When AI collapses coordination overhead and a junior engineer with the right tools produces at senior level, the entire tiered delivery pyramid loses its economic logic. This is structural disruption, not a pricing negotiation. The model itself is what clients are leaving behind.</p>
+      </div>
+
+      <div class="mistake-card">
+        <div class="mistake-company">ENTERPRISE BOARDS · 2025–2026</div>
+        <h4>Piloting Without Committing</h4>
+        <p>Companies running AI pilots with no path to production for 18+ months. They've convinced themselves that exploration is strategy. Machiavelli's verdict: this is neutrality wearing the costume of prudence. It ends the same way.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"><span>◆</span></div>
+
+  <div class="quote-block animate delay-6">
+    <blockquote>"The window is open, the field is undefended, and Fortune is watching to see who moves."</blockquote>
+    <cite>— Applied Machiavelli, AI Edition, February 2026</cite>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer animate delay-6">
+    <p>THE PRINCE & THE AI REVOLUTION · MACHIAVELLIAN POWER ANALYSIS · FEBRUARY 2026</p>
+  </div>
+
+</div>
+</body>
+</html>
