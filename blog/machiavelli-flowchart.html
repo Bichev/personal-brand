@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Prince — Strategic Flowchart</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0e0c08;
+  --ink2: #151209;
+  --parchment: #f5f0e8;
+  --gold: #c9a84c;
+  --gold-light: #e8c96e;
+  --gold-dim: rgba(201,168,76,0.15);
+  --crimson: #8b1a1a;
+  --crimson-light: #c0392b;
+  --green: #2e7d52;
+  --green-light: #4a9e6b;
+  --blue: #2a4a7f;
+  --blue-light: #5b8dd9;
+  --fog: #d4cfc4;
+  --fog-dim: rgba(212,207,196,0.5);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--ink);
+  color: var(--parchment);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* grain */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:.4;
+  pointer-events:none;
+  z-index:9999;
+}
+
+.page {
+  max-width:1200px;
+  margin:0 auto;
+  padding:60px 40px 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align:center;
+  margin-bottom:64px;
+}
+.header-eyebrow {
+  font-size:9px;
+  letter-spacing:6px;
+  color:var(--gold);
+  margin-bottom:20px;
+  opacity:.8;
+}
+.header h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,6vw,68px);
+  font-weight:900;
+  line-height:.95;
+  letter-spacing:-1.5px;
+}
+.header h1 em { font-style:italic; color:var(--gold); }
+.header-sub {
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:18px;
+  color:var(--fog);
+  margin-top:16px;
+}
+.divider {
+  display:flex;align-items:center;gap:16px;margin:0 0 56px;
+}
+.divider::before,.divider::after {
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.divider span { color:var(--gold);font-size:13px; }
+
+/* ── FLOWCHART CANVAS ── */
+.flow-wrap {
+  position:relative;
+  width:100%;
+}
+
+canvas#lines {
+  position:absolute;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:0;
+}
+
+.flow-grid {
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+
+/* ── ROW ── */
+.flow-row {
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:16px;
+  padding:0 0 0 0;
+  position:relative;
+}
+
+.flow-spacer { flex:1; }
+
+/* ── NODES ── */
+.node {
+  position:relative;
+  padding:18px 20px;
+  border:1px solid;
+  text-align:center;
+  cursor:default;
+  transition:all .25s ease;
+  flex-shrink:0;
+}
+
+.node:hover {
+  transform:translateY(-2px);
+  filter:brightness(1.1);
+}
+
+/* shapes */
+.node-diamond {
+  transform:rotate(0deg);
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+  width:160px;
+  height:160px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:none;
+  padding:0;
+}
+.node-diamond .inner {
+  transform:rotate(0deg);
+  text-align:center;
+  padding:12px;
+}
+
+.node-rect { border-radius:0; min-width:180px; max-width:220px; }
+.node-pill { border-radius:40px; min-width:160px; }
+.node-start {
+  border-radius:50%;
+  width:120px;height:120px;
+  display:flex;align-items:center;justify-content:center;
+}
+.node-end {
+  border-radius:4px;
+  min-width:200px;
+  border-width:2px;
+}
+
+/* colors */
+.c-gold    { border-color:var(--gold);    background:rgba(201,168,76,.08); }
+.c-crimson { border-color:var(--crimson-light); background:rgba(139,26,26,.1); }
+.c-green   { border-color:var(--green-light);   background:rgba(46,125,82,.1); }
+.c-blue    { border-color:var(--blue-light);     background:rgba(42,74,127,.12); }
+.c-fog     { border-color:rgba(212,207,196,.3);  background:rgba(212,207,196,.04); }
+.c-start   { border-color:var(--gold); background:rgba(201,168,76,.12); border-width:2px; }
+
+.node-label {
+  font-family:'DM Mono',monospace;
+  font-size:8px;
+  letter-spacing:3px;
+  opacity:.65;
+  margin-bottom:5px;
+  text-transform:uppercase;
+}
+.node-title {
+  font-family:'Playfair Display',serif;
+  font-size:15px;
+  font-weight:700;
+  line-height:1.2;
+  margin-bottom:5px;
+}
+.node-desc {
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:var(--fog);
+  line-height:1.6;
+  opacity:.8;
+}
+.node-quote {
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:12px;
+  color:var(--gold-light);
+  margin-top:6px;
+  line-height:1.4;
+  opacity:.85;
+}
+
+.verdict {
+  display:inline-block;
+  margin-top:8px;
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  padding:3px 8px;
+  border-radius:2px;
+  letter-spacing:1px;
+}
+.v-win  { background:rgba(74,158,107,.15); color:var(--green-light); border:1px solid var(--green-light); }
+.v-fall { background:rgba(192,57,43,.1); color:var(--crimson-light); border:1px solid var(--crimson-light); }
+.v-warn { background:rgba(201,168,76,.1); color:var(--gold-light); border:1px solid var(--gold); }
+
+/* connector labels */
+.conn-label {
+  position:absolute;
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--gold);
+  background:var(--ink);
+  padding:2px 6px;
+  pointer-events:none;
+  z-index:10;
+  white-space:nowrap;
+}
+
+/* ── SECTION DIVIDERS ── */
+.phase-bar {
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin:32px 0 24px;
+}
+.phase-bar::before,.phase-bar::after {
+  content:'';flex:1;height:1px;
+  background:rgba(201,168,76,.2);
+}
+.phase-label {
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:5px;
+  color:var(--gold);
+  opacity:.7;
+  white-space:nowrap;
+}
+
+/* ── LEGEND ── */
+.legend {
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  margin-top:56px;
+  padding-top:32px;
+  border-top:1px solid rgba(201,168,76,.15);
+}
+.leg-item {
+  display:flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:10px;color:var(--fog);
+}
+.leg-box {
+  width:28px;height:14px;border:1px solid;border-radius:1px;
+}
+
+/* ── FOOTER ── */
+.footer {
+  text-align:center;
+  margin-top:60px;
+  padding-top:32px;
+  border-top:1px solid rgba(201,168,76,.15);
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:3px;
+  color:var(--fog);
+  opacity:.5;
+}
+
+/* vertical connector spacing helpers */
+.v-gap-sm { height:32px; }
+.v-gap-md { height:56px; }
+.v-gap-lg { height:80px; }
+
+/* arrow down */
+.arrow-down {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:40px;
+  color:var(--gold);
+  opacity:.5;
+  font-size:18px;
+}
+
+/* branch labels overlay */
+.branch-yes {
+  position:absolute;
+  left:50%;
+  transform:translateX(-80px);
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--green-light);
+  top:-14px;
+}
+.branch-no {
+  position:absolute;
+  right:50%;
+  transform:translateX(80px);
+  font-family:'DM Mono',monospace;
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--crimson-light);
+  top:-14px;
+}
+
+/* animate in */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.node { animation:fadeUp .5s ease both; }
+
+/* stagger children */
+.flow-row:nth-child(1) .node { animation-delay:.05s; }
+.flow-row:nth-child(2) .node { animation-delay:.1s; }
+.flow-row:nth-child(3) .node { animation-delay:.15s; }
+.flow-row:nth-child(4) .node { animation-delay:.2s; }
+.flow-row:nth-child(5) .node { animation-delay:.25s; }
+.flow-row:nth-child(6) .node { animation-delay:.3s; }
+.flow-row:nth-child(7) .node { animation-delay:.35s; }
+.flow-row:nth-child(8) .node { animation-delay:.4s; }
+.flow-row:nth-child(9) .node { animation-delay:.45s; }
+.flow-row:nth-child(10) .node { animation-delay:.5s; }
+.flow-row:nth-child(11) .node { animation-delay:.55s; }
+.flow-row:nth-child(12) .node { animation-delay:.6s; }
+.flow-row:nth-child(13) .node { animation-delay:.65s; }
+
+@media(max-width:700px){
+  .page{padding:30px 16px 60px;}
+  .flow-row{flex-direction:column;align-items:center;}
+  .node-rect,.node-end{max-width:90vw;min-width:unset;width:90vw;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eyebrow">STRATEGIC DECISION FRAMEWORK · THE PRINCE · NICCOLÒ MACHIAVELLI · 1532</div>
+  <h1>The Prince<br><em>Strategic Flowchart</em></h1>
+  <p class="header-sub">From assessment of power to outcome — the complete Machiavellian decision tree</p>
+</div>
+
+<div class="divider"><span>◆</span></div>
+
+<div class="flow-wrap" id="flowWrap">
+
+<!-- ═══════════════════════════════════ PHASE I ═══════════════════ -->
+<div class="phase-bar"><span class="phase-label">PHASE I · ASSESS YOUR POSITION</span></div>
+
+<div class="flow-row">
+  <div class="node node-start c-start" id="n-start">
+    <div>
+      <div class="node-label">BEGIN</div>
+      <div class="node-title" style="font-size:17px;">You seek<br>or hold<br>Power</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-down">↓</div>
+
+<!-- Q1: Power type -->
+<div class="flow-row">
+  <div class="node node-rect c-gold" id="n-q1" style="min-width:280px;">
+    <div class="node-label">Question I</div>
+    <div class="node-title">What is the nature of your power?</div>
+    <div class="node-desc" style="margin-top:8px;">Inherited (old relationships, brand, credentials)<br>— or —<br>Acquired through capability & action</div>
+  </div>
+</div>
+
+<div class="arrow-down">↓</div>
+
+<!-- Branch: Inherited vs Acquired -->
+<div class="flow-row" style="gap:48px; align-items:flex-start;" id="row-branch1">
+
+  <!-- LEFT: Inherited -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0;flex:1;max-width:280px;">
+    <div class="node node-rect c-blue" id="n-inherited" style="width:100%;">
+      <div class="node-label">PATH A</div>
+      <div class="node-title">Inherited Power</div>
+      <div class="node-desc">Legacy brand, existing clients, credentials, institutional relationships. You hold the castle by birthright.</div>
+      <div class="node-quote">"Hereditary princes have less cause to offend — hence greater love."</div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="node node-rect c-gold" id="n-q-threatened" style="width:100%;">
+      <div class="node-label">Critical Question</div>
+      <div class="node-title">Is the old order being disrupted?</div>
+      <div class="node-desc">Are new entrants taking your clients? Is your core value prop being commoditised by technology?</div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <!-- Two sub-branches -->
+    <div style="display:flex;gap:16px;width:100%;justify-content:center;">
+      <div class="node node-rect c-green" id="n-adapt" style="flex:1;min-width:0;">
+        <div class="node-label">YES → ACT</div>
+        <div class="node-title">Destroy Your Own Castle First</div>
+        <div class="node-desc">Kill your old revenue model before the enemy does. Half-measures breed permanent rebellion.</div>
+        <div class="node-quote">"Disorders should be caught early — like a fever."</div>
+        <span class="verdict v-win">PATH TO SURVIVAL</span>
+      </div>
+      <div class="node node-rect c-crimson" id="n-complacent" style="flex:1;min-width:0;">
+        <div class="node-label">NO → DANGER</div>
+        <div class="node-title">Structural Cowardice</div>
+        <div class="node-desc">Preserving the old model while the enemy moves. Feels safe. Is lethal. The Google mistake.</div>
+        <div class="node-quote">"Injuries should be done all at once."</div>
+        <span class="verdict v-fall">DECLINE INEVITABLE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div style="display:flex;flex-direction:column;align-items:center;padding-top:20px;opacity:.3;">
+    <div style="width:1px;height:100%;min-height:300px;background:var(--gold);"></div>
+  </div>
+
+  <!-- RIGHT: Acquired -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0;flex:1;max-width:280px;">
+    <div class="node node-rect c-crimson" id="n-acquired" style="width:100%;">
+      <div class="node-label">PATH B</div>
+      <div class="node-title">Acquired Power</div>
+      <div class="node-desc">Won through virtù — capability, speed, bold action. No inherited protection. Everything must be built from scratch.</div>
+      <div class="node-quote">"New princes find it harder to hold than hereditary ones."</div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="node node-rect c-gold" id="n-q-source" style="width:100%;">
+      <div class="node-label">Critical Question</div>
+      <div class="node-title">How was it acquired?</div>
+      <div class="node-desc">Through Fortune (luck, timing, market wave) — or through Virtù (genuine capability, decisive action)?</div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div style="display:flex;gap:16px;width:100%;justify-content:center;">
+      <div class="node node-rect c-gold" id="n-fortune-acq" style="flex:1;min-width:0;">
+        <div class="node-label">FORTUNE</div>
+        <div class="node-title">Build Fortresses Fast</div>
+        <div class="node-desc">Luck gives you position but not roots. Build switching costs, loyalty, and moats before Fortune turns.</div>
+        <div class="node-quote">"Those who rely on Fortune are ruined when she changes."</div>
+        <span class="verdict v-warn">FRAGILE — ACT NOW</span>
+      </div>
+      <div class="node node-rect c-green" id="n-virtu-acq" style="flex:1;min-width:0;">
+        <div class="node-label">VIRTÙ</div>
+        <div class="node-title">Build Loyal Armies</div>
+        <div class="node-desc">Real capability earns real loyalty. Invest in proprietary assets — data, skills, relationships that compound.</div>
+        <div class="node-quote">"Armed prophets conquer; unarmed ones are ruined."</div>
+        <span class="verdict v-win">MOST DURABLE BASE</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ PHASE II ═══════════════════ -->
+<div class="phase-bar" style="margin-top:48px;"><span class="phase-label">PHASE II · ASSESS YOUR ARMY</span></div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row">
+  <div class="node node-rect c-gold" id="n-q-army" style="min-width:300px;">
+    <div class="node-label">Question II · The Army Test</div>
+    <div class="node-title">Do you command loyal forces — or mercenaries?</div>
+    <div class="node-desc" style="margin-top:8px;">Loyal = proprietary capability, owned data, trained talent, genuine client relationships<br><br>Mercenary = rented platforms, API dependency, no switching cost moat, third-party delivery</div>
+  </div>
+</div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row" style="gap:48px;align-items:flex-start;" id="row-army">
+
+  <div class="node node-rect c-green" id="n-loyal-army" style="max-width:260px;">
+    <div class="node-label">LOYAL ARMY</div>
+    <div class="node-title">Own Your Capability</div>
+    <div class="node-desc">Proprietary training data. Internal AI implementation depth. Relationships the firm cannot replicate without you. This army fights even when losing.</div>
+    <div class="node-quote">"A prince's own arms are those composed of his subjects, citizens, dependents."</div>
+    <span class="verdict v-win">PROCEED WITH CONFIDENCE</span>
+  </div>
+
+  <div class="node node-rect c-crimson" id="n-mercenary" style="max-width:260px;">
+    <div class="node-label">MERCENARY ARMY ✗</div>
+    <div class="node-title">Dependency Is Fragility</div>
+    <div class="node-desc">Mercenaries collapse when the battle turns. Replace API dependency with owned capability. Eliminate single points of failure in your delivery chain.</div>
+    <div class="node-quote">"Mercenary commanders are either capable or not — either way, you cannot trust them."</div>
+    <span class="verdict v-fall">REBUILD BEFORE ADVANCING</span>
+  </div>
+
+  <div class="node node-rect c-fog" id="n-auxiliary" style="max-width:240px;border-color:rgba(212,207,196,.4);">
+    <div class="node-label">AUXILIARY FORCES</div>
+    <div class="node-title">Strategic Alliances</div>
+    <div class="node-desc">Partners and platforms are useful — but never as your primary force. A prince who wins with auxiliary arms owes his victory to another's power.</div>
+    <div class="node-quote">"Auxiliary arms are useless and dangerous — if they win, you are their prisoner."</div>
+    <span class="verdict v-warn">USE SPARINGLY</span>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ PHASE III ═══════════════════ -->
+<div class="phase-bar" style="margin-top:48px;"><span class="phase-label">PHASE III · CHOOSE YOUR INSTRUMENT</span></div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row">
+  <div class="node node-rect c-gold" id="n-q-nature" style="min-width:300px;">
+    <div class="node-label">Question III · The Nature Test</div>
+    <div class="node-title">What does this moment require — Lion, Fox, or Both?</div>
+    <div class="node-desc" style="margin-top:8px;">The situation determines the instrument. A prince who is only a lion does not understand his business.</div>
+    <div class="node-quote">"You must be a fox to recognise traps, and a lion to frighten wolves."</div>
+  </div>
+</div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row" style="gap:24px;align-items:flex-start;" id="row-nature">
+
+  <div class="node node-rect c-crimson" id="n-lion" style="max-width:210px;">
+    <div class="node-label">THE LION — FORCE</div>
+    <div class="node-title">When to Be the Lion</div>
+    <div class="node-desc">When the territory is uncontested. When speed matters more than finesse. When indecision is the greater risk. When your capability is demonstrably superior.</div>
+    <div class="node-quote">"It is better to be bold than cautious — Fortune is a woman."</div>
+    <span class="verdict v-warn">USE IN OPEN WINDOWS</span>
+  </div>
+
+  <div class="node node-rect c-green" id="n-both" style="max-width:210px;border-width:2px;box-shadow:0 0 20px rgba(74,158,107,.15);">
+    <div class="node-label">★ IDEAL · THE PRINCE</div>
+    <div class="node-title">Lion + Fox Together</div>
+    <div class="node-desc">Force when the path is clear. Cunning when traps are set. The highest form. Reads the terrain first, then acts with total commitment.</div>
+    <div class="node-quote">"A prudent prince cannot and should not keep his word when it would work against him."</div>
+    <span class="verdict v-win">HIGHEST FORM OF STRATEGY</span>
+  </div>
+
+  <div class="node node-rect c-blue" id="n-fox" style="max-width:210px;">
+    <div class="node-label">THE FOX — CUNNING</div>
+    <div class="node-title">When to Be the Fox</div>
+    <div class="node-desc">When the terrain is complex. When enemies are numerous. When alliances must be managed. When you cannot win by force alone. Navigate first — strike second.</div>
+    <div class="node-quote">"The fox cannot defend against wolves, but the lion cannot defend against traps."</div>
+    <span class="verdict v-warn">USE IN COMPLEX TERRAIN</span>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ PHASE IV ═══════════════════ -->
+<div class="phase-bar" style="margin-top:48px;"><span class="phase-label">PHASE IV · MANAGE FORTUNE</span></div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row">
+  <div class="node node-rect c-gold" id="n-q-fortune" style="min-width:300px;">
+    <div class="node-label">Question IV · The Fortune Test</div>
+    <div class="node-title">Is Fortune currently favourable?</div>
+    <div class="node-desc" style="margin-top:8px;">Fortune controls roughly half of all outcomes. Virtù controls the other half. Diagnosing which force is operating in your situation determines the right response.</div>
+    <div class="node-quote">"Fortune is the arbiter of half our actions — but she leaves the other half to us."</div>
+  </div>
+</div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row" style="gap:40px;align-items:flex-start;">
+
+  <div class="node node-rect c-green" id="n-fortune-yes" style="max-width:250px;">
+    <div class="node-label">FORTUNE IS FAVOURABLE</div>
+    <div class="node-title">Move Boldly &amp; Build Fast</div>
+    <div class="node-desc">Windows close. Use the favourable tide to take territory that would be costly to take against the wind. Build infrastructure and loyalty while the cost is low.</div>
+    <div class="node-quote">"Fortune shows her power where virtù has not been put in place to resist her."</div>
+    <span class="verdict v-win">MAXIMUM SPEED</span>
+  </div>
+
+  <div class="node node-rect c-crimson" id="n-fortune-no" style="max-width:250px;">
+    <div class="node-label">FORTUNE IS AGAINST YOU</div>
+    <div class="node-title">Build Virtù — Not Fortresses</div>
+    <div class="node-desc">Fortresses do not save princes who are hated by their people. When Fortune is against you, the only real defence is not to be hated. Build internal capability. Earn loyalty. Do not wait.</div>
+    <div class="node-quote">"The best fortress is not to be hated by the people."</div>
+    <span class="verdict v-warn">INTERNAL STRENGTH FIRST</span>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ PHASE V ═══════════════════ -->
+<div class="phase-bar" style="margin-top:48px;"><span class="phase-label">PHASE V · MANAGE ENEMIES &amp; ALLIES</span></div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row" style="gap:24px;align-items:flex-start;" id="row-enemies">
+
+  <div class="node node-rect c-fog" id="n-enemies" style="max-width:230px;border-color:rgba(212,207,196,.35);">
+    <div class="node-label">ON ENEMIES</div>
+    <div class="node-title">Destroy or Elevate — Never Wound</div>
+    <div class="node-desc">Men must either be caressed or annihilated. A wounded enemy has motive and memory. The half-move creates the most dangerous enemy: one who cannot be reconciled.</div>
+    <div class="node-quote">"Injuries should be done all at once so that, being less tasted, they offend less."</div>
+    <span class="verdict v-warn">NO HALF-MEASURES</span>
+  </div>
+
+  <div class="node node-rect c-gold" id="n-neutral" style="max-width:230px;">
+    <div class="node-label">ON NEUTRALITY ✗</div>
+    <div class="node-title">Never Stay Neutral</div>
+    <div class="node-desc">A prince who stays neutral when two powers fight will be consumed by the winner. Choose sides. A firm alliance — even with the loser — earns more than studied neutrality.</div>
+    <div class="node-quote">"Neutral princes are always destroyed."</div>
+    <span class="verdict v-fall">NEUTRALITY = SLOW DEATH</span>
+  </div>
+
+  <div class="node node-rect c-blue" id="n-allies" style="max-width:230px;">
+    <div class="node-label">ON ALLIES</div>
+    <div class="node-title">Choose Allies Who Need You</div>
+    <div class="node-desc">The best alliance is one where the ally needs your capability more than you need their protection. Build relationships where the power asymmetry favours your independence over time.</div>
+    <div class="node-quote">"A prince is also esteemed when he is a true friend and a true enemy."</div>
+    <span class="verdict v-win">ASYMMETRIC ALLIANCE</span>
+  </div>
+
+  <div class="node node-rect c-crimson" id="n-flatterers" style="max-width:230px;">
+    <div class="node-label">ON FLATTERERS ✗</div>
+    <div class="node-title">Reward Honest Counsel</div>
+    <div class="node-desc">Courts are full of flatterers because men are pleased with their own opinions. A prince who listens only to good news is surrounded by people optimising for his comfort, not his success.</div>
+    <div class="node-quote">"Courts are full of flatterers because men are so pleased with their own opinions."</div>
+    <span class="verdict v-fall">DEMANDS BRUTAL HONESTY</span>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ PHASE VI ═══════════════════ -->
+<div class="phase-bar" style="margin-top:48px;"><span class="phase-label">PHASE VI · OUTCOMES</span></div>
+
+<div class="arrow-down">↓</div>
+
+<div class="flow-row" style="gap:20px;align-items:flex-start;" id="row-outcomes">
+
+  <div class="node node-end c-green" id="out-1" style="max-width:220px;">
+    <div class="node-label">★ OUTCOME I</div>
+    <div class="node-title">The Stable Prince</div>
+    <div class="node-desc">Loyal army. Own capability. Decisive action. Read Fortune correctly. Neither feared nor loved — but respected and necessary. The territory holds.</div>
+    <span class="verdict v-win">DURABLE POWER</span>
+  </div>
+
+  <div class="node node-end c-green" id="out-2" style="max-width:220px;">
+    <div class="node-label">★ OUTCOME II</div>
+    <div class="node-title">The Mountain Pass Owner</div>
+    <div class="node-desc">Controls what every faction needs. Wins regardless of who prevails in the larger war. The most durable position in any disruption cycle.</div>
+    <span class="verdict v-win">HIGHEST DURABILITY</span>
+  </div>
+
+  <div class="node node-end c-gold" id="out-3" style="max-width:220px;">
+    <div class="node-label">⚠ OUTCOME III</div>
+    <div class="node-title">The New Prince at Risk</div>
+    <div class="node-desc">Conquered the territory but hasn't yet built governance. Strong capability, fragile loyalty. The transition from conquest to institution is the most dangerous phase.</div>
+    <span class="verdict v-warn">CONSOLIDATE NOW</span>
+  </div>
+
+  <div class="node node-end c-crimson" id="out-4" style="max-width:220px;">
+    <div class="node-label">✗ OUTCOME IV</div>
+    <div class="node-title">The Fallen Prince</div>
+    <div class="node-desc">Half-measures. Mercenary armies. Neutral positioning. Structural cowardice. The enemy was inside the walls and the prince was still deliberating. History does not wait.</div>
+    <span class="verdict v-fall">STRUCTURAL COLLAPSE</span>
+  </div>
+
+</div>
+
+<!-- Final quote -->
+<div style="margin-top:60px;padding:24px 32px;border-left:3px solid var(--gold);background:rgba(201,168,76,.04);">
+  <blockquote style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--parchment);line-height:1.6;margin-bottom:8px;">
+    "It is not titles that honour men, but men that honour titles."
+  </blockquote>
+  <cite style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:3px;">— Niccolò Machiavelli, The Prince</cite>
+</div>
+
+</div><!-- end flow-wrap -->
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg-item"><div class="leg-box" style="border-color:var(--green-light);background:rgba(74,158,107,.1);"></div> Winning path / Correct action</div>
+  <div class="leg-item"><div class="leg-box" style="border-color:var(--gold);background:rgba(201,168,76,.08);"></div> Decision point / Caution required</div>
+  <div class="leg-item"><div class="leg-box" style="border-color:var(--crimson-light);background:rgba(139,26,26,.1);"></div> Failing path / Fatal mistake</div>
+  <div class="leg-item"><div class="leg-box" style="border-color:var(--blue-light);background:rgba(42,74,127,.12);"></div> Strategic context / Situational</div>
+  <div class="leg-item"><div class="leg-box" style="border-color:rgba(212,207,196,.4);background:rgba(212,207,196,.04);"></div> Neutral / Contextual guidance</div>
+</div>
+
+<div class="footer">
+  THE PRINCE · STRATEGIC DECISION FRAMEWORK · MACHIAVELLI 1532 → APPLIED 2026
+</div>
+
+</div><!-- end page -->
+
+<script>
+// Draw connecting arrows between nodes using canvas overlay
+(function() {
+  const wrap = document.getElementById('flowWrap');
+  if (!wrap) return;
+
+  // Create canvas
+  const canvas = document.createElement('canvas');
+  canvas.id = 'lines';
+  canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+  wrap.insertBefore(canvas, wrap.firstChild);
+
+  function draw() {
+    const rect = wrap.getBoundingClientRect();
+    const wRect = wrap.getBoundingClientRect();
+    canvas.width  = wrap.offsetWidth;
+    canvas.height = wrap.offsetHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    function getCenter(id) {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      const wr = wrap.getBoundingClientRect();
+      return {
+        x: r.left - wr.left + r.width/2,
+        y: r.top  - wr.top  + r.height/2,
+        top:    r.top  - wr.top,
+        bottom: r.bottom - wr.top,
+        left:   r.left - wr.left,
+        right:  r.right - wr.left,
+        w: r.width,
+        h: r.height
+      };
+    }
+
+    function arrow(x1,y1,x2,y2,color,dashed){
+      ctx.save();
+      ctx.strokeStyle = color || 'rgba(201,168,76,0.25)';
+      ctx.lineWidth = 1.5;
+      if(dashed) ctx.setLineDash([4,4]);
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+      // arrowhead
+      const angle = Math.atan2(y2-y1,x2-x1);
+      ctx.fillStyle = color || 'rgba(201,168,76,0.35)';
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-10*Math.cos(angle-0.4),y2-10*Math.sin(angle-0.4));
+      ctx.lineTo(x2-10*Math.cos(angle+0.4),y2-10*Math.sin(angle+0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function curve(x1,y1,x2,y2,color){
+      ctx.save();
+      ctx.strokeStyle = color || 'rgba(201,168,76,0.2)';
+      ctx.lineWidth = 1.5;
+      const mx = (x1+x2)/2;
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.bezierCurveTo(x1,y1+80,x2,y2-80,x2,y2);
+      ctx.stroke();
+      // arrowhead
+      const angle = Math.atan2(y2-(y2-20),x2-x2);
+      ctx.fillStyle = color || 'rgba(201,168,76,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-8*Math.cos(-0.3),y2-8*Math.sin(-0.3)+8);
+      ctx.lineTo(x2+8*Math.cos(0.3),y2-8*Math.sin(0.3)+8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    const gold    = 'rgba(201,168,76,0.3)';
+    const green   = 'rgba(74,158,107,0.35)';
+    const crimson = 'rgba(192,57,43,0.35)';
+    const blue    = 'rgba(91,141,217,0.3)';
+
+    const nodes = ['n-start','n-q1','n-inherited','n-acquired','n-q-threatened','n-q-source',
+                   'n-adapt','n-complacent','n-fortune-acq','n-virtu-acq',
+                   'n-q-army','n-loyal-army','n-mercenary','n-auxiliary',
+                   'n-q-nature','n-lion','n-both','n-fox',
+                   'n-q-fortune','n-fortune-yes','n-fortune-no',
+                   'n-enemies','n-neutral','n-allies','n-flatterers',
+                   'out-1','out-2','out-3','out-4'];
+
+    // START → Q1
+    const s = getCenter('n-start'), q1 = getCenter('n-q1');
+    if(s && q1) arrow(s.x, s.bottom, q1.x, q1.top, gold);
+
+    // Q1 → inherited (left) and acquired (right)
+    const inh = getCenter('n-inherited'), acq = getCenter('n-acquired');
+    if(q1 && inh) {
+      ctx.save();ctx.strokeStyle=blue;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(q1.x,q1.bottom);
+      ctx.lineTo(q1.x,q1.bottom+20);ctx.lineTo(inh.x,q1.bottom+20);ctx.lineTo(inh.x,inh.top);
+      ctx.stroke();ctx.restore();
+    }
+    if(q1 && acq) {
+      ctx.save();ctx.strokeStyle=crimson;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(q1.x,q1.bottom);
+      ctx.lineTo(q1.x,q1.bottom+20);ctx.lineTo(acq.x,q1.bottom+20);ctx.lineTo(acq.x,acq.top);
+      ctx.stroke();ctx.restore();
+    }
+
+    // Q-army row connections from both sub-branches converging
+    const qa = getCenter('n-q-army');
+    const adp = getCenter('n-adapt'), cmp = getCenter('n-complacent');
+    const fa  = getCenter('n-fortune-acq'), va = getCenter('n-virtu-acq');
+    if(qa){
+      if(adp)  { ctx.save();ctx.strokeStyle=green;ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(adp.x,adp.bottom);ctx.lineTo(adp.x,adp.bottom+30);ctx.lineTo(qa.left-10,adp.bottom+30);ctx.stroke();ctx.restore(); }
+      if(va)   { ctx.save();ctx.strokeStyle=green;ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(va.x,va.bottom);ctx.lineTo(va.x,va.bottom+30);ctx.lineTo(qa.right+10,va.bottom+30);ctx.stroke();ctx.restore(); }
+    }
+
+    // Q-army → army nodes
+    const la = getCenter('n-loyal-army'), mc = getCenter('n-mercenary'), aux = getCenter('n-auxiliary');
+    if(qa && la) arrow(qa.x, qa.bottom, la.x, la.top, green);
+    if(qa && mc) arrow(qa.x, qa.bottom, mc.x, mc.top, crimson);
+    if(qa && aux) arrow(qa.x, qa.bottom, aux.x, aux.top, gold);
+
+    // Q-nature → lion, both, fox
+    const qn = getCenter('n-q-nature');
+    const lion = getCenter('n-lion'), both = getCenter('n-both'), fox = getCenter('n-fox');
+    if(qn && lion) arrow(qn.x, qn.bottom, lion.x, lion.top, crimson);
+    if(qn && both) arrow(qn.x, qn.bottom, both.x, both.top, green);
+    if(qn && fox)  arrow(qn.x, qn.bottom, fox.x,  fox.top,  blue);
+
+    // Q-fortune → yes/no
+    const qf = getCenter('n-q-fortune');
+    const fy = getCenter('n-fortune-yes'), fn = getCenter('n-fortune-no');
+    if(qf && fy) arrow(qf.x, qf.bottom, fy.x, fy.top, green);
+    if(qf && fn) arrow(qf.x, qf.bottom, fn.x, fn.top, crimson);
+
+    // Outcomes ← final phase
+    const o1=getCenter('out-1'),o2=getCenter('out-2'),o3=getCenter('out-3'),o4=getCenter('out-4');
+    // Connect fortune outcomes to final outcomes (dashed)
+    if(fy && o1){ ctx.save();ctx.strokeStyle='rgba(74,158,107,0.15)';ctx.lineWidth=1;ctx.setLineDash([2,6]);ctx.beginPath();ctx.moveTo(fy.x,fy.bottom);ctx.lineTo(o1.x,o1.top);ctx.stroke();ctx.restore(); }
+    if(fn && o3){ ctx.save();ctx.strokeStyle='rgba(201,168,76,0.15)';ctx.lineWidth=1;ctx.setLineDash([2,6]);ctx.beginPath();ctx.moveTo(fn.x,fn.bottom);ctx.lineTo(o3.x,o3.top);ctx.stroke();ctx.restore(); }
+  }
+
+  // Draw after layout
+  window.addEventListener('load', ()=>{ setTimeout(draw,200); });
+  window.addEventListener('resize', draw);
+  setTimeout(draw, 400);
+  setTimeout(draw, 900);
+})();
+</script>
+
+</body>
+</html>
