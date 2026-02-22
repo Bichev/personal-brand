@@ -168,7 +168,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Generative', 'Golden Ratio', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/nautilus.html',
+    localPath: '/algoart/nautilus.html',
     featured: true,
   },
   {
@@ -181,7 +181,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Wave Physics', 'Generative', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/harmonic-emergence.html',
+    localPath: '/algoart/harmonic-emergence.html',
     featured: true,
   },
   {
@@ -194,7 +194,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Turing', 'Reaction-Diffusion', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/morphogenesis.html',
+    localPath: '/algoart/morphogenesis.html',
     featured: true,
   },
   {
@@ -207,7 +207,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Swarm', 'Boids', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/collective-intelligence.html',
+    localPath: '/algoart/collective-intelligence.html',
     featured: true,
   },
   {
@@ -220,7 +220,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Chaos Theory', 'Lorenz', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/deterministic-chaos.html',
+    localPath: '/algoart/deterministic-chaos.html',
     featured: true,
   },
   {
@@ -233,7 +233,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Fractals', 'L-Systems', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/recursive-growth.html',
+    localPath: '/algoart/recursive-growth.html',
   },
   {
     id: 'infinite-depth',
@@ -245,7 +245,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Fractals', 'Mandelbrot', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/infinite-depth.html',
+    localPath: '/algoart/infinite-depth.html',
   },
   {
     id: 'invisible-currents',
@@ -257,7 +257,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Perlin Noise', 'Flow Fields', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/invisible-currents.html',
+    localPath: '/algoart/invisible-currents.html',
   },
   {
     id: 'gravitational-ballet',
@@ -269,7 +269,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Gravity', 'Orbital Mechanics', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/gravitational-ballet.html',
+    localPath: '/algoart/gravitational-ballet.html',
   },
   {
     id: 'resonant-traces',
@@ -281,7 +281,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Harmonograph', 'Lissajous', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/resonant-traces.html',
+    localPath: '/algoart/resonant-traces.html',
   },
   {
     id: 'territories',
@@ -293,7 +293,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Voronoi', 'Computational Geometry', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/territories.html',
+    localPath: '/algoart/territories.html',
   },
   {
     id: 'cellular-worlds',
@@ -305,7 +305,7 @@ export const BLOG_POSTS: BlogPost[] = [
     tags: ['Algorithmic Art', 'Cellular Automata', 'Conway', 'p5.js'],
     published: true,
     source: 'internal',
-    localPath: '/ai-art/cellular-worlds.html',
+    localPath: '/algoart/cellular-worlds.html',
   },
   {
     id: 'machiavelli-ai-framework',
@@ -535,7 +535,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'About', href: '#about' },
   { name: 'Projects', href: '#projects' },
   { name: 'Blog', href: '#blog' },
-  { name: 'AI Art', href: '/ai-art/', external: true },
+  { name: 'AlgoArt', href: '/algoart/', external: true },
   { name: 'Interests', href: '#interests' },
   { name: 'Contact', href: '#contact' },
 ]; 

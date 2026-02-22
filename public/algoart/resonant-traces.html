@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmonic Emergence — Wave Interference</title>
+    <title>Resonant Traces — Harmonograph & Lissajous Curves</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,7 @@
             --museum-white: #fdfcf8;
             --gold: #c9a55a;
             --silver: #9fa8ab;
-            --accent: #d4af6a;
-            --wave-cyan: #4ecdc4;
+            --accent: #c98a5a;
         }
 
         * {
@@ -44,9 +43,9 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: 
-                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(30, 22, 18, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 20, 18, 0.3) 0%, transparent 50%);
             pointer-events: none;
         }
 
@@ -85,7 +84,7 @@
             font-size: 24px;
             font-weight: 400;
             letter-spacing: 2px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             margin-bottom: 8px;
             text-transform: uppercase;
         }
@@ -126,10 +125,10 @@
         .control-btn {
             width: 36px;
             height: 36px;
-            border: 1px solid rgba(78, 205, 196, 0.3);
+            border: 1px solid rgba(201, 138, 90, 0.3);
             background: rgba(13, 13, 15, 0.7);
             backdrop-filter: blur(10px);
-            color: var(--wave-cyan);
+            color: var(--accent);
             font-family: 'Crimson Pro', serif;
             font-size: 18px;
             cursor: pointer;
@@ -140,8 +139,8 @@
         }
 
         .control-btn:hover {
-            border-color: var(--wave-cyan);
-            background: rgba(78, 205, 196, 0.1);
+            border-color: var(--accent);
+            background: rgba(201, 138, 90, 0.1);
             transform: scale(1.05);
         }
 
@@ -168,7 +167,7 @@
 
         .seed-number {
             font-family: 'Courier New', monospace;
-            color: var(--wave-cyan);
+            color: var(--accent);
             margin-left: 8px;
             font-weight: 500;
         }
@@ -191,6 +190,10 @@
             margin-bottom: 20px;
         }
 
+        .param-group:last-child {
+            margin-bottom: 0;
+        }
+
         .param-label {
             font-family: 'Crimson Pro', serif;
             font-size: 10px;
@@ -207,14 +210,14 @@
         .param-value {
             font-family: 'Courier New', monospace;
             font-size: 9px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             font-weight: 600;
         }
 
         .param-slider {
             width: 100%;
             height: 2px;
-            background: rgba(78, 205, 196, 0.3);
+            background: rgba(201, 138, 90, 0.3);
             -webkit-appearance: none;
             appearance: none;
             outline: none;
@@ -224,7 +227,7 @@
             -webkit-appearance: none;
             width: 10px;
             height: 10px;
-            background: var(--wave-cyan);
+            background: var(--accent);
             cursor: pointer;
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -233,7 +236,7 @@
         .param-slider::-moz-range-thumb {
             width: 10px;
             height: 10px;
-            background: var(--wave-cyan);
+            background: var(--accent);
             cursor: pointer;
             border: none;
             border-radius: 50%;
@@ -255,7 +258,7 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             scrollbar-width: thin;
-            scrollbar-color: var(--wave-cyan) transparent;
+            scrollbar-color: var(--accent) transparent;
         }
 
         .education-panel::-webkit-scrollbar {
@@ -267,7 +270,7 @@
         }
 
         .education-panel::-webkit-scrollbar-thumb {
-            background: var(--wave-cyan);
+            background: var(--accent);
             border-radius: 2px;
         }
 
@@ -284,7 +287,7 @@
             text-transform: uppercase;
             cursor: pointer;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(78, 205, 196, 0.3);
+            border-bottom: 1px solid rgba(201, 138, 90, 0.3);
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
@@ -292,14 +295,14 @@
         }
 
         .edu-header:hover {
-            color: var(--wave-cyan);
-            border-color: var(--wave-cyan);
+            color: var(--accent);
+            border-color: var(--accent);
         }
 
         .edu-icon {
             font-size: 12px;
             transition: transform 0.3s ease;
-            color: var(--wave-cyan);
+            color: var(--accent);
         }
 
         .edu-header.active .edu-icon {
@@ -328,7 +331,7 @@
         }
 
         .edu-content strong {
-            color: var(--wave-cyan);
+            color: var(--accent);
             font-weight: 500;
         }
 
@@ -347,7 +350,7 @@
             content: '•';
             position: absolute;
             left: 0;
-            color: var(--wave-cyan);
+            color: var(--accent);
         }
 
         .loading {
@@ -358,7 +361,7 @@
             font-family: 'EB Garamond', serif;
             font-size: 14px;
             letter-spacing: 3px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             z-index: 5;
         }
 
@@ -374,14 +377,16 @@
             justify-content: space-between;
             pointer-events: none;
         }
+
         .back-nav a, .back-nav span {
             pointer-events: auto;
         }
+
         .back-nav a {
             font-family: 'Crimson Pro', serif;
             font-size: 11px;
             letter-spacing: 2px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             text-decoration: none;
             opacity: 0.5;
             transition: opacity 0.3s;
@@ -389,7 +394,9 @@
             align-items: center;
             gap: 6px;
         }
+
         .back-nav a:hover { opacity: 1; }
+
         .back-nav .site-name {
             font-family: 'Crimson Pro', serif;
             font-size: 10px;
@@ -398,7 +405,6 @@
             opacity: 0.3;
         }
 
-        /* Scroll indicator */
         .scroll-indicator {
             position: absolute;
             bottom: 15px;
@@ -408,7 +414,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 11px;
             letter-spacing: 1.5px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             opacity: 0.4;
             text-align: center;
         }
@@ -443,7 +449,7 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: var(--wave-cyan);
+            background: var(--accent);
             opacity: 0.3;
         }
 
@@ -451,7 +457,7 @@
             position: relative;
             background: var(--exhibition-black);
             padding: 0 20px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             font-size: 16px;
             opacity: 0.5;
         }
@@ -460,7 +466,7 @@
             font-family: 'EB Garamond', serif;
             font-size: 36px;
             font-weight: 400;
-            color: var(--wave-cyan);
+            color: var(--accent);
             margin-bottom: 8px;
         }
 
@@ -474,7 +480,7 @@
         }
 
         .article-epigraph {
-            border-left: 2px solid var(--wave-cyan);
+            border-left: 2px solid var(--accent);
             padding: 16px 24px;
             margin-bottom: 48px;
             font-family: 'Crimson Pro', serif;
@@ -503,7 +509,7 @@
         }
 
         .math-box {
-            border: 1px solid rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(201, 138, 90, 0.2);
             padding: 24px;
             margin: 40px 0;
         }
@@ -512,7 +518,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 10px;
             letter-spacing: 2px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             text-transform: uppercase;
             margin-bottom: 16px;
         }
@@ -537,14 +543,14 @@
             justify-content: space-between;
             margin-top: 60px;
             padding-top: 30px;
-            border-top: 1px solid rgba(78, 205, 196, 0.15);
+            border-top: 1px solid rgba(201, 138, 90, 0.15);
         }
 
         .article-nav a {
             font-family: 'Crimson Pro', serif;
             font-size: 12px;
             letter-spacing: 1.5px;
-            color: var(--wave-cyan);
+            color: var(--accent);
             text-decoration: none;
             opacity: 0.5;
             transition: opacity 0.3s;
@@ -557,12 +563,13 @@
 </head>
 <body>
     <div class="back-nav">
-        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <a href="/algoart/">← BACK TO GALLERY</a>
         <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
     </div>
+
     <div class="exhibition-space" id="top">
         <div class="spotlight"></div>
-        
+
         <div class="seed-display">
             VARIATION <span class="seed-number" id="seed-display">001</span>
         </div>
@@ -576,62 +583,62 @@
         <div class="parameters-panel">
             <div class="param-group">
                 <div class="param-label">
-                    Harmonic Layers
-                    <span class="param-value" id="layers-value">5</span>
+                    Freq Ratio
+                    <span class="param-value" id="freqRatio-value">2.00</span>
                 </div>
-                <input type="range" class="param-slider" id="layers-slider" 
-                       min="2" max="8" value="5" step="1" 
-                       oninput="updateParam('layers', this.value)">
+                <input type="range" class="param-slider" id="freqRatio-slider"
+                       min="1" max="4" value="2" step="0.01"
+                       oninput="updateParam('freqRatio', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Wave Speed
-                    <span class="param-value" id="wavespeed-value">1.0</span>
+                    Phase
+                    <span class="param-value" id="phase-value">45°</span>
                 </div>
-                <input type="range" class="param-slider" id="wavespeed-slider" 
-                       min="0.1" max="3.0" value="1.0" step="0.1" 
-                       oninput="updateParam('wavespeed', this.value)">
+                <input type="range" class="param-slider" id="phase-slider"
+                       min="0" max="360" value="45" step="1"
+                       oninput="updateParam('phase', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Frequency
-                    <span class="param-value" id="frequency-value">1.5</span>
+                    Damping
+                    <span class="param-value" id="damping-value">0.998</span>
                 </div>
-                <input type="range" class="param-slider" id="frequency-slider" 
-                       min="0.5" max="3.0" value="1.5" step="0.1" 
-                       oninput="updateParam('frequency', this.value)">
+                <input type="range" class="param-slider" id="damping-slider"
+                       min="0.995" max="1.0" value="0.998" step="0.001"
+                       oninput="updateParam('damping', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Particle Count
-                    <span class="param-value" id="particles-value">4000</span>
+                    Amplitude X
+                    <span class="param-value" id="ampX-value">250</span>
                 </div>
-                <input type="range" class="param-slider" id="particles-slider" 
-                       min="1000" max="8000" value="4000" step="500" 
-                       oninput="updateParam('particles', this.value)">
+                <input type="range" class="param-slider" id="ampX-slider"
+                       min="50" max="350" value="250" step="1"
+                       oninput="updateParam('ampX', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Field Strength
-                    <span class="param-value" id="strength-value">1.5</span>
+                    Amplitude Y
+                    <span class="param-value" id="ampY-value">250</span>
                 </div>
-                <input type="range" class="param-slider" id="strength-slider" 
-                       min="0.5" max="3.0" value="1.5" step="0.1" 
-                       oninput="updateParam('strength', this.value)">
+                <input type="range" class="param-slider" id="ampY-slider"
+                       min="50" max="350" value="250" step="1"
+                       oninput="updateParam('ampY', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Trail Fade
-                    <span class="param-value" id="fade-value">15</span>
+                    Draw Speed
+                    <span class="param-value" id="speed-value">3</span>
                 </div>
-                <input type="range" class="param-slider" id="fade-slider" 
-                       min="5" max="40" value="15" step="1" 
-                       oninput="updateParam('fade', this.value)">
+                <input type="range" class="param-slider" id="speed-slider"
+                       min="1" max="10" value="3" step="1"
+                       oninput="updateParam('speed', this.value)">
             </div>
         </div>
 
@@ -642,21 +649,18 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Imagine dropping lots of pebbles into a calm pond. Each pebble makes ripples (circles in the water). When the ripples bump into each other, sometimes they make bigger waves (when they meet at the top), and sometimes they cancel out and become flat (when a top meets a bottom)!</p>
-                    <p>The colorful dots you see are like tiny boats floating on these invisible ripples. They ride up and down and spin around, leaving trails that show where they've been. Different colored trails mean the boats are riding on different kinds of waves!</p>
+                    <p>Imagine two swings connected to a pen — as both swings move together, the pen draws beautiful swirly patterns! As the swings slow down, the pattern gets tighter and tighter until the pen finally comes to rest in the center.</p>
                 </div>
             </div>
 
             <div class="edu-section">
                 <div class="edu-header" onclick="toggleEdu(this)">
-                    <span>Physics: Wave Interference</span>
+                    <span>Science</span>
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Superposition Principle:</strong> When two or more waves occupy the same space, they combine. The resulting wave is the sum of all individual waves at each point.</p>
-                    <p><strong>Constructive Interference:</strong> Wave peaks align (in phase), creating regions of high amplitude. Particles move quickly with bright colors.</p>
-                    <p><strong>Destructive Interference:</strong> Peaks meet troughs (out of phase), canceling each other. Particles move slowly or remain still.</p>
-                    <p><strong>Standing Waves:</strong> Regions of consistent high and low amplitude that appear stationary even as waves propagate.</p>
+                    <p><strong>Harmonograph:</strong> A 19th-century mechanical drawing device that uses coupled pendulums to create intricate patterns. A pen is attached where the pendulums intersect, tracing the combined motion onto paper.</p>
+                    <p><strong>Lissajous Figures:</strong> Named after Jules Antoine Lissajous, these curves appear when two perpendicular oscillations are combined. The shape depends entirely on the frequency ratio between the two oscillators.</p>
                 </div>
             </div>
 
@@ -666,17 +670,18 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Sine Waves:</strong> f(x,y,t) = A·sin(ω·r + θ + φ + t·v)</p>
+                    <p><strong>Parametric equations:</strong></p>
                     <ul>
-                        <li><strong>A</strong> = amplitude (wave height)</li>
-                        <li><strong>ω</strong> = frequency (waves per distance)</li>
-                        <li><strong>r</strong> = distance from center</li>
-                        <li><strong>θ</strong> = angle around center</li>
-                        <li><strong>φ</strong> = phase offset</li>
-                        <li><strong>t</strong> = time</li>
-                        <li><strong>v</strong> = wave speed</li>
+                        <li>x(t) = A₁·sin(f₁·t + φ₁)·e^(-d₁·t)</li>
+                        <li>y(t) = A₂·sin(f₂·t + φ₂)·e^(-d₂·t)</li>
                     </ul>
-                    <p><strong>Harmonic Series:</strong> Frequency ratios (1:2:3:4...) create natural resonance, similar to musical overtones.</p>
+                    <p><strong>Frequency ratios create different patterns:</strong></p>
+                    <ul>
+                        <li>1:1 — ellipse</li>
+                        <li>2:1 — figure-eight</li>
+                        <li>3:2 — trefoil</li>
+                    </ul>
+                    <p>Irrational ratios produce curves that never close, filling space with infinite detail.</p>
                 </div>
             </div>
 
@@ -686,11 +691,9 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Water Ripples:</strong> Drop two stones in a pond—circular waves interact exactly like this!</p>
-                    <p><strong>Sound:</strong> Musical instruments create harmonics. Guitar strings vibrate at multiple frequencies simultaneously.</p>
-                    <p><strong>Light:</strong> Soap bubble colors come from light wave interference—same principle!</p>
-                    <p><strong>Cymatics:</strong> Vibrating plates with sand create patterns based on standing wave nodes.</p>
-                    <p><strong>Quantum Mechanics:</strong> Electrons exist as probability waves that interfere with themselves.</p>
+                    <p><strong>Planetary Orbits:</strong> Lissajous-like paths appear when plotting one planet's position against another — orbital resonances shape the solar system.</p>
+                    <p><strong>Coupled Oscillators:</strong> From atoms in crystals to bridges swaying in wind, coupled oscillation is everywhere in physics.</p>
+                    <p><strong>Musical Resonance:</strong> Vibrating strings and air columns in instruments produce harmonics governed by the same frequency ratios.</p>
                 </div>
             </div>
 
@@ -700,10 +703,9 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Cymatics Art:</strong> Artists like John Stuart Reid visualize sound by vibrating water or particles.</p>
-                    <p><strong>Op Art:</strong> Bridget Riley used repeating patterns that create optical interference.</p>
-                    <p><strong>Islamic Geometric Art:</strong> Mathematical ratios create visual harmony like acoustic harmony.</p>
-                    <p><strong>Music Theory:</strong> Harmonic series (octaves, fifths, thirds) follows the same mathematical ratios.</p>
+                    <p><strong>Spirograph:</strong> The beloved mechanical drawing toy is a direct descendant of the harmonograph principle.</p>
+                    <p><strong>Victorian Harmonographs:</strong> In the 1800s, elaborate pendulum machines created drawings displayed in parlors and scientific exhibitions.</p>
+                    <p><strong>Sound Visualization:</strong> Oscilloscopes display Lissajous figures when comparing audio signals — making sound visible.</p>
                 </div>
             </div>
 
@@ -713,10 +715,8 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Order from Chaos:</strong> Simple rules (sine waves) create complex emergent patterns—how natural laws generate universal complexity.</p>
-                    <p><strong>Unity in Diversity:</strong> Individual particles follow unique paths yet reveal underlying harmonic structure.</p>
-                    <p><strong>Resonance:</strong> Things "in tune" amplify; discord cancels—a metaphor for cooperation.</p>
-                    <p><strong>The Invisible Made Visible:</strong> We see wave effects on particles, like understanding invisible forces (gravity, magnetism) through their effects.</p>
+                    <p><strong>Harmony as Mathematics:</strong> The same ratios that make musical intervals pleasant (octave = 2:1, fifth = 3:2) create visual harmony in these curves. Beauty is resonance.</p>
+                    <p><strong>Beauty as Resonance:</strong> When frequencies align in simple ratios, both ear and eye perceive harmony — suggesting a deep unity between sensory aesthetics and mathematical structure.</p>
                 </div>
             </div>
         </div>
@@ -726,9 +726,9 @@
         </div>
 
         <div class="placard">
-            <div class="placard-title">Harmonic Emergence</div>
-            <div class="placard-subtitle">Wave interference patterns through phase-modulated oscillators</div>
-            <div class="placard-meta">superposition • constructive interference • standing waves</div>
+            <div class="placard-title">Resonant Traces</div>
+            <div class="placard-subtitle">Coupled pendulum harmonics and Lissajous figures</div>
+            <div class="placard-meta">frequency ratio · damping · phase · harmonic resonance</div>
         </div>
 
         <div class="scroll-indicator">
@@ -740,204 +740,156 @@
     <div class="article-section">
         <div class="ornamental-divider"><span>◆</span></div>
 
-        <h1 class="article-title">Harmonic Emergence</h1>
-        <p class="article-subtitle">An Algorithmic Philosophy</p>
+        <h1 class="article-title">Resonant Traces</h1>
+        <p class="article-subtitle">The Geometry of Coupled Oscillation</p>
 
         <blockquote class="article-epigraph">
-            "The universe is written in the language of mathematics, and its characters are triangles, circles, and other geometric figures."
-            <cite>— Galileo Galilei</cite>
+            "Music is the arithmetic of sounds as optics is the geometry of light."
+            <cite>— Claude Debussy</cite>
         </blockquote>
 
         <div class="article-body">
-            <p>At the intersection of mathematics and aesthetics lies a profound truth: complexity need not be chaotic, and simplicity need not be sterile. Harmonic Emergence explores the delicate balance between these polarities through the language of wave interference and resonant frequencies. This is not about simulating natural phenomena but about discovering the intrinsic beauty hidden within mathematical relationships themselves—the way sine and cosine functions, when properly orchestrated, can dance together to create patterns that feel both inevitable and surprising.</p>
+            <p>The harmonograph — a 19th-century mechanical device that captured the mathematics of resonance as drawing. Two pendulums, connected through a pen, trace intricate patterns as they swing and slowly decay. What begins as broad, sweeping arcs gradually tightens into a dense, luminous core — the entire history of a dissipating system recorded in a single continuous line.</p>
 
-            <p>The computational heart of this philosophy rests on phase-modulated oscillators arranged in carefully calibrated layers. Each layer operates at a distinct frequency ratio, chosen not arbitrarily but according to harmonic principles that resonate with fundamental musical intervals. These oscillators don't simply exist in isolation; they interact through constructive and destructive interference, creating regions of intense activity and peaceful stillness.</p>
+            <p>The mathematics are parametric equations with damped sinusoidal motion. When frequency ratios are simple — 2:1, 3:2, 4:3 — the patterns are clean and periodic, the pen retracing nearly the same path with each cycle. When ratios are irrational, the pen never retraces its path, creating infinitely complex curves that fill the plane with a density that approaches texture rather than line.</p>
 
-            <p>The visual manifestation emerges through a field of particles, each one a witness to the invisible harmonic forces that permeate the space. These particles don't follow predetermined paths; instead, they respond to the local field intensity at their position, which is determined by the sum of all overlapping wave functions. Where waves reinforce, particles gather and glow with accumulated energy. Where waves cancel, particles drift slowly or find stillness.</p>
+            <p>What the viewer sees is a single line emerging from the edges, slowly building an intricate pattern. As the pendulums lose energy to damping, the pattern tightens inward, creating layers of ever-finer detail. The outermost loops are the youngest — born when the pendulums still held most of their energy. The innermost traces are the oldest, drawn in the final whispered oscillations before stillness.</p>
 
-            <p>Color in this philosophy is not decoration but information—a direct encoding of the underlying wave dynamics. Hue represents the dominant frequency at each location, shifting smoothly as different oscillators take precedence. Saturation maps to wave amplitude, revealing the strength of the field. Brightness encodes particle density and velocity, creating natural contrast between active and dormant regions.</p>
+            <p>Resonance connects music, physics, and visual art through a shared mathematical vocabulary. The frequency ratios that produce harmonious patterns — 2:1, 3:2 — are the same ratios that define musical octaves and fifths. A harmonograph set to a 3:2 ratio draws what a perfect fifth sounds like. Visual harmony and auditory harmony share the same mathematical foundation, suggesting that beauty is not subjective preference but structural resonance.</p>
 
-            <p>The parameter space has been carefully constrained to ensure that every configuration produces compelling results while still offering meaningful variation. The number of harmonic layers determines the complexity of interference patterns. Wave speed controls the temporal evolution, allowing exploration of both dynamic turbulence and serene near-stasis. Frequency ratios can be adjusted to explore different harmonic relationships, from consonant intervals that feel stable and musical to dissonant ratios that create visual tension.</p>
-
-            <p>What emerges is a living algorithm—one that reveals different facets of its mathematical soul with each iteration, yet always maintains coherence and intentionality. The viewer witnesses not a static image but a computational performance, where mathematical precision gives rise to organic beauty. Each seed generates a unique instantiation of these harmonic principles, proving that order and variety are not opposites but partners in the creation of algorithmic beauty.</p>
+            <p>These traces are recordings of time. Each point on the curve represents a moment in the pendulums' coupled dance. The pattern is a temporal fossil — the complete history of two oscillating systems, frozen in a single image. Unlike a photograph, which captures an instant, a harmonograph drawing contains every instant, layered together in the order they occurred. It is time made spatial, energy made visible, and decay made beautiful.</p>
         </div>
 
         <div class="math-box">
-            <div class="math-box-header">THE MATHEMATICAL HEART</div>
-            <div class="math-box-formula">f(x,y,t) = Σ Aₙ · sin(ωₙ · r + θ + φₙ + t · v)</div>
-            <div class="math-box-description">Where each oscillator n contributes amplitude Aₙ at frequency ωₙ, and the superposition of all layers creates regions of constructive and destructive interference — the visible harmony of invisible waves.</div>
+            <div class="math-box-header">Damped Harmonic Motion</div>
+            <div class="math-box-formula">x(t) = A·sin(f·t + φ)·e<sup>−d·t</sup></div>
+            <div class="math-box-description">Amplitude A, frequency f, phase φ, and exponential decay d. Two such equations coupled together — one for x, one for y — produce the harmonograph's infinite variety of curves.</div>
         </div>
 
         <nav class="article-nav">
             <a href="#top">↑ Return to Exhibit</a>
-            <a href="/ai-art/">← Back to Gallery</a>
+            <a href="/algoart/">← Back to Gallery</a>
         </nav>
     </div>
 
     <script>
         let currentSeed = Math.floor(Math.random() * 999) + 1;
         let params = {
-            layers: 5,
-            wavespeed: 1.0,
-            frequency: 1.5,
-            particles: 4000,
-            strength: 1.5,
-            fade: 15
+            freqRatio: 2.0,
+            phase: 45,
+            damping: 0.998,
+            ampX: 250,
+            ampY: 250,
+            speed: 3
         };
 
-        let particles = [];
-        let time = 0;
-        let oscillators = [];
-
-        class HarmonicOscillator {
-            constructor(frequency, phase, amplitude) {
-                this.frequency = frequency;
-                this.phase = phase;
-                this.amplitude = amplitude;
-            }
-
-            getValueAt(x, y, t) {
-                let distance = dist(x, y, width/2, height/2);
-                let angle = atan2(y - height/2, x - width/2);
-                return this.amplitude * sin(this.frequency * distance * 0.01 + angle * 2 + this.phase + t * params.wavespeed);
-            }
-        }
-
-        class Particle {
-            constructor() {
-                this.reset();
-                this.history = [];
-            }
-
-            reset() {
-                let angle = random(TWO_PI);
-                let radius = random(min(width, height) * 0.4);
-                this.x = width/2 + cos(angle) * radius;
-                this.y = height/2 + sin(angle) * radius;
-                this.vx = 0;
-                this.vy = 0;
-                this.life = random(1.0);
-            }
-
-            update() {
-                let fieldValue = 0;
-                for (let osc of oscillators) {
-                    fieldValue += osc.getValueAt(this.x, this.y, time);
-                }
-
-                let angle = fieldValue * PI;
-                let magnitude = abs(fieldValue) * params.strength * 0.5;
-                
-                this.vx = cos(angle) * magnitude;
-                this.vy = sin(angle) * magnitude;
-
-                this.x += this.vx;
-                this.y += this.vy;
-
-                this.history.push({x: this.x, y: this.y});
-                if (this.history.length > 8) { // Reduced from 20 for shorter trails
-                    this.history.shift();
-                }
-
-                this.life -= 0.001;
-
-                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height || this.life <= 0) {
-                    this.reset();
-                }
-            }
-
-            display() {
-                let fieldValue = 0;
-                for (let osc of oscillators) {
-                    fieldValue += osc.getValueAt(this.x, this.y, time);
-                }
-
-                // More vibrant colors against dark background
-                let hue = map(fieldValue, -params.layers, params.layers, 160, 220);
-                let sat = map(abs(fieldValue), 0, params.layers, 60, 95);
-                let vel = sqrt(this.vx * this.vx + this.vy * this.vy);
-                let bright = map(vel, 0, 5, 50, 98);
-
-                colorMode(HSB, 360, 100, 100);
-                
-                // Subtle, shorter trails
-                if (this.history.length > 1) {
-                    noFill();
-                    for (let i = 1; i < this.history.length; i++) {
-                        let alpha = map(i, 0, this.history.length, 0, this.life * 15); // Reduced from 50
-                        stroke(hue, sat, bright, alpha);
-                        strokeWeight(0.6); // Reduced from 1.2
-                        line(this.history[i-1].x, this.history[i-1].y, 
-                             this.history[i].x, this.history[i].y);
-                    }
-                }
-
-                // Brighter particles
-                fill(hue, sat, bright, this.life * 85); // Increased from 70
-                noStroke();
-                circle(this.x, this.y, 3); // Slightly larger from 2.5
-            }
-        }
+        let t = 0;
+        let drawing = true;
+        let prevX, prevY;
+        let seedPhaseX, seedPhaseY, seedFreqOffset;
+        let traceGraphics;
 
         function setup() {
             let canvas = createCanvas(800, 800);
             canvas.parent('canvas-container');
-            
+            traceGraphics = createGraphics(800, 800);
             initializeSystem();
-            
             document.querySelector('.loading').style.display = 'none';
         }
 
         function initializeSystem() {
             randomSeed(currentSeed);
-            noiseSeed(currentSeed);
 
-            time = 0;
+            seedPhaseX = random(-0.5, 0.5);
+            seedPhaseY = random(-0.5, 0.5);
+            seedFreqOffset = random(-0.03, 0.03);
 
-            oscillators = [];
-            for (let i = 0; i < params.layers; i++) {
-                let frequency = params.frequency * (i + 1) / params.layers;
-                let phase = random(TWO_PI);
-                let amplitude = 1.0 / (i + 1);
-                oscillators.push(new HarmonicOscillator(frequency, phase, amplitude));
-            }
+            t = 0;
+            drawing = true;
+            prevX = undefined;
+            prevY = undefined;
 
-            particles = [];
-            for (let i = 0; i < params.particles; i++) {
-                particles.push(new Particle());
-            }
+            traceGraphics.background(13, 13, 15);
 
-            background(13, 13, 15);
             updateSeedDisplay();
         }
 
+        function harmonographX(time) {
+            let freq = 1.0;
+            let phase = radians(params.phase) + seedPhaseX;
+            let amp = params.ampX;
+            let d = 1.0 - params.damping;
+            return amp * sin(freq * time + phase) * exp(-d * time);
+        }
+
+        function harmonographY(time) {
+            let freq = params.freqRatio + seedFreqOffset;
+            let phase = seedPhaseY;
+            let amp = params.ampY;
+            let d = 1.0 - params.damping;
+            return amp * sin(freq * time + phase) * exp(-d * time);
+        }
+
         function draw() {
-            // Dark background fade
-            fill(13, 13, 15, params.fade);
-            noStroke();
-            rect(0, 0, width, height);
+            image(traceGraphics, 0, 0);
 
-            for (let p of particles) {
-                p.update();
-                p.display();
+            if (!drawing) return;
+
+            let stepsPerFrame = params.speed * 80;
+            let dt = 0.02;
+
+            traceGraphics.strokeWeight(1.0);
+
+            for (let i = 0; i < stepsPerFrame; i++) {
+                let cx = width / 2 + harmonographX(t);
+                let cy = height / 2 + harmonographY(t);
+
+                if (prevX !== undefined) {
+                    let decay = exp(-(1.0 - params.damping) * t);
+                    let alpha = map(decay, 0, 1, 20, 200);
+
+                    let r = 201, g = 138, b = 90;
+                    r = lerp(r, 170, 1 - decay);
+                    g = lerp(g, 120, 1 - decay);
+                    b = lerp(b, 85, 1 - decay);
+
+                    traceGraphics.stroke(r, g, b, alpha);
+                    traceGraphics.line(prevX, prevY, cx, cy);
+                }
+
+                prevX = cx;
+                prevY = cy;
+                t += dt;
+
+                let currentAmp = max(abs(harmonographX(t)), abs(harmonographY(t)));
+                if (currentAmp < 0.3) {
+                    drawing = false;
+                    break;
+                }
             }
-
-            time += 0.02;
         }
 
         function updateParam(name, value) {
             let numVal = parseFloat(value);
             params[name] = numVal;
-            document.getElementById(name + '-value').textContent = 
-                name === 'particles' ? numVal : numVal.toFixed(1);
-            
-            if (name === 'layers' || name === 'particles' || name === 'frequency') {
-                initializeSystem();
+
+            if (name === 'freqRatio') {
+                document.getElementById('freqRatio-value').textContent = numVal.toFixed(2);
+            } else if (name === 'phase') {
+                document.getElementById('phase-value').textContent = numVal + '°';
+            } else if (name === 'damping') {
+                document.getElementById('damping-value').textContent = numVal.toFixed(3);
+            } else if (name === 'speed') {
+                document.getElementById('speed-value').textContent = numVal;
+            } else {
+                document.getElementById(name + '-value').textContent = numVal;
             }
+
+            initializeSystem();
         }
 
         function updateSeedDisplay() {
-            document.getElementById('seed-display').textContent = 
+            document.getElementById('seed-display').textContent =
                 String(currentSeed).padStart(3, '0');
         }
 
@@ -958,8 +910,7 @@
 
         function toggleEdu(header) {
             header.classList.toggle('active');
-            let content = header.nextElementSibling;
-            content.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
         }
     </script>
 </body>

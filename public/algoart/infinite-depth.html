@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invisible Currents — Perlin Noise Flow Field</title>
+    <title>Infinite Depth — Mandelbrot & Julia Set Explorer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
             --museum-white: #fdfcf8;
             --gold: #c9a55a;
             --silver: #9fa8ab;
-            --accent: #4ecdc4;
+            --accent: #e04898;
         }
 
         * {
@@ -80,7 +80,7 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse at 30% 20%, rgba(78, 205, 196, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 20%, rgba(224, 72, 152, 0.03) 0%, transparent 50%),
                 radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
             pointer-events: none;
         }
@@ -89,7 +89,7 @@
             position: absolute;
             width: 900px;
             height: 900px;
-            background: radial-gradient(circle, rgba(78, 205, 196, 0.025) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(224, 72, 152, 0.025) 0%, transparent 70%);
             pointer-events: none;
             z-index: 1;
         }
@@ -98,6 +98,7 @@
             position: relative;
             z-index: 2;
             filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+            cursor: crosshair;
         }
 
         .seed-display {
@@ -108,7 +109,7 @@
             font-size: 11px;
             font-weight: 300;
             letter-spacing: 2px;
-            color: rgba(78, 205, 196, 0.5);
+            color: rgba(224, 72, 152, 0.5);
             opacity: 0;
             animation: fadeIn 1.5s 2.5s forwards;
         }
@@ -133,7 +134,7 @@
         .control-btn {
             width: 36px;
             height: 36px;
-            border: 1px solid rgba(78, 205, 196, 0.3);
+            border: 1px solid rgba(224, 72, 152, 0.3);
             background: rgba(13, 13, 15, 0.7);
             backdrop-filter: blur(10px);
             color: var(--accent);
@@ -148,7 +149,7 @@
 
         .control-btn:hover {
             border-color: var(--accent);
-            background: rgba(78, 205, 196, 0.1);
+            background: rgba(224, 72, 152, 0.1);
             transform: scale(1.05);
         }
 
@@ -188,7 +189,7 @@
         .param-slider {
             width: 100%;
             height: 1px;
-            background: rgba(78, 205, 196, 0.2);
+            background: rgba(224, 72, 152, 0.2);
             -webkit-appearance: none;
             appearance: none;
             outline: none;
@@ -210,6 +211,46 @@
             cursor: pointer;
             border: none;
             border-radius: 0;
+        }
+
+        .mode-toggle {
+            display: flex;
+            border: 1px solid rgba(224, 72, 152, 0.3);
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 5px 0;
+            font-family: 'Crimson Pro', serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: transparent;
+            color: var(--silver);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: rgba(224, 72, 152, 0.15);
+            color: var(--accent);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: rgba(224, 72, 152, 0.05);
+        }
+
+        .julia-params {
+            transition: opacity 0.3s ease, max-height 0.4s ease;
+            overflow: hidden;
+        }
+
+        .julia-params.hidden {
+            opacity: 0.3;
+            pointer-events: none;
         }
 
         .education-panel {
@@ -251,7 +292,7 @@
             text-transform: uppercase;
             cursor: pointer;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(78, 205, 196, 0.1);
+            border-bottom: 1px solid rgba(224, 72, 152, 0.1);
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
@@ -259,8 +300,8 @@
         }
 
         .edu-header:hover {
-            color: #7eddd6;
-            border-color: rgba(78, 205, 196, 0.3);
+            color: #f06aad;
+            border-color: rgba(224, 72, 152, 0.3);
         }
 
         .edu-icon {
@@ -358,7 +399,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 11px;
             letter-spacing: 1.5px;
-            color: rgba(78, 205, 196, 0.4);
+            color: rgba(224, 72, 152, 0.4);
             text-align: center;
         }
 
@@ -457,7 +498,7 @@
         }
 
         .math-box {
-            border: 1px solid rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(224, 72, 152, 0.2);
             padding: 24px;
             margin: 40px 0;
         }
@@ -494,7 +535,7 @@
             align-items: center;
             margin-top: 60px;
             padding-top: 30px;
-            border-top: 1px solid rgba(78, 205, 196, 0.15);
+            border-top: 1px solid rgba(224, 72, 152, 0.15);
         }
 
         .article-nav a {
@@ -530,7 +571,7 @@
 </head>
 <body>
     <div class="back-nav">
-        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <a href="/algoart/">← BACK TO GALLERY</a>
         <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
     </div>
 
@@ -550,52 +591,59 @@
         <div class="parameters-panel">
             <div class="param-group">
                 <div class="param-label">
-                    Noise Scale
-                    <span class="param-value" id="scale-value">0.005</span>
+                    Max Iterations
+                    <span class="param-value" id="iterations-value">200</span>
                 </div>
-                <input type="range" class="param-slider" id="scale-slider"
-                       min="0.001" max="0.01" value="0.005" step="0.001"
-                       oninput="updateParam('noiseScale', this.value)">
+                <input type="range" class="param-slider" id="iterations-slider"
+                       min="50" max="500" value="200" step="10"
+                       oninput="updateParam('maxIter', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Particle Count
-                    <span class="param-value" id="count-value">2000</span>
+                    Color Shift
+                    <span class="param-value" id="colorshift-value">0°</span>
                 </div>
-                <input type="range" class="param-slider" id="count-slider"
-                       min="500" max="5000" value="2000" step="100"
-                       oninput="updateParam('particleCount', this.value)">
+                <input type="range" class="param-slider" id="colorshift-slider"
+                       min="0" max="360" value="0" step="1"
+                       oninput="updateParam('colorShift', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Speed
-                    <span class="param-value" id="speed-value">1.5</span>
+                    Zoom Level
+                    <span class="param-value" id="zoom-value">1.0x</span>
                 </div>
-                <input type="range" class="param-slider" id="speed-slider"
-                       min="0.5" max="3" value="1.5" step="0.1"
-                       oninput="updateParam('speed', this.value)">
             </div>
 
             <div class="param-group">
-                <div class="param-label">
-                    Trail Fade
-                    <span class="param-value" id="fade-value">12</span>
+                <div class="param-label">Mode</div>
+                <div class="mode-toggle">
+                    <button class="mode-btn active" id="mode-mandelbrot" onclick="setMode('mandelbrot')">Mandelbrot</button>
+                    <button class="mode-btn" id="mode-julia" onclick="setMode('julia')">Julia</button>
                 </div>
-                <input type="range" class="param-slider" id="fade-slider"
-                       min="5" max="40" value="12" step="1"
-                       oninput="updateParam('trailFade', this.value)">
             </div>
 
-            <div class="param-group">
-                <div class="param-label">
-                    Evolution
-                    <span class="param-value" id="evolution-value">0.002</span>
+            <div class="julia-params hidden" id="julia-params">
+                <div class="param-group">
+                    <div class="param-label">
+                        Julia Real
+                        <span class="param-value" id="juliareal-value">-0.700</span>
+                    </div>
+                    <input type="range" class="param-slider" id="juliareal-slider"
+                           min="-2" max="2" value="-0.7" step="0.005"
+                           oninput="updateParam('juliaReal', this.value)">
                 </div>
-                <input type="range" class="param-slider" id="evolution-slider"
-                       min="0" max="0.01" value="0.002" step="0.001"
-                       oninput="updateParam('evolution', this.value)">
+
+                <div class="param-group">
+                    <div class="param-label">
+                        Julia Imaginary
+                        <span class="param-value" id="juliaimag-value">0.270</span>
+                    </div>
+                    <input type="range" class="param-slider" id="juliaimag-slider"
+                           min="-2" max="2" value="0.27015" step="0.005"
+                           oninput="updateParam('juliaImag', this.value)">
+                </div>
             </div>
         </div>
 
@@ -606,7 +654,7 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Imagine invisible wind blowing across the screen — the dots are like leaves showing you which way the wind blows! The wind is always changing, making beautiful swirly patterns.</p>
+                    <p>Imagine zooming into a shape that never ends — there's always more detail! No matter how close you look, you keep finding tiny copies of the whole picture hiding inside. It's like a magic pattern that goes on forever and ever.</p>
                 </div>
             </div>
 
@@ -616,8 +664,8 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Ken Perlin created his noise function in 1983</strong> while working on the original <em>Tron</em>. He needed a way to generate textures that looked natural rather than machine-made.</p>
-                    <p>Perlin noise is a <strong>gradient noise function</strong> — it produces coherent randomness by interpolating between random gradients on a grid. The result won an Academy Award for Technical Achievement.</p>
+                    <p><strong>Benoit Mandelbrot, 1980</strong> — first visualized by computer, revealing infinite complexity from a simple iterative formula.</p>
+                    <p>The algorithm iterates <strong>z = z² + c</strong> for each point in the complex plane. The <strong>escape-time algorithm</strong> counts how many iterations before |z| exceeds 2, and uses that count to assign a color.</p>
                 </div>
             </div>
 
@@ -627,9 +675,8 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>noise(x, y, z)</strong> returns smooth pseudo-random values between 0 and 1 that vary gradually across space.</p>
-                    <p>Sampled as an angle field: <strong>θ = noise(x·scale, y·scale, t) × 4π</strong></p>
-                    <p>Each point in space gets a direction, and particles follow these invisible vectors to reveal the underlying flow.</p>
+                    <p><strong>z<sub>n+1</sub> = z<sub>n</sub>² + c</strong></p>
+                    <p>If <strong>|z| > 2</strong>, the point escapes — it will diverge to infinity. Count the iterations before escape to determine the color. Points that never escape belong to the set and are colored black.</p>
                 </div>
             </div>
 
@@ -639,7 +686,7 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Wind patterns, ocean currents, magnetic field lines, the aurora borealis, jet streams — all exhibit the kind of smooth, coherent flow that Perlin noise captures mathematically.</p>
+                    <p>Coastlines, mountain ranges, clouds, broccoli, snowflakes — nature is full of fractal geometry. The measured length of a coastline depends on the ruler you use. Mountains look similar at every magnification.</p>
                 </div>
             </div>
 
@@ -649,7 +696,7 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Procedural textures in every major film with CGI. The generative art movement embraced Perlin noise as a fundamental building block. Creative coding communities use it as a starting point for organic visual explorations.</p>
+                    <p>The <strong>fractal art movement</strong> emerged from early computer graphics. Fractals drive <strong>psychedelic art</strong>, album covers, and <strong>digital cinema VFX</strong> — from alien landscapes to volumetric clouds.</p>
                 </div>
             </div>
 
@@ -659,7 +706,7 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Organic randomness versus pure chaos — Perlin noise is <strong>"interesting" because it has spatial coherence</strong>, unlike white noise. It occupies the fertile middle ground between rigid order and meaningless randomness, where beauty and complexity emerge.</p>
+                    <p>Infinite complexity from <strong>z² + c</strong> — a three-character formula that contains more structure than any finite description can capture. Self-similarity at every scale. The boundary between order and chaos is itself infinitely complex.</p>
                 </div>
             </div>
         </div>
@@ -669,9 +716,9 @@
         </div>
 
         <div class="placard">
-            <div class="placard-title">Invisible Currents</div>
-            <div class="placard-subtitle">Perlin noise flow fields and emergent streams</div>
-            <div class="placard-meta">gradient noise · vector field · coherent randomness</div>
+            <div class="placard-title">Infinite Depth</div>
+            <div class="placard-subtitle">The Mandelbrot set and its Julia companions</div>
+            <div class="placard-meta">z² + c · escape time · fractal boundary</div>
         </div>
 
         <div class="scroll-indicator">
@@ -684,174 +731,282 @@
     <div class="article-section">
         <div class="ornamental-divider"><span>◆</span></div>
 
-        <h1 class="article-title">Invisible Currents</h1>
-        <p class="article-subtitle">The Art of Coherent Randomness</p>
+        <h1 class="article-title">Infinite Depth</h1>
+        <p class="article-subtitle">The Boundary Between Order and Chaos</p>
 
         <blockquote class="article-epigraph">
-            "The purpose of computing is insight, not numbers."
-            <cite>— Richard Hamming</cite>
+            "Clouds are not spheres, mountains are not cones, coastlines are not circles, and bark is not smooth, nor does lightning travel in a straight line."
+            <cite>— Benoit Mandelbrot</cite>
         </blockquote>
 
         <div class="article-body">
-            <p>Ken Perlin created his noise function in 1983, frustrated that computer graphics looked too perfect, too clean. He needed randomness that felt natural — smooth, flowing, organic. The result won an Academy Award and transformed digital art.</p>
+            <p>Benoit Mandelbrot's 1980 discovery of the set that bears his name revealed the most complex mathematical object ever visualized — generated by the simplest possible formula: z² + c. A two-variable equation, three characters of notation, producing infinite worlds within worlds, structures no one had ever imagined, let alone seen.</p>
 
-            <p>Perlin noise generates smooth pseudo-random values that vary gradually across space. When sampled as a vector field — each point assigned a direction based on the noise value — particles following these invisible currents create organic flow patterns reminiscent of wind, water, and magnetic fields. The key insight is that nearby points receive similar but not identical directions, producing coherent streams rather than chaotic scatter.</p>
+            <p>The algorithm is disarmingly simple. For each point c in the complex plane, iterate z = z² + c starting from z = 0. If z escapes to infinity (|z| > 2), color the point by how many iterations it took to escape. If it never escapes, the point belongs to the set. The boundary between escape and captivity — between points that fly away and points that remain trapped — creates infinite fractal detail.</p>
 
-            <p>What the viewer sees is thousands of particles tracing invisible currents, creating streams and eddies that feel alive. The noise field evolves slowly over time, and patterns form and dissolve like weather systems on a microscopic scale. Convergence zones appear where currents collide, while empty channels open where flows diverge — an emergent geography written in light.</p>
+            <p>What the viewer sees is an infinitely detailed boundary, with miniature copies of the whole set appearing at every scale. Zoom in a million times and discover structures as complex as the original. Spiral arms, seahorse valleys, embedded Julia sets — the deeper you go, the more alien the landscape becomes, and yet the entire shape is always there, nested within itself. The Julia sets are cross-sections: each point in the Mandelbrot set corresponds to a connected Julia set, a shadow world defined by a single complex number.</p>
 
-            <p>Perlin noise is everywhere in digital visual culture. Every film with CGI fire, water, clouds, or terrain uses it. Every procedural texture in games. Every volumetric fog effect and displacement map. It is the invisible infrastructure of the digital visual world — so fundamental that most viewers never realize the same mathematical function underlies the waves, the flames, and the alien landscapes they see on screen.</p>
+            <p>Real-world fractals are everywhere once you learn to see them. Coastlines whose measured length depends on the ruler — shorter ruler, longer coast. Mountains whose silhouettes are statistically identical at any magnification. The branching of rivers, the shape of clouds, the surface of broccoli. Mandelbrot gave us the mathematics to describe nature's roughness, the geometry of the irregular.</p>
 
-            <p>There is a philosophical beauty in "interesting" randomness. Pure randomness is static noise — every pixel independent, no structure, no meaning. Perfect order is boring — grids, repetition, predictability. Between them lies Perlin noise: coherent, structured, organic. It teaches us that the most beautiful systems exist at the edge between order and chaos, where local structure gives rise to global complexity, and simple rules produce infinite variety.</p>
+            <p>The philosophical weight of the Mandelbrot set is staggering: infinite complexity from a three-character formula. The set contains more structure than any finite description can capture. It challenges our deepest notions of simplicity — is z² + c simple or complex? The formula is simple. The consequences are infinite. Perhaps this is the deepest truth about mathematics: that complexity is not added from outside, but is latent within even the most elementary operations.</p>
         </div>
 
         <div class="math-box">
-            <div class="math-box-header">THE FLOW EQUATION</div>
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
             <div class="math-box-formula">
-                θ(x, y) = noise(x·s, y·s, t) × 4π
+                z<sub>n+1</sub> = z<sub>n</sub>² + c
             </div>
-            <div class="math-box-description">At each point, Perlin noise produces a smooth, locally coherent value that becomes a flow direction. Particles follow these invisible vectors, revealing the underlying field through their accumulated trails.</div>
+            <div class="math-box-description">Iterate from z₀ = 0. If the sequence escapes (|z| > 2), the point c is outside the set. The number of iterations before escape determines the color. At the boundary lies infinite fractal complexity — more detail than any finite computation can reveal.</div>
         </div>
 
         <nav class="article-nav">
             <a href="#exhibit">↑ Return to Exhibit</a>
-            <a href="/ai-art/">← Back to Gallery</a>
+            <a href="/algoart/">← Back to Gallery</a>
         </nav>
     </div>
 
     <script>
         let currentSeed = Math.floor(Math.random() * 999) + 1;
-        let flowParticles = [];
-        let pg;
-        let t = 0;
+        let rendering = false;
 
         let params = {
-            noiseScale: 0.005,
-            particleCount: 2000,
-            speed: 1.5,
-            trailFade: 12,
-            evolution: 0.002
+            maxIter: 200,
+            colorShift: 0,
+            mode: 'mandelbrot',
+            juliaReal: -0.7,
+            juliaImag: 0.27015,
         };
 
-        const W = 800;
-        const H = 800;
+        let viewXmin = -2.5;
+        let viewXmax = 1.0;
+        let viewYmin = -1.25;
+        let viewYmax = 1.25;
+        let zoomLevel = 1;
 
-        class FlowParticle {
-            constructor() {
-                this.respawn();
-                this.prevX = this.x;
-                this.prevY = this.y;
-            }
+        const CANVAS_SIZE = 800;
 
-            respawn() {
-                this.x = random(W);
-                this.y = random(H);
-                this.prevX = this.x;
-                this.prevY = this.y;
-            }
+        const JULIA_PRESETS = [
+            { r: -0.7,     i: 0.27015  },
+            { r: -0.8,     i: 0.156    },
+            { r: -0.4,     i: 0.6      },
+            { r:  0.285,   i: 0.01     },
+            { r: -0.70176, i: -0.3842  },
+            { r: -0.835,   i: -0.2321  },
+            { r:  0.355,   i: 0.355    },
+            { r: -0.54,    i: 0.54     },
+            { r:  0.37,    i: 0.1      },
+            { r: -0.123,   i: 0.745    },
+        ];
 
-            update() {
-                this.prevX = this.x;
-                this.prevY = this.y;
-
-                let angle = noise(this.x * params.noiseScale, this.y * params.noiseScale, t) * TWO_PI * 2;
-
-                this.x += cos(angle) * params.speed;
-                this.y += sin(angle) * params.speed;
-
-                if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) {
-                    this.respawn();
-                }
-            }
-
-            draw(gfx) {
-                let n = noise(this.x * params.noiseScale, this.y * params.noiseScale, t);
-
-                let hue = 170 + n * 30;
-                let sat = 50 + n * 30;
-                let bri = 60 + n * 35;
-
-                gfx.stroke(hue, sat, bri, 15);
-                gfx.strokeWeight(1);
-                gfx.line(this.prevX, this.prevY, this.x, this.y);
-            }
+        function seededRandom(seed) {
+            let s = seed;
+            return function() {
+                s = (s * 16807 + 0) % 2147483647;
+                return (s - 1) / 2147483646;
+            };
         }
 
-        function initParticles() {
-            noiseSeed(currentSeed);
-            flowParticles = [];
-            t = 0;
+        function applyVariation() {
+            let rng = seededRandom(currentSeed);
+            let idx = Math.floor(rng() * JULIA_PRESETS.length);
+            let preset = JULIA_PRESETS[idx];
+            let drift = (rng() - 0.5) * 0.05;
+            params.juliaReal = preset.r + drift;
+            params.juliaImag = preset.i + (rng() - 0.5) * 0.05;
+            params.colorShift = Math.floor(rng() * 360);
 
-            for (let i = 0; i < params.particleCount; i++) {
-                flowParticles.push(new FlowParticle());
-            }
-
-            if (pg) {
-                pg.clear();
-                pg.background(13, 13, 15);
-            }
+            document.getElementById('juliareal-slider').value = params.juliaReal;
+            document.getElementById('juliaimag-slider').value = params.juliaImag;
+            document.getElementById('colorshift-slider').value = params.colorShift;
+            document.getElementById('juliareal-value').textContent = params.juliaReal.toFixed(3);
+            document.getElementById('juliaimag-value').textContent = params.juliaImag.toFixed(3);
+            document.getElementById('colorshift-value').textContent = params.colorShift + '°';
 
             updateSeedDisplay();
         }
 
+        function resetView() {
+            if (params.mode === 'mandelbrot') {
+                viewXmin = -2.5;
+                viewXmax = 1.0;
+                viewYmin = -1.25;
+                viewYmax = 1.25;
+            } else {
+                viewXmin = -2.0;
+                viewXmax = 2.0;
+                viewYmin = -2.0;
+                viewYmax = 2.0;
+            }
+            zoomLevel = 1;
+            document.getElementById('zoom-value').textContent = '1.0x';
+        }
+
+        function iterColor(n, maxIter, zx, zy) {
+            if (n >= maxIter) return [0, 0, 0];
+
+            let smoothed = n + 1 - Math.log(Math.log(Math.sqrt(zx * zx + zy * zy))) / Math.log(2);
+            let t = smoothed / maxIter;
+
+            let hueBase = params.colorShift;
+
+            let palette = [
+                { pos: 0.0,  r: 224, g: 72,  b: 152 },
+                { pos: 0.15, r: 160, g: 50,  b: 200 },
+                { pos: 0.30, r: 80,  g: 60,  b: 220 },
+                { pos: 0.45, r: 40,  g: 150, b: 220 },
+                { pos: 0.60, r: 40,  g: 200, b: 180 },
+                { pos: 0.75, r: 60,  g: 200, b: 100 },
+                { pos: 0.90, r: 201, g: 165, b: 90  },
+                { pos: 1.0,  r: 224, g: 72,  b: 152 },
+            ];
+
+            let cycled = (t * 3 + hueBase / 360) % 1.0;
+
+            let c0 = palette[0], c1 = palette[palette.length - 1];
+            for (let k = 0; k < palette.length - 1; k++) {
+                if (cycled >= palette[k].pos && cycled <= palette[k + 1].pos) {
+                    c0 = palette[k];
+                    c1 = palette[k + 1];
+                    break;
+                }
+            }
+
+            let local = (cycled - c0.pos) / (c1.pos - c0.pos);
+            local = local * local * (3 - 2 * local);
+
+            let r = c0.r + (c1.r - c0.r) * local;
+            let g = c0.g + (c1.g - c0.g) * local;
+            let b = c0.b + (c1.b - c0.b) * local;
+
+            let brightness = 0.5 + 0.5 * Math.sin(smoothed * 0.15);
+            r *= (0.6 + 0.4 * brightness);
+            g *= (0.6 + 0.4 * brightness);
+            b *= (0.6 + 0.4 * brightness);
+
+            return [Math.min(255, r), Math.min(255, g), Math.min(255, b)];
+        }
+
+        function renderFractal() {
+            if (rendering) return;
+            rendering = true;
+
+            loadPixels();
+
+            let maxIter = params.maxIter;
+            let w = width;
+            let h = height;
+            let d = pixelDensity();
+            let pw = w * d;
+            let ph = h * d;
+
+            let xRange = viewXmax - viewXmin;
+            let yRange = viewYmax - viewYmin;
+
+            for (let py = 0; py < ph; py++) {
+                for (let px = 0; px < pw; px++) {
+                    let x0 = viewXmin + (px / pw) * xRange;
+                    let y0 = viewYmin + (py / ph) * yRange;
+
+                    let zx, zy, cx, cy;
+
+                    if (params.mode === 'mandelbrot') {
+                        zx = 0; zy = 0;
+                        cx = x0; cy = y0;
+                    } else {
+                        zx = x0; zy = y0;
+                        cx = params.juliaReal;
+                        cy = params.juliaImag;
+                    }
+
+                    let n = 0;
+                    while (n < maxIter && zx * zx + zy * zy <= 4) {
+                        let tmp = zx * zx - zy * zy + cx;
+                        zy = 2 * zx * zy + cy;
+                        zx = tmp;
+                        n++;
+                    }
+
+                    let col = iterColor(n, maxIter, zx, zy);
+                    let idx = (py * pw + px) * 4;
+                    pixels[idx]     = col[0];
+                    pixels[idx + 1] = col[1];
+                    pixels[idx + 2] = col[2];
+                    pixels[idx + 3] = 255;
+                }
+            }
+
+            updatePixels();
+            rendering = false;
+        }
+
         function setup() {
-            let canvas = createCanvas(W, H);
+            let canvas = createCanvas(CANVAS_SIZE, CANVAS_SIZE);
             canvas.parent('canvas-container');
-            colorMode(HSB, 360, 100, 100, 100);
+            pixelDensity(1);
+            noLoop();
 
-            pg = createGraphics(W, H);
-            pg.colorMode(HSB, 360, 100, 100, 100);
-            pg.background(13, 13, 15);
-
-            initParticles();
+            applyVariation();
+            resetView();
+            renderFractal();
             document.querySelector('.loading').style.display = 'none';
         }
 
-        function draw() {
-            pg.noStroke();
-            pg.fill(13, 13, 15, params.trailFade);
-            pg.rect(0, 0, W, H);
+        function mousePressed() {
+            let container = document.getElementById('canvas-container');
+            let rect = container.getBoundingClientRect();
+            let mx = mouseX;
+            let my = mouseY;
 
-            for (let p of flowParticles) {
-                p.update();
-                p.draw(pg);
-            }
+            if (mx < 0 || mx > width || my < 0 || my > height) return;
 
-            t += params.evolution;
+            let xRange = viewXmax - viewXmin;
+            let yRange = viewYmax - viewYmin;
+            let clickX = viewXmin + (mx / width) * xRange;
+            let clickY = viewYmin + (my / height) * yRange;
 
-            image(pg, 0, 0);
+            let newXRange = xRange / 2;
+            let newYRange = yRange / 2;
+
+            viewXmin = clickX - newXRange / 2;
+            viewXmax = clickX + newXRange / 2;
+            viewYmin = clickY - newYRange / 2;
+            viewYmax = clickY + newYRange / 2;
+
+            zoomLevel *= 2;
+            document.getElementById('zoom-value').textContent = zoomLevel.toFixed(1) + 'x';
+
+            renderFractal();
         }
 
         function updateParam(name, value) {
             let numVal = parseFloat(value);
-            params[name] = numVal;
 
-            let displayMap = {
-                noiseScale: 'scale-value',
-                particleCount: 'count-value',
-                speed: 'speed-value',
-                trailFade: 'fade-value',
-                evolution: 'evolution-value'
-            };
-
-            let el = document.getElementById(displayMap[name]);
-            if (!el) return;
-
-            if (name === 'particleCount' || name === 'trailFade') {
-                el.textContent = Math.round(numVal);
-            } else {
-                el.textContent = numVal.toFixed(3);
+            if (name === 'maxIter') {
+                params.maxIter = Math.round(numVal);
+                document.getElementById('iterations-value').textContent = params.maxIter;
+            } else if (name === 'colorShift') {
+                params.colorShift = Math.round(numVal);
+                document.getElementById('colorshift-value').textContent = params.colorShift + '°';
+            } else if (name === 'juliaReal') {
+                params.juliaReal = numVal;
+                document.getElementById('juliareal-value').textContent = numVal.toFixed(3);
+            } else if (name === 'juliaImag') {
+                params.juliaImag = numVal;
+                document.getElementById('juliaimag-value').textContent = numVal.toFixed(3);
             }
 
-            if (name === 'particleCount') {
-                let diff = Math.round(numVal) - flowParticles.length;
-                if (diff > 0) {
-                    for (let i = 0; i < diff; i++) {
-                        flowParticles.push(new FlowParticle());
-                    }
-                } else if (diff < 0) {
-                    flowParticles.splice(0, -diff);
-                }
-            }
+            renderFractal();
+        }
+
+        function setMode(mode) {
+            params.mode = mode;
+
+            document.getElementById('mode-mandelbrot').classList.toggle('active', mode === 'mandelbrot');
+            document.getElementById('mode-julia').classList.toggle('active', mode === 'julia');
+            document.getElementById('julia-params').classList.toggle('hidden', mode === 'mandelbrot');
+
+            resetView();
+            renderFractal();
         }
 
         function updateSeedDisplay() {
@@ -861,17 +1016,23 @@
 
         function previousVariation() {
             currentSeed = Math.max(1, currentSeed - 1);
-            initParticles();
+            applyVariation();
+            resetView();
+            renderFractal();
         }
 
         function nextVariation() {
             currentSeed = currentSeed + 1;
-            initParticles();
+            applyVariation();
+            resetView();
+            renderFractal();
         }
 
         function randomVariation() {
             currentSeed = Math.floor(Math.random() * 999) + 1;
-            initParticles();
+            applyVariation();
+            resetView();
+            renderFractal();
         }
 
         function toggleEdu(header) {

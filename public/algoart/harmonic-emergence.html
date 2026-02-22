@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collective Intelligence — Boids Flocking Simulation</title>
+    <title>Harmonic Emergence — Wave Interference</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,8 @@
             --museum-white: #fdfcf8;
             --gold: #c9a55a;
             --silver: #9fa8ab;
-            --accent: #c0c8d0;
+            --accent: #d4af6a;
+            --wave-cyan: #4ecdc4;
         }
 
         * {
@@ -43,7 +44,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background:
+            background: 
                 radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
                 radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
             pointer-events: none;
@@ -84,7 +85,7 @@
             font-size: 24px;
             font-weight: 400;
             letter-spacing: 2px;
-            color: var(--accent);
+            color: var(--wave-cyan);
             margin-bottom: 8px;
             text-transform: uppercase;
         }
@@ -125,10 +126,10 @@
         .control-btn {
             width: 36px;
             height: 36px;
-            border: 1px solid rgba(192, 200, 208, 0.3);
+            border: 1px solid rgba(78, 205, 196, 0.3);
             background: rgba(13, 13, 15, 0.7);
             backdrop-filter: blur(10px);
-            color: var(--accent);
+            color: var(--wave-cyan);
             font-family: 'Crimson Pro', serif;
             font-size: 18px;
             cursor: pointer;
@@ -139,8 +140,8 @@
         }
 
         .control-btn:hover {
-            border-color: var(--accent);
-            background: rgba(192, 200, 208, 0.1);
+            border-color: var(--wave-cyan);
+            background: rgba(78, 205, 196, 0.1);
             transform: scale(1.05);
         }
 
@@ -167,7 +168,7 @@
 
         .seed-number {
             font-family: 'Courier New', monospace;
-            color: var(--accent);
+            color: var(--wave-cyan);
             margin-left: 8px;
             font-weight: 500;
         }
@@ -206,14 +207,14 @@
         .param-value {
             font-family: 'Courier New', monospace;
             font-size: 9px;
-            color: #607080;
+            color: var(--wave-cyan);
             font-weight: 600;
         }
 
         .param-slider {
             width: 100%;
             height: 2px;
-            background: rgba(192, 200, 208, 0.3);
+            background: rgba(78, 205, 196, 0.3);
             -webkit-appearance: none;
             appearance: none;
             outline: none;
@@ -223,7 +224,7 @@
             -webkit-appearance: none;
             width: 10px;
             height: 10px;
-            background: #607080;
+            background: var(--wave-cyan);
             cursor: pointer;
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -232,7 +233,7 @@
         .param-slider::-moz-range-thumb {
             width: 10px;
             height: 10px;
-            background: #607080;
+            background: var(--wave-cyan);
             cursor: pointer;
             border: none;
             border-radius: 50%;
@@ -254,7 +255,7 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             scrollbar-width: thin;
-            scrollbar-color: var(--accent) transparent;
+            scrollbar-color: var(--wave-cyan) transparent;
         }
 
         .education-panel::-webkit-scrollbar {
@@ -266,7 +267,7 @@
         }
 
         .education-panel::-webkit-scrollbar-thumb {
-            background: var(--accent);
+            background: var(--wave-cyan);
             border-radius: 2px;
         }
 
@@ -283,7 +284,7 @@
             text-transform: uppercase;
             cursor: pointer;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(192, 200, 208, 0.3);
+            border-bottom: 1px solid rgba(78, 205, 196, 0.3);
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
@@ -291,14 +292,14 @@
         }
 
         .edu-header:hover {
-            color: #607080;
-            border-color: var(--accent);
+            color: var(--wave-cyan);
+            border-color: var(--wave-cyan);
         }
 
         .edu-icon {
             font-size: 12px;
             transition: transform 0.3s ease;
-            color: #607080;
+            color: var(--wave-cyan);
         }
 
         .edu-header.active .edu-icon {
@@ -327,7 +328,7 @@
         }
 
         .edu-content strong {
-            color: #607080;
+            color: var(--wave-cyan);
             font-weight: 500;
         }
 
@@ -346,7 +347,7 @@
             content: '•';
             position: absolute;
             left: 0;
-            color: var(--accent);
+            color: var(--wave-cyan);
         }
 
         .loading {
@@ -357,7 +358,7 @@
             font-family: 'EB Garamond', serif;
             font-size: 14px;
             letter-spacing: 3px;
-            color: var(--accent);
+            color: var(--wave-cyan);
             z-index: 5;
         }
 
@@ -373,16 +374,14 @@
             justify-content: space-between;
             pointer-events: none;
         }
-
         .back-nav a, .back-nav span {
             pointer-events: auto;
         }
-
         .back-nav a {
             font-family: 'Crimson Pro', serif;
             font-size: 11px;
             letter-spacing: 2px;
-            color: var(--accent);
+            color: var(--wave-cyan);
             text-decoration: none;
             opacity: 0.5;
             transition: opacity 0.3s;
@@ -390,9 +389,7 @@
             align-items: center;
             gap: 6px;
         }
-
         .back-nav a:hover { opacity: 1; }
-
         .back-nav .site-name {
             font-family: 'Crimson Pro', serif;
             font-size: 10px;
@@ -401,6 +398,7 @@
             opacity: 0.3;
         }
 
+        /* Scroll indicator */
         .scroll-indicator {
             position: absolute;
             bottom: 15px;
@@ -410,7 +408,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 11px;
             letter-spacing: 1.5px;
-            color: var(--accent);
+            color: var(--wave-cyan);
             opacity: 0.4;
             text-align: center;
         }
@@ -424,6 +422,7 @@
             50% { transform: translateY(6px); }
         }
 
+        /* Article section */
         .article-section {
             background: var(--exhibition-black);
             max-width: 720px;
@@ -444,7 +443,7 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: var(--silver);
+            background: var(--wave-cyan);
             opacity: 0.3;
         }
 
@@ -452,7 +451,7 @@
             position: relative;
             background: var(--exhibition-black);
             padding: 0 20px;
-            color: var(--silver);
+            color: var(--wave-cyan);
             font-size: 16px;
             opacity: 0.5;
         }
@@ -461,7 +460,7 @@
             font-family: 'EB Garamond', serif;
             font-size: 36px;
             font-weight: 400;
-            color: var(--accent);
+            color: var(--wave-cyan);
             margin-bottom: 8px;
         }
 
@@ -475,7 +474,7 @@
         }
 
         .article-epigraph {
-            border-left: 2px solid var(--accent);
+            border-left: 2px solid var(--wave-cyan);
             padding: 16px 24px;
             margin-bottom: 48px;
             font-family: 'Crimson Pro', serif;
@@ -504,7 +503,7 @@
         }
 
         .math-box {
-            border: 1px solid rgba(192, 200, 208, 0.2);
+            border: 1px solid rgba(78, 205, 196, 0.2);
             padding: 24px;
             margin: 40px 0;
         }
@@ -513,7 +512,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 10px;
             letter-spacing: 2px;
-            color: var(--accent);
+            color: var(--wave-cyan);
             text-transform: uppercase;
             margin-bottom: 16px;
         }
@@ -538,14 +537,14 @@
             justify-content: space-between;
             margin-top: 60px;
             padding-top: 30px;
-            border-top: 1px solid rgba(192, 200, 208, 0.15);
+            border-top: 1px solid rgba(78, 205, 196, 0.15);
         }
 
         .article-nav a {
             font-family: 'Crimson Pro', serif;
             font-size: 12px;
             letter-spacing: 1.5px;
-            color: var(--accent);
+            color: var(--wave-cyan);
             text-decoration: none;
             opacity: 0.5;
             transition: opacity 0.3s;
@@ -558,13 +557,12 @@
 </head>
 <body>
     <div class="back-nav">
-        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <a href="/algoart/">← BACK TO GALLERY</a>
         <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
     </div>
-
     <div class="exhibition-space" id="top">
         <div class="spotlight"></div>
-
+        
         <div class="seed-display">
             VARIATION <span class="seed-number" id="seed-display">001</span>
         </div>
@@ -578,62 +576,62 @@
         <div class="parameters-panel">
             <div class="param-group">
                 <div class="param-label">
-                    Flock Size
-                    <span class="param-value" id="flocksize-value">200</span>
+                    Harmonic Layers
+                    <span class="param-value" id="layers-value">5</span>
                 </div>
-                <input type="range" class="param-slider" id="flocksize-slider"
-                       min="50" max="500" value="200" step="10"
-                       oninput="updateParam('flocksize', this.value)">
+                <input type="range" class="param-slider" id="layers-slider" 
+                       min="2" max="8" value="5" step="1" 
+                       oninput="updateParam('layers', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Separation
-                    <span class="param-value" id="separation-value">1.5</span>
+                    Wave Speed
+                    <span class="param-value" id="wavespeed-value">1.0</span>
                 </div>
-                <input type="range" class="param-slider" id="separation-slider"
-                       min="0.5" max="3.0" value="1.5" step="0.1"
-                       oninput="updateParam('separation', this.value)">
+                <input type="range" class="param-slider" id="wavespeed-slider" 
+                       min="0.1" max="3.0" value="1.0" step="0.1" 
+                       oninput="updateParam('wavespeed', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Alignment
-                    <span class="param-value" id="alignment-value">1.0</span>
+                    Frequency
+                    <span class="param-value" id="frequency-value">1.5</span>
                 </div>
-                <input type="range" class="param-slider" id="alignment-slider"
-                       min="0.5" max="3.0" value="1.0" step="0.1"
-                       oninput="updateParam('alignment', this.value)">
+                <input type="range" class="param-slider" id="frequency-slider" 
+                       min="0.5" max="3.0" value="1.5" step="0.1" 
+                       oninput="updateParam('frequency', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Cohesion
-                    <span class="param-value" id="cohesion-value">1.0</span>
+                    Particle Count
+                    <span class="param-value" id="particles-value">4000</span>
                 </div>
-                <input type="range" class="param-slider" id="cohesion-slider"
-                       min="0.5" max="3.0" value="1.0" step="0.1"
-                       oninput="updateParam('cohesion', this.value)">
+                <input type="range" class="param-slider" id="particles-slider" 
+                       min="1000" max="8000" value="4000" step="500" 
+                       oninput="updateParam('particles', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Max Speed
-                    <span class="param-value" id="maxspeed-value">4.0</span>
+                    Field Strength
+                    <span class="param-value" id="strength-value">1.5</span>
                 </div>
-                <input type="range" class="param-slider" id="maxspeed-slider"
-                       min="2" max="8" value="4" step="0.5"
-                       oninput="updateParam('maxspeed', this.value)">
+                <input type="range" class="param-slider" id="strength-slider" 
+                       min="0.5" max="3.0" value="1.5" step="0.1" 
+                       oninput="updateParam('strength', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Trail Length
-                    <span class="param-value" id="trail-value">5</span>
+                    Trail Fade
+                    <span class="param-value" id="fade-value">15</span>
                 </div>
-                <input type="range" class="param-slider" id="trail-slider"
-                       min="0" max="20" value="5" step="1"
-                       oninput="updateParam('trail', this.value)">
+                <input type="range" class="param-slider" id="fade-slider" 
+                       min="5" max="40" value="15" step="1" 
+                       oninput="updateParam('fade', this.value)">
             </div>
         </div>
 
@@ -644,23 +642,21 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Imagine a flock of birds or a school of fish. No single bird is the leader! Each bird follows three simple rules: don't bump into your neighbors, fly the same direction as nearby birds, and try to stay close to the group. With just these three rules, the whole flock moves together beautifully!</p>
+                    <p>Imagine dropping lots of pebbles into a calm pond. Each pebble makes ripples (circles in the water). When the ripples bump into each other, sometimes they make bigger waves (when they meet at the top), and sometimes they cancel out and become flat (when a top meets a bottom)!</p>
+                    <p>The colorful dots you see are like tiny boats floating on these invisible ripples. They ride up and down and spin around, leaving trails that show where they've been. Different colored trails mean the boats are riding on different kinds of waves!</p>
                 </div>
             </div>
 
             <div class="edu-section">
                 <div class="edu-header" onclick="toggleEdu(this)">
-                    <span>The Science</span>
+                    <span>Physics: Wave Interference</span>
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Craig Reynolds' 1986 Boids algorithm</strong> models flocking behavior with three rules:</p>
-                    <ul>
-                        <li><strong>Separation:</strong> Avoid crowding nearby neighbors</li>
-                        <li><strong>Alignment:</strong> Steer toward the average heading of nearby neighbors</li>
-                        <li><strong>Cohesion:</strong> Steer toward the average position of nearby neighbors</li>
-                    </ul>
-                    <p>Each rule operates within a perception radius. No boid has global knowledge — only awareness of its local neighborhood.</p>
+                    <p><strong>Superposition Principle:</strong> When two or more waves occupy the same space, they combine. The resulting wave is the sum of all individual waves at each point.</p>
+                    <p><strong>Constructive Interference:</strong> Wave peaks align (in phase), creating regions of high amplitude. Particles move quickly with bright colors.</p>
+                    <p><strong>Destructive Interference:</strong> Peaks meet troughs (out of phase), canceling each other. Particles move slowly or remain still.</p>
+                    <p><strong>Standing Waves:</strong> Regions of consistent high and low amplitude that appear stationary even as waves propagate.</p>
                 </div>
             </div>
 
@@ -670,14 +666,17 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>For each boid <em>i</em>:</p>
-                    <p><strong>velocity += separation_force + alignment_force + cohesion_force</strong></p>
-                    <p>Each force is a weighted vector sum of neighbors within perception radius <em>r</em>:</p>
+                    <p><strong>Sine Waves:</strong> f(x,y,t) = A·sin(ω·r + θ + φ + t·v)</p>
                     <ul>
-                        <li><strong>S</strong> = Σ (pos_i − pos_j) / |pos_i − pos_j|²</li>
-                        <li><strong>A</strong> = (Σ vel_j / N) − vel_i</li>
-                        <li><strong>C</strong> = (Σ pos_j / N) − pos_i</li>
+                        <li><strong>A</strong> = amplitude (wave height)</li>
+                        <li><strong>ω</strong> = frequency (waves per distance)</li>
+                        <li><strong>r</strong> = distance from center</li>
+                        <li><strong>θ</strong> = angle around center</li>
+                        <li><strong>φ</strong> = phase offset</li>
+                        <li><strong>t</strong> = time</li>
+                        <li><strong>v</strong> = wave speed</li>
                     </ul>
+                    <p><strong>Harmonic Series:</strong> Frequency ratios (1:2:3:4...) create natural resonance, similar to musical overtones.</p>
                 </div>
             </div>
 
@@ -687,12 +686,11 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Starling murmurations:</strong> Thousands of birds forming breathtaking aerial shapes at dusk.</p>
-                    <p><strong>Fish schools:</strong> Sardines and herring moving as a single shimmering organism.</p>
-                    <p><strong>Ant colonies:</strong> Complex nest-building and foraging without central command.</p>
-                    <p><strong>Bee swarms:</strong> Collective decision-making about new hive locations.</p>
-                    <p><strong>Wildebeest herds:</strong> Mass migration across the Serengeti guided by no single leader.</p>
-                    <p>No central coordination, yet perfectly organized.</p>
+                    <p><strong>Water Ripples:</strong> Drop two stones in a pond—circular waves interact exactly like this!</p>
+                    <p><strong>Sound:</strong> Musical instruments create harmonics. Guitar strings vibrate at multiple frequencies simultaneously.</p>
+                    <p><strong>Light:</strong> Soap bubble colors come from light wave interference—same principle!</p>
+                    <p><strong>Cymatics:</strong> Vibrating plates with sand create patterns based on standing wave nodes.</p>
+                    <p><strong>Quantum Mechanics:</strong> Electrons exist as probability waves that interfere with themselves.</p>
                 </div>
             </div>
 
@@ -702,22 +700,23 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Swarm robotics:</strong> Coordinated drone formations and warehouse robots.</p>
-                    <p><strong>Crowd simulation in film:</strong> The massive battle scenes in Lord of the Rings used boids-like algorithms for thousands of digital warriors.</p>
-                    <p><strong>Traffic flow modeling:</strong> Understanding congestion as an emergent phenomenon.</p>
-                    <p><strong>Network design:</strong> Internet routing protocols inspired by swarm intelligence.</p>
+                    <p><strong>Cymatics Art:</strong> Artists like John Stuart Reid visualize sound by vibrating water or particles.</p>
+                    <p><strong>Op Art:</strong> Bridget Riley used repeating patterns that create optical interference.</p>
+                    <p><strong>Islamic Geometric Art:</strong> Mathematical ratios create visual harmony like acoustic harmony.</p>
+                    <p><strong>Music Theory:</strong> Harmonic series (octaves, fifths, thirds) follows the same mathematical ratios.</p>
                 </div>
             </div>
 
             <div class="edu-section">
                 <div class="edu-header" onclick="toggleEdu(this)">
-                    <span>Philosophy</span>
+                    <span>Philosophy &amp; Meaning</span>
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Intelligence without a leader.</strong> Complex coordinated behavior arising from simple individual rules.</p>
-                    <p>A metaphor for distributed systems, self-organization, and emergent democracy. No single agent holds the plan, yet the collective acts with breathtaking coherence.</p>
-                    <p>The boids model challenges our assumption that order requires authority — that beauty requires a designer.</p>
+                    <p><strong>Order from Chaos:</strong> Simple rules (sine waves) create complex emergent patterns—how natural laws generate universal complexity.</p>
+                    <p><strong>Unity in Diversity:</strong> Individual particles follow unique paths yet reveal underlying harmonic structure.</p>
+                    <p><strong>Resonance:</strong> Things "in tune" amplify; discord cancels—a metaphor for cooperation.</p>
+                    <p><strong>The Invisible Made Visible:</strong> We see wave effects on particles, like understanding invisible forces (gravity, magnetism) through their effects.</p>
                 </div>
             </div>
         </div>
@@ -727,9 +726,9 @@
         </div>
 
         <div class="placard">
-            <div class="placard-title">Collective Intelligence</div>
-            <div class="placard-subtitle">Emergent coordination without leadership</div>
-            <div class="placard-meta">separation · alignment · cohesion · swarm</div>
+            <div class="placard-title">Harmonic Emergence</div>
+            <div class="placard-subtitle">Wave interference patterns through phase-modulated oscillators</div>
+            <div class="placard-meta">superposition • constructive interference • standing waves</div>
         </div>
 
         <div class="scroll-indicator">
@@ -741,195 +740,151 @@
     <div class="article-section">
         <div class="ornamental-divider"><span>◆</span></div>
 
-        <h1 class="article-title">Collective Intelligence</h1>
-        <p class="article-subtitle">Emergence Without Leadership</p>
+        <h1 class="article-title">Harmonic Emergence</h1>
+        <p class="article-subtitle">An Algorithmic Philosophy</p>
 
         <blockquote class="article-epigraph">
-            "The whole is greater than the sum of its parts."
-            <cite>— Aristotle</cite>
+            "The universe is written in the language of mathematics, and its characters are triangles, circles, and other geometric figures."
+            <cite>— Galileo Galilei</cite>
         </blockquote>
 
         <div class="article-body">
-            <p>At dusk over the wetlands of Rome, thousands of starlings gather into murmurations — vast, shape-shifting clouds that pulse and ripple across the sky like a single living organism. There is no conductor, no choreographer, no bird issuing commands from the center. Each starling knows only the position and velocity of its nearest neighbors, and yet the flock moves with a coherence that seems almost supernatural. In 1986, computer graphics researcher Craig Reynolds proved that this breathtaking phenomenon could emerge from just three astonishingly simple rules, each operating on nothing more than local information. He called his digital creatures "boids," and in doing so, opened a window into one of nature's most profound secrets.</p>
+            <p>At the intersection of mathematics and aesthetics lies a profound truth: complexity need not be chaotic, and simplicity need not be sterile. Harmonic Emergence explores the delicate balance between these polarities through the language of wave interference and resonant frequencies. This is not about simulating natural phenomena but about discovering the intrinsic beauty hidden within mathematical relationships themselves—the way sine and cosine functions, when properly orchestrated, can dance together to create patterns that feel both inevitable and surprising.</p>
 
-            <p>The three rules are elegant in their simplicity. Separation: each boid steers away from neighbors that get too close, maintaining a comfortable personal space — the same instinct that keeps you from standing too near a stranger in an elevator. Alignment: each boid adjusts its heading to match the average direction of its neighbors, creating the smooth, coordinated turns that make flocks seem telepathic. Cohesion: each boid steers gently toward the center of its local group, preventing the flock from dispersing into lonely individuals. No rule references the flock as a whole. No boid has a map or a plan. The global order is not designed — it emerges.</p>
+            <p>The computational heart of this philosophy rests on phase-modulated oscillators arranged in carefully calibrated layers. Each layer operates at a distinct frequency ratio, chosen not arbitrarily but according to harmonic principles that resonate with fundamental musical intervals. These oscillators don't simply exist in isolation; they interact through constructive and destructive interference, creating regions of intense activity and peaceful stillness.</p>
 
-            <p>What the viewer sees in the simulation is this emergence made visible. Watch long enough and you will witness moments of astonishing synchrony — the entire flock banking in unison as if rehearsed. Then a perturbation ripples through, and the group splits into two swirling sub-flocks that orbit each other before merging again. Vortices form and dissolve. Dense clusters condense and then explode outward. No two moments are alike, and yet the system never descends into chaos. There is always structure, always a thread of order woven through the apparent randomness — a visual proof that simple rules, applied consistently, generate inexhaustible complexity.</p>
+            <p>The visual manifestation emerges through a field of particles, each one a witness to the invisible harmonic forces that permeate the space. These particles don't follow predetermined paths; instead, they respond to the local field intensity at their position, which is determined by the sum of all overlapping wave functions. Where waves reinforce, particles gather and glow with accumulated energy. Where waves cancel, particles drift slowly or find stillness.</p>
 
-            <p>The resonance of this model extends far beyond biology. Distributed software teams ship products without a single architect dictating every function. Market economies coordinate the labor of billions through the local decisions of individual buyers and sellers. Internet packets find their way across the globe through routing protocols that know nothing about the network's full topology. Neural networks — both biological and artificial — produce intelligence not from any single neuron's brilliance, but from the weighted connections between millions of them. The most resilient systems humanity has ever built are those without a single point of failure, where coordination emerges from the interactions rather than being imposed from above.</p>
+            <p>Color in this philosophy is not decoration but information—a direct encoding of the underlying wave dynamics. Hue represents the dominant frequency at each location, shifting smoothly as different oscillators take precedence. Saturation maps to wave amplitude, revealing the strength of the field. Brightness encodes particle density and velocity, creating natural contrast between active and dormant regions.</p>
 
-            <p>In an age of artificial intelligence and decentralized autonomous organizations, the boids model carries a philosophical weight that Reynolds may never have intended. It challenges our deep-seated intuition that order demands a leader, that beauty requires an author, that intelligence must be centralized to be effective. The murmuration has no CEO. The school of fish holds no elections. And yet their collective behavior is more adaptive, more resilient, and more beautiful than anything a single agent could orchestrate. Perhaps the most profound patterns in our world — from the spiraling of galaxies to the self-organization of cities — arise not from grand design, but from the quiet, local adherence to shared and simple principles.</p>
+            <p>The parameter space has been carefully constrained to ensure that every configuration produces compelling results while still offering meaningful variation. The number of harmonic layers determines the complexity of interference patterns. Wave speed controls the temporal evolution, allowing exploration of both dynamic turbulence and serene near-stasis. Frequency ratios can be adjusted to explore different harmonic relationships, from consonant intervals that feel stable and musical to dissonant ratios that create visual tension.</p>
+
+            <p>What emerges is a living algorithm—one that reveals different facets of its mathematical soul with each iteration, yet always maintains coherence and intentionality. The viewer witnesses not a static image but a computational performance, where mathematical precision gives rise to organic beauty. Each seed generates a unique instantiation of these harmonic principles, proving that order and variety are not opposites but partners in the creation of algorithmic beauty.</p>
         </div>
 
         <div class="math-box">
             <div class="math-box-header">THE MATHEMATICAL HEART</div>
-            <div class="math-box-formula">v_i = v_i + w_s·S_i + w_a·A_i + w_c·C_i</div>
-            <div class="math-box-description">Each boid's velocity is updated by three weighted forces: Separation (S), Alignment (A), and Cohesion (C), computed from neighbors within perception radius r. No global knowledge required — pure local interaction produces global order.</div>
+            <div class="math-box-formula">f(x,y,t) = Σ Aₙ · sin(ωₙ · r + θ + φₙ + t · v)</div>
+            <div class="math-box-description">Where each oscillator n contributes amplitude Aₙ at frequency ωₙ, and the superposition of all layers creates regions of constructive and destructive interference — the visible harmony of invisible waves.</div>
         </div>
 
         <nav class="article-nav">
             <a href="#top">↑ Return to Exhibit</a>
-            <a href="/ai-art/">← Back to Gallery</a>
+            <a href="/algoart/">← Back to Gallery</a>
         </nav>
     </div>
 
     <script>
         let currentSeed = Math.floor(Math.random() * 999) + 1;
         let params = {
-            flocksize: 200,
-            separation: 1.5,
-            alignment: 1.0,
-            cohesion: 1.0,
-            maxspeed: 4.0,
-            trail: 5
+            layers: 5,
+            wavespeed: 1.0,
+            frequency: 1.5,
+            particles: 4000,
+            strength: 1.5,
+            fade: 15
         };
 
-        let flock = [];
-        let trailBuffer;
+        let particles = [];
+        let time = 0;
+        let oscillators = [];
 
-        const PERCEPTION = 50;
-        const MAX_FORCE = 0.3;
+        class HarmonicOscillator {
+            constructor(frequency, phase, amplitude) {
+                this.frequency = frequency;
+                this.phase = phase;
+                this.amplitude = amplitude;
+            }
 
-        class Boid {
+            getValueAt(x, y, t) {
+                let distance = dist(x, y, width/2, height/2);
+                let angle = atan2(y - height/2, x - width/2);
+                return this.amplitude * sin(this.frequency * distance * 0.01 + angle * 2 + this.phase + t * params.wavespeed);
+            }
+        }
+
+        class Particle {
             constructor() {
-                this.pos = createVector(random(width), random(height));
-                this.vel = p5.Vector.random2D().mult(random(1, params.maxspeed));
-                this.acc = createVector(0, 0);
+                this.reset();
                 this.history = [];
             }
 
-            edges() {
-                if (this.pos.x > width) this.pos.x = 0;
-                if (this.pos.x < 0) this.pos.x = width;
-                if (this.pos.y > height) this.pos.y = 0;
-                if (this.pos.y < 0) this.pos.y = height;
-            }
-
-            flock(boids) {
-                let sepSteer = createVector(0, 0);
-                let aliSteer = createVector(0, 0);
-                let cohSteer = createVector(0, 0);
-                let sepCount = 0;
-                let aliCount = 0;
-                let cohCount = 0;
-                let neighborCount = 0;
-
-                for (let other of boids) {
-                    if (other === this) continue;
-                    let dx = this.pos.x - other.pos.x;
-                    let dy = this.pos.y - other.pos.y;
-
-                    if (dx > width / 2) dx -= width;
-                    if (dx < -width / 2) dx += width;
-                    if (dy > height / 2) dy -= height;
-                    if (dy < -height / 2) dy += height;
-
-                    let d = Math.sqrt(dx * dx + dy * dy);
-
-                    if (d < PERCEPTION) {
-                        neighborCount++;
-
-                        if (d < PERCEPTION * 0.5 && d > 0) {
-                            let diff = createVector(dx, dy);
-                            diff.div(d * d);
-                            sepSteer.add(diff);
-                            sepCount++;
-                        }
-
-                        aliSteer.add(other.vel);
-                        aliCount++;
-
-                        cohSteer.add(p5.Vector.add(this.pos, createVector(-dx, -dy)));
-                        cohCount++;
-                    }
-                }
-
-                if (sepCount > 0) {
-                    sepSteer.div(sepCount);
-                    sepSteer.setMag(params.maxspeed);
-                    sepSteer.sub(this.vel);
-                    sepSteer.limit(MAX_FORCE);
-                }
-
-                if (aliCount > 0) {
-                    aliSteer.div(aliCount);
-                    aliSteer.setMag(params.maxspeed);
-                    aliSteer.sub(this.vel);
-                    aliSteer.limit(MAX_FORCE);
-                }
-
-                if (cohCount > 0) {
-                    cohSteer.div(cohCount);
-                    cohSteer.sub(this.pos);
-                    cohSteer.setMag(params.maxspeed);
-                    cohSteer.sub(this.vel);
-                    cohSteer.limit(MAX_FORCE);
-                }
-
-                sepSteer.mult(params.separation);
-                aliSteer.mult(params.alignment);
-                cohSteer.mult(params.cohesion);
-
-                this.acc.add(sepSteer);
-                this.acc.add(aliSteer);
-                this.acc.add(cohSteer);
-
-                this.localDensity = neighborCount;
+            reset() {
+                let angle = random(TWO_PI);
+                let radius = random(min(width, height) * 0.4);
+                this.x = width/2 + cos(angle) * radius;
+                this.y = height/2 + sin(angle) * radius;
+                this.vx = 0;
+                this.vy = 0;
+                this.life = random(1.0);
             }
 
             update() {
-                if (params.trail > 0) {
-                    this.history.push(this.pos.copy());
-                    if (this.history.length > params.trail) {
-                        this.history.shift();
-                    }
-                } else {
-                    this.history = [];
+                let fieldValue = 0;
+                for (let osc of oscillators) {
+                    fieldValue += osc.getValueAt(this.x, this.y, time);
                 }
 
-                this.vel.add(this.acc);
-                this.vel.limit(params.maxspeed);
-                this.pos.add(this.vel);
-                this.acc.mult(0);
+                let angle = fieldValue * PI;
+                let magnitude = abs(fieldValue) * params.strength * 0.5;
+                
+                this.vx = cos(angle) * magnitude;
+                this.vy = sin(angle) * magnitude;
 
-                this.edges();
+                this.x += this.vx;
+                this.y += this.vy;
+
+                this.history.push({x: this.x, y: this.y});
+                if (this.history.length > 8) { // Reduced from 20 for shorter trails
+                    this.history.shift();
+                }
+
+                this.life -= 0.001;
+
+                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height || this.life <= 0) {
+                    this.reset();
+                }
             }
 
-            show() {
-                let densityHue = map(this.localDensity || 0, 0, 15, 200, 220);
-                let densitySat = map(this.localDensity || 0, 0, 15, 15, 40);
-                let densityBri = map(this.localDensity || 0, 0, 15, 75, 98);
+            display() {
+                let fieldValue = 0;
+                for (let osc of oscillators) {
+                    fieldValue += osc.getValueAt(this.x, this.y, time);
+                }
 
-                colorMode(HSB, 360, 100, 100, 100);
+                // More vibrant colors against dark background
+                let hue = map(fieldValue, -params.layers, params.layers, 160, 220);
+                let sat = map(abs(fieldValue), 0, params.layers, 60, 95);
+                let vel = sqrt(this.vx * this.vx + this.vy * this.vy);
+                let bright = map(vel, 0, 5, 50, 98);
 
+                colorMode(HSB, 360, 100, 100);
+                
+                // Subtle, shorter trails
                 if (this.history.length > 1) {
                     noFill();
                     for (let i = 1; i < this.history.length; i++) {
-                        let a = map(i, 0, this.history.length, 5, 30);
-                        let sw = map(i, 0, this.history.length, 0.3, 1.0);
-                        stroke(densityHue, densitySat * 0.6, densityBri * 0.8, a);
-                        strokeWeight(sw);
-                        line(this.history[i - 1].x, this.history[i - 1].y,
+                        let alpha = map(i, 0, this.history.length, 0, this.life * 15); // Reduced from 50
+                        stroke(hue, sat, bright, alpha);
+                        strokeWeight(0.6); // Reduced from 1.2
+                        line(this.history[i-1].x, this.history[i-1].y, 
                              this.history[i].x, this.history[i].y);
                     }
                 }
 
-                let angle = this.vel.heading();
-                push();
-                translate(this.pos.x, this.pos.y);
-                rotate(angle);
+                // Brighter particles
+                fill(hue, sat, bright, this.life * 85); // Increased from 70
                 noStroke();
-                fill(densityHue, densitySat, densityBri, 80);
-                let sz = 5;
-                triangle(sz, 0, -sz * 0.6, -sz * 0.4, -sz * 0.6, sz * 0.4);
-                pop();
+                circle(this.x, this.y, 3); // Slightly larger from 2.5
             }
         }
 
         function setup() {
             let canvas = createCanvas(800, 800);
             canvas.parent('canvas-container');
+            
             initializeSystem();
+            
             document.querySelector('.loading').style.display = 'none';
         }
 
@@ -937,9 +892,19 @@
             randomSeed(currentSeed);
             noiseSeed(currentSeed);
 
-            flock = [];
-            for (let i = 0; i < params.flocksize; i++) {
-                flock.push(new Boid());
+            time = 0;
+
+            oscillators = [];
+            for (let i = 0; i < params.layers; i++) {
+                let frequency = params.frequency * (i + 1) / params.layers;
+                let phase = random(TWO_PI);
+                let amplitude = 1.0 / (i + 1);
+                oscillators.push(new HarmonicOscillator(frequency, phase, amplitude));
+            }
+
+            particles = [];
+            for (let i = 0; i < params.particles; i++) {
+                particles.push(new Particle());
             }
 
             background(13, 13, 15);
@@ -947,36 +912,32 @@
         }
 
         function draw() {
-            background(13, 13, 15, 40);
+            // Dark background fade
+            fill(13, 13, 15, params.fade);
+            noStroke();
+            rect(0, 0, width, height);
 
-            for (let boid of flock) {
-                boid.flock(flock);
+            for (let p of particles) {
+                p.update();
+                p.display();
             }
-            for (let boid of flock) {
-                boid.update();
-                boid.show();
-            }
+
+            time += 0.02;
         }
 
         function updateParam(name, value) {
             let numVal = parseFloat(value);
             params[name] = numVal;
-
-            let displayVal;
-            if (name === 'flocksize' || name === 'trail') {
-                displayVal = Math.round(numVal);
-            } else {
-                displayVal = numVal.toFixed(1);
-            }
-            document.getElementById(name + '-value').textContent = displayVal;
-
-            if (name === 'flocksize') {
+            document.getElementById(name + '-value').textContent = 
+                name === 'particles' ? numVal : numVal.toFixed(1);
+            
+            if (name === 'layers' || name === 'particles' || name === 'frequency') {
                 initializeSystem();
             }
         }
 
         function updateSeedDisplay() {
-            document.getElementById('seed-display').textContent =
+            document.getElementById('seed-display').textContent = 
                 String(currentSeed).padStart(3, '0');
         }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cellular Worlds — Conway's Game of Life</title>
+    <title>Collective Intelligence — Boids Flocking Simulation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
             --museum-white: #fdfcf8;
             --gold: #c9a55a;
             --silver: #9fa8ab;
-            --accent: #4ade80;
+            --accent: #c0c8d0;
         }
 
         * {
@@ -44,8 +44,8 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse at 30% 20%, rgba(20, 30, 20, 0.4) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(20, 35, 20, 0.3) 0%, transparent 50%);
+                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
             pointer-events: none;
         }
 
@@ -53,7 +53,7 @@
             position: absolute;
             width: 900px;
             height: 900px;
-            background: radial-gradient(circle, rgba(74, 222, 128, 0.015) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 255, 245, 0.03) 0%, transparent 70%);
             pointer-events: none;
             z-index: 1;
         }
@@ -62,10 +62,6 @@
             position: relative;
             z-index: 2;
             filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
-        }
-
-        #canvas-container canvas {
-            border: 1px solid rgba(74, 222, 128, 0.12);
         }
 
         .placard {
@@ -129,7 +125,7 @@
         .control-btn {
             width: 36px;
             height: 36px;
-            border: 1px solid rgba(74, 222, 128, 0.3);
+            border: 1px solid rgba(192, 200, 208, 0.3);
             background: rgba(13, 13, 15, 0.7);
             backdrop-filter: blur(10px);
             color: var(--accent);
@@ -144,7 +140,7 @@
 
         .control-btn:hover {
             border-color: var(--accent);
-            background: rgba(74, 222, 128, 0.1);
+            background: rgba(192, 200, 208, 0.1);
             transform: scale(1.05);
         }
 
@@ -171,25 +167,9 @@
 
         .seed-number {
             font-family: 'Courier New', monospace;
-            color: #16a34a;
+            color: var(--accent);
             margin-left: 8px;
             font-weight: 500;
-        }
-
-        .gen-display {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            color: var(--accent);
-            opacity: 0;
-            animation: fadeIn 1.5s 2.5s forwards;
-            z-index: 10;
-            text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
         }
 
         .parameters-panel {
@@ -226,14 +206,14 @@
         .param-value {
             font-family: 'Courier New', monospace;
             font-size: 9px;
-            color: #16a34a;
+            color: #607080;
             font-weight: 600;
         }
 
         .param-slider {
             width: 100%;
             height: 2px;
-            background: rgba(74, 222, 128, 0.3);
+            background: rgba(192, 200, 208, 0.3);
             -webkit-appearance: none;
             appearance: none;
             outline: none;
@@ -243,7 +223,7 @@
             -webkit-appearance: none;
             width: 10px;
             height: 10px;
-            background: #16a34a;
+            background: #607080;
             cursor: pointer;
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -252,36 +232,11 @@
         .param-slider::-moz-range-thumb {
             width: 10px;
             height: 10px;
-            background: #16a34a;
+            background: #607080;
             cursor: pointer;
             border: none;
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .pattern-btn {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid rgba(74, 222, 128, 0.3);
-            background: rgba(255, 255, 255, 0.9);
-            color: #1a1a1a;
-            font-family: 'Crimson Pro', serif;
-            font-size: 11px;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            border-radius: 4px;
-        }
-
-        .pattern-btn:hover {
-            border-color: #16a34a;
-            background: rgba(74, 222, 128, 0.08);
-        }
-
-        .pattern-name {
-            font-weight: 400;
-            color: #16a34a;
         }
 
         .education-panel {
@@ -328,7 +283,7 @@
             text-transform: uppercase;
             cursor: pointer;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+            border-bottom: 1px solid rgba(192, 200, 208, 0.3);
             transition: all 0.3s ease;
             display: flex;
             justify-content: space-between;
@@ -336,14 +291,14 @@
         }
 
         .edu-header:hover {
-            color: #16a34a;
+            color: #607080;
             border-color: var(--accent);
         }
 
         .edu-icon {
             font-size: 12px;
             transition: transform 0.3s ease;
-            color: #16a34a;
+            color: #607080;
         }
 
         .edu-header.active .edu-icon {
@@ -372,7 +327,7 @@
         }
 
         .edu-content strong {
-            color: #16a34a;
+            color: #607080;
             font-weight: 500;
         }
 
@@ -489,7 +444,7 @@
             left: 0;
             right: 0;
             height: 1px;
-            background: var(--accent);
+            background: var(--silver);
             opacity: 0.3;
         }
 
@@ -497,7 +452,7 @@
             position: relative;
             background: var(--exhibition-black);
             padding: 0 20px;
-            color: var(--accent);
+            color: var(--silver);
             font-size: 16px;
             opacity: 0.5;
         }
@@ -549,7 +504,7 @@
         }
 
         .math-box {
-            border: 1px solid rgba(74, 222, 128, 0.25);
+            border: 1px solid rgba(192, 200, 208, 0.2);
             padding: 24px;
             margin: 40px 0;
         }
@@ -583,7 +538,7 @@
             justify-content: space-between;
             margin-top: 60px;
             padding-top: 30px;
-            border-top: 1px solid rgba(74, 222, 128, 0.15);
+            border-top: 1px solid rgba(192, 200, 208, 0.15);
         }
 
         .article-nav a {
@@ -603,7 +558,7 @@
 </head>
 <body>
     <div class="back-nav">
-        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <a href="/algoart/">← BACK TO GALLERY</a>
         <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
     </div>
 
@@ -612,10 +567,6 @@
 
         <div class="seed-display">
             VARIATION <span class="seed-number" id="seed-display">001</span>
-        </div>
-
-        <div class="gen-display">
-            GEN <span id="gen-counter">0</span>
         </div>
 
         <div class="controls">
@@ -627,38 +578,62 @@
         <div class="parameters-panel">
             <div class="param-group">
                 <div class="param-label">
-                    Grid Size
-                    <span class="param-value" id="gridsize-value">100</span>
+                    Flock Size
+                    <span class="param-value" id="flocksize-value">200</span>
                 </div>
-                <input type="range" class="param-slider" id="gridsize-slider"
-                       min="40" max="200" value="100" step="10"
-                       oninput="updateParam('gridsize', this.value)">
+                <input type="range" class="param-slider" id="flocksize-slider"
+                       min="50" max="500" value="200" step="10"
+                       oninput="updateParam('flocksize', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Speed (FPS)
-                    <span class="param-value" id="speed-value">10</span>
+                    Separation
+                    <span class="param-value" id="separation-value">1.5</span>
                 </div>
-                <input type="range" class="param-slider" id="speed-slider"
-                       min="1" max="30" value="10" step="1"
-                       oninput="updateParam('speed', this.value)">
+                <input type="range" class="param-slider" id="separation-slider"
+                       min="0.5" max="3.0" value="1.5" step="0.1"
+                       oninput="updateParam('separation', this.value)">
             </div>
 
             <div class="param-group">
                 <div class="param-label">
-                    Alive Opacity
-                    <span class="param-value" id="opacity-value">0.8</span>
+                    Alignment
+                    <span class="param-value" id="alignment-value">1.0</span>
                 </div>
-                <input type="range" class="param-slider" id="opacity-slider"
-                       min="0.3" max="1.0" value="0.8" step="0.05"
-                       oninput="updateParam('opacity', this.value)">
+                <input type="range" class="param-slider" id="alignment-slider"
+                       min="0.5" max="3.0" value="1.0" step="0.1"
+                       oninput="updateParam('alignment', this.value)">
             </div>
 
             <div class="param-group">
-                <button class="pattern-btn" onclick="cyclePattern()">
-                    Pattern: <span class="pattern-name" id="pattern-name">Random</span>
-                </button>
+                <div class="param-label">
+                    Cohesion
+                    <span class="param-value" id="cohesion-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="cohesion-slider"
+                       min="0.5" max="3.0" value="1.0" step="0.1"
+                       oninput="updateParam('cohesion', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Max Speed
+                    <span class="param-value" id="maxspeed-value">4.0</span>
+                </div>
+                <input type="range" class="param-slider" id="maxspeed-slider"
+                       min="2" max="8" value="4" step="0.5"
+                       oninput="updateParam('maxspeed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Trail Length
+                    <span class="param-value" id="trail-value">5</span>
+                </div>
+                <input type="range" class="param-slider" id="trail-slider"
+                       min="0" max="20" value="5" step="1"
+                       oninput="updateParam('trail', this.value)">
             </div>
         </div>
 
@@ -669,7 +644,7 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p>Imagine a grid of lights. Each light looks at its 8 neighbors. If a light is off and exactly 3 neighbors are on, it turns on — like being born! If a light is on with 2 or 3 neighbors on, it stays alive. Otherwise it turns off. Watch what happens when millions of lights follow these simple rules!</p>
+                    <p>Imagine a flock of birds or a school of fish. No single bird is the leader! Each bird follows three simple rules: don't bump into your neighbors, fly the same direction as nearby birds, and try to stay close to the group. With just these three rules, the whole flock moves together beautifully!</p>
                 </div>
             </div>
 
@@ -679,8 +654,13 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>John Conway, 1970.</strong> The Game of Life is a cellular automaton — a grid of cells that evolve through discrete time steps according to simple local rules.</p>
-                    <p>It proves that simple local rules can produce <strong>universal computation</strong>. The Game of Life is <strong>Turing complete</strong> — capable of simulating any algorithm that any computer can run.</p>
+                    <p><strong>Craig Reynolds' 1986 Boids algorithm</strong> models flocking behavior with three rules:</p>
+                    <ul>
+                        <li><strong>Separation:</strong> Avoid crowding nearby neighbors</li>
+                        <li><strong>Alignment:</strong> Steer toward the average heading of nearby neighbors</li>
+                        <li><strong>Cohesion:</strong> Steer toward the average position of nearby neighbors</li>
+                    </ul>
+                    <p>Each rule operates within a perception radius. No boid has global knowledge — only awareness of its local neighborhood.</p>
                 </div>
             </div>
 
@@ -690,13 +670,14 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>B3/S23 rule:</strong></p>
+                    <p>For each boid <em>i</em>:</p>
+                    <p><strong>velocity += separation_force + alignment_force + cohesion_force</strong></p>
+                    <p>Each force is a weighted vector sum of neighbors within perception radius <em>r</em>:</p>
                     <ul>
-                        <li><strong>Birth</strong> with exactly 3 neighbors</li>
-                        <li><strong>Survive</strong> with 2 or 3 neighbors</li>
-                        <li><strong>Dead</strong> otherwise</li>
+                        <li><strong>S</strong> = Σ (pos_i − pos_j) / |pos_i − pos_j|²</li>
+                        <li><strong>A</strong> = (Σ vel_j / N) − vel_i</li>
+                        <li><strong>C</strong> = (Σ pos_j / N) − pos_i</li>
                     </ul>
-                    <p>Applied on a 2D grid with <strong>Moore neighborhood</strong> (8 surrounding cells).</p>
                 </div>
             </div>
 
@@ -706,11 +687,12 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Crystal growth:</strong> Minerals forming lattice structures from simple bonding rules.</p>
-                    <p><strong>Population dynamics:</strong> Birth, death, and carrying capacity in ecosystems.</p>
-                    <p><strong>Bacterial colonies:</strong> Growth patterns on petri dishes following local nutrient and neighbor rules.</p>
-                    <p><strong>Forest fire spread:</strong> Ignition and extinction based on proximity.</p>
-                    <p><strong>Epidemic modeling:</strong> SIR models of disease transmission through local contact.</p>
+                    <p><strong>Starling murmurations:</strong> Thousands of birds forming breathtaking aerial shapes at dusk.</p>
+                    <p><strong>Fish schools:</strong> Sardines and herring moving as a single shimmering organism.</p>
+                    <p><strong>Ant colonies:</strong> Complex nest-building and foraging without central command.</p>
+                    <p><strong>Bee swarms:</strong> Collective decision-making about new hive locations.</p>
+                    <p><strong>Wildebeest herds:</strong> Mass migration across the Serengeti guided by no single leader.</p>
+                    <p>No central coordination, yet perfectly organized.</p>
                 </div>
             </div>
 
@@ -720,10 +702,10 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Pixel art:</strong> The grid aesthetic of Life inspired an entire generation of digital artists.</p>
-                    <p><strong>Generative music:</strong> Mapping cell states to notes creates evolving compositions.</p>
-                    <p><strong>Demoscene culture:</strong> Early computer artists pushed hardware limits rendering cellular automata.</p>
-                    <p><strong>Computational art pioneer:</strong> Life remains one of the most influential generative systems in digital art history.</p>
+                    <p><strong>Swarm robotics:</strong> Coordinated drone formations and warehouse robots.</p>
+                    <p><strong>Crowd simulation in film:</strong> The massive battle scenes in Lord of the Rings used boids-like algorithms for thousands of digital warriors.</p>
+                    <p><strong>Traffic flow modeling:</strong> Understanding congestion as an emergent phenomenon.</p>
+                    <p><strong>Network design:</strong> Internet routing protocols inspired by swarm intelligence.</p>
                 </div>
             </div>
 
@@ -733,9 +715,9 @@
                     <span class="edu-icon">▼</span>
                 </div>
                 <div class="edu-content">
-                    <p><strong>Emergence of complexity from simplicity.</strong> Three rules on a flat grid produce structures capable of universal computation.</p>
-                    <p><strong>Turing completeness</strong> implies this simple game can simulate ANY computation — logic gates, memory, even a complete computer has been built within the Game of Life.</p>
-                    <p>The question: is the universe itself a cellular automaton? Stephen Wolfram and others have pursued this idea seriously.</p>
+                    <p><strong>Intelligence without a leader.</strong> Complex coordinated behavior arising from simple individual rules.</p>
+                    <p>A metaphor for distributed systems, self-organization, and emergent democracy. No single agent holds the plan, yet the collective acts with breathtaking coherence.</p>
+                    <p>The boids model challenges our assumption that order requires authority — that beauty requires a designer.</p>
                 </div>
             </div>
         </div>
@@ -745,9 +727,9 @@
         </div>
 
         <div class="placard">
-            <div class="placard-title">Cellular Worlds</div>
-            <div class="placard-subtitle">Conway's Game of Life and emergent computation</div>
-            <div class="placard-meta">B3/S23 · cellular automaton · Turing complete</div>
+            <div class="placard-title">Collective Intelligence</div>
+            <div class="placard-subtitle">Emergent coordination without leadership</div>
+            <div class="placard-meta">separation · alignment · cohesion · swarm</div>
         </div>
 
         <div class="scroll-indicator">
@@ -759,233 +741,221 @@
     <div class="article-section">
         <div class="ornamental-divider"><span>◆</span></div>
 
-        <h1 class="article-title">Cellular Worlds</h1>
-        <p class="article-subtitle">Emergence, Computation, and the Game of Life</p>
+        <h1 class="article-title">Collective Intelligence</h1>
+        <p class="article-subtitle">Emergence Without Leadership</p>
 
         <blockquote class="article-epigraph">
-            "The universe is not only queerer than we suppose, but queerer than we can suppose."
-            <cite>— J.B.S. Haldane</cite>
+            "The whole is greater than the sum of its parts."
+            <cite>— Aristotle</cite>
         </blockquote>
 
         <div class="article-body">
-            <p>In 1970, mathematician John Conway devised a simple game with profound implications. On an infinite grid, cells live or die according to three rules based solely on their neighbors. No strategy, no players — just rules. What emerges is nothing short of astonishing.</p>
+            <p>At dusk over the wetlands of Rome, thousands of starlings gather into murmurations — vast, shape-shifting clouds that pulse and ripple across the sky like a single living organism. There is no conductor, no choreographer, no bird issuing commands from the center. Each starling knows only the position and velocity of its nearest neighbors, and yet the flock moves with a coherence that seems almost supernatural. In 1986, computer graphics researcher Craig Reynolds proved that this breathtaking phenomenon could emerge from just three astonishingly simple rules, each operating on nothing more than local information. He called his digital creatures "boids," and in doing so, opened a window into one of nature's most profound secrets.</p>
 
-            <p>The rules — a dead cell with exactly 3 living neighbors is born. A living cell with 2 or 3 neighbors survives. Everything else dies. From this, gliders emerge (structures that walk across the grid), oscillators pulse, and glider guns fire an infinite stream of gliders.</p>
+            <p>The three rules are elegant in their simplicity. Separation: each boid steers away from neighbors that get too close, maintaining a comfortable personal space — the same instinct that keeps you from standing too near a stranger in an elevator. Alignment: each boid adjusts its heading to match the average direction of its neighbors, creating the smooth, coordinated turns that make flocks seem telepathic. Cohesion: each boid steers gently toward the center of its local group, preventing the flock from dispersing into lonely individuals. No rule references the flock as a whole. No boid has a map or a plan. The global order is not designed — it emerges.</p>
 
-            <p>What the viewer sees — the phosphor-green glow of cellular life evolving on a dark grid. Patterns stabilize, oscillate, or erupt into chaos. Some initial configurations die out entirely, others grow forever. The CRT aesthetic pays homage to the early computers on which Life was first explored.</p>
+            <p>What the viewer sees in the simulation is this emergence made visible. Watch long enough and you will witness moments of astonishing synchrony — the entire flock banking in unison as if rehearsed. Then a perturbation ripples through, and the group splits into two swirling sub-flocks that orbit each other before merging again. Vortices form and dissolve. Dense clusters condense and then explode outward. No two moments are alike, and yet the system never descends into chaos. There is always structure, always a thread of order woven through the apparent randomness — a visual proof that simple rules, applied consistently, generate inexhaustible complexity.</p>
 
-            <p>The most profound discovery — Conway's Game of Life is Turing complete. It can simulate any computation that any computer can perform. Logic gates, memory, even a complete computer has been built within the Game of Life. A universe capable of computing itself.</p>
+            <p>The resonance of this model extends far beyond biology. Distributed software teams ship products without a single architect dictating every function. Market economies coordinate the labor of billions through the local decisions of individual buyers and sellers. Internet packets find their way across the globe through routing protocols that know nothing about the network's full topology. Neural networks — both biological and artificial — produce intelligence not from any single neuron's brilliance, but from the weighted connections between millions of them. The most resilient systems humanity has ever built are those without a single point of failure, where coordination emerges from the interactions rather than being imposed from above.</p>
 
-            <p>What is the minimum complexity needed for a universe to contain intelligence? Conway showed that astonishingly little is required — a flat grid and three rules. This raises the question: is our own universe, at some level, a cellular automaton?</p>
+            <p>In an age of artificial intelligence and decentralized autonomous organizations, the boids model carries a philosophical weight that Reynolds may never have intended. It challenges our deep-seated intuition that order demands a leader, that beauty requires an author, that intelligence must be centralized to be effective. The murmuration has no CEO. The school of fish holds no elections. And yet their collective behavior is more adaptive, more resilient, and more beautiful than anything a single agent could orchestrate. Perhaps the most profound patterns in our world — from the spiraling of galaxies to the self-organization of cities — arise not from grand design, but from the quiet, local adherence to shared and simple principles.</p>
         </div>
 
         <div class="math-box">
-            <div class="math-box-header">B3/S23</div>
-            <div class="math-box-formula">Birth with exactly 3 neighbors. Survival with 2 or 3 neighbors. Death otherwise.</div>
-            <div class="math-box-description">Three rules on a 2D grid with 8-cell Moore neighborhood. This minimal ruleset produces Turing-complete computation — capable of simulating any algorithm.</div>
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
+            <div class="math-box-formula">v_i = v_i + w_s·S_i + w_a·A_i + w_c·C_i</div>
+            <div class="math-box-description">Each boid's velocity is updated by three weighted forces: Separation (S), Alignment (A), and Cohesion (C), computed from neighbors within perception radius r. No global knowledge required — pure local interaction produces global order.</div>
         </div>
 
         <nav class="article-nav">
             <a href="#top">↑ Return to Exhibit</a>
-            <a href="/ai-art/">← Back to Gallery</a>
+            <a href="/algoart/">← Back to Gallery</a>
         </nav>
     </div>
 
     <script>
         let currentSeed = Math.floor(Math.random() * 999) + 1;
-        let generation = 0;
-        let gridA, gridB;
-        let cols, rows;
-        let cellSize;
-        let scanlineGraphics;
-        let patternIndex = 0;
-        const patterns = ['Random', 'Glider Gun', 'Pulsar', 'R-pentomino', 'Acorn'];
-
         let params = {
-            gridsize: 100,
-            speed: 10,
-            opacity: 0.8
+            flocksize: 200,
+            separation: 1.5,
+            alignment: 1.0,
+            cohesion: 1.0,
+            maxspeed: 4.0,
+            trail: 5
         };
 
-        function mulberry32(a) {
-            return function() {
-                a |= 0; a = a + 0x6D2B79F5 | 0;
-                var t = Math.imul(a ^ a >>> 15, 1 | a);
-                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-                return ((t ^ t >>> 14) >>> 0) / 4294967296;
-            };
+        let flock = [];
+        let trailBuffer;
+
+        const PERCEPTION = 50;
+        const MAX_FORCE = 0.3;
+
+        class Boid {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = p5.Vector.random2D().mult(random(1, params.maxspeed));
+                this.acc = createVector(0, 0);
+                this.history = [];
+            }
+
+            edges() {
+                if (this.pos.x > width) this.pos.x = 0;
+                if (this.pos.x < 0) this.pos.x = width;
+                if (this.pos.y > height) this.pos.y = 0;
+                if (this.pos.y < 0) this.pos.y = height;
+            }
+
+            flock(boids) {
+                let sepSteer = createVector(0, 0);
+                let aliSteer = createVector(0, 0);
+                let cohSteer = createVector(0, 0);
+                let sepCount = 0;
+                let aliCount = 0;
+                let cohCount = 0;
+                let neighborCount = 0;
+
+                for (let other of boids) {
+                    if (other === this) continue;
+                    let dx = this.pos.x - other.pos.x;
+                    let dy = this.pos.y - other.pos.y;
+
+                    if (dx > width / 2) dx -= width;
+                    if (dx < -width / 2) dx += width;
+                    if (dy > height / 2) dy -= height;
+                    if (dy < -height / 2) dy += height;
+
+                    let d = Math.sqrt(dx * dx + dy * dy);
+
+                    if (d < PERCEPTION) {
+                        neighborCount++;
+
+                        if (d < PERCEPTION * 0.5 && d > 0) {
+                            let diff = createVector(dx, dy);
+                            diff.div(d * d);
+                            sepSteer.add(diff);
+                            sepCount++;
+                        }
+
+                        aliSteer.add(other.vel);
+                        aliCount++;
+
+                        cohSteer.add(p5.Vector.add(this.pos, createVector(-dx, -dy)));
+                        cohCount++;
+                    }
+                }
+
+                if (sepCount > 0) {
+                    sepSteer.div(sepCount);
+                    sepSteer.setMag(params.maxspeed);
+                    sepSteer.sub(this.vel);
+                    sepSteer.limit(MAX_FORCE);
+                }
+
+                if (aliCount > 0) {
+                    aliSteer.div(aliCount);
+                    aliSteer.setMag(params.maxspeed);
+                    aliSteer.sub(this.vel);
+                    aliSteer.limit(MAX_FORCE);
+                }
+
+                if (cohCount > 0) {
+                    cohSteer.div(cohCount);
+                    cohSteer.sub(this.pos);
+                    cohSteer.setMag(params.maxspeed);
+                    cohSteer.sub(this.vel);
+                    cohSteer.limit(MAX_FORCE);
+                }
+
+                sepSteer.mult(params.separation);
+                aliSteer.mult(params.alignment);
+                cohSteer.mult(params.cohesion);
+
+                this.acc.add(sepSteer);
+                this.acc.add(aliSteer);
+                this.acc.add(cohSteer);
+
+                this.localDensity = neighborCount;
+            }
+
+            update() {
+                if (params.trail > 0) {
+                    this.history.push(this.pos.copy());
+                    if (this.history.length > params.trail) {
+                        this.history.shift();
+                    }
+                } else {
+                    this.history = [];
+                }
+
+                this.vel.add(this.acc);
+                this.vel.limit(params.maxspeed);
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+
+                this.edges();
+            }
+
+            show() {
+                let densityHue = map(this.localDensity || 0, 0, 15, 200, 220);
+                let densitySat = map(this.localDensity || 0, 0, 15, 15, 40);
+                let densityBri = map(this.localDensity || 0, 0, 15, 75, 98);
+
+                colorMode(HSB, 360, 100, 100, 100);
+
+                if (this.history.length > 1) {
+                    noFill();
+                    for (let i = 1; i < this.history.length; i++) {
+                        let a = map(i, 0, this.history.length, 5, 30);
+                        let sw = map(i, 0, this.history.length, 0.3, 1.0);
+                        stroke(densityHue, densitySat * 0.6, densityBri * 0.8, a);
+                        strokeWeight(sw);
+                        line(this.history[i - 1].x, this.history[i - 1].y,
+                             this.history[i].x, this.history[i].y);
+                    }
+                }
+
+                let angle = this.vel.heading();
+                push();
+                translate(this.pos.x, this.pos.y);
+                rotate(angle);
+                noStroke();
+                fill(densityHue, densitySat, densityBri, 80);
+                let sz = 5;
+                triangle(sz, 0, -sz * 0.6, -sz * 0.4, -sz * 0.6, sz * 0.4);
+                pop();
+            }
         }
 
         function setup() {
             let canvas = createCanvas(800, 800);
             canvas.parent('canvas-container');
-            pixelDensity(1);
-            scanlineGraphics = createGraphics(800, 800);
-            drawScanlines();
             initializeSystem();
             document.querySelector('.loading').style.display = 'none';
         }
 
-        function drawScanlines() {
-            scanlineGraphics.clear();
-            for (let y = 0; y < 800; y += 2) {
-                scanlineGraphics.stroke(0, 0, 0, 18);
-                scanlineGraphics.line(0, y, 800, y);
-            }
-        }
-
         function initializeSystem() {
-            cols = params.gridsize;
-            rows = params.gridsize;
-            cellSize = 800 / cols;
-            generation = 0;
+            randomSeed(currentSeed);
+            noiseSeed(currentSeed);
 
-            gridA = new Uint8Array(cols * rows);
-            gridB = new Uint8Array(cols * rows);
-
-            let patternName = patterns[patternIndex];
-
-            if (patternName === 'Random') {
-                let rng = mulberry32(currentSeed);
-                for (let i = 0; i < cols * rows; i++) {
-                    gridA[i] = rng() < 0.2 ? 1 : 0;
-                }
-            } else if (patternName === 'Glider Gun') {
-                placeGosperGliderGun();
-            } else if (patternName === 'Pulsar') {
-                placePulsar();
-            } else if (patternName === 'R-pentomino') {
-                placeRPentomino();
-            } else if (patternName === 'Acorn') {
-                placeAcorn();
+            flock = [];
+            for (let i = 0; i < params.flocksize; i++) {
+                flock.push(new Boid());
             }
 
-            frameRate(params.speed);
+            background(13, 13, 15);
             updateSeedDisplay();
         }
 
-        function placePattern(cx, cy, offsets) {
-            gridA.fill(0);
-            for (let [dx, dy] of offsets) {
-                let x = (cx + dx + cols) % cols;
-                let y = (cy + dy + rows) % rows;
-                gridA[y * cols + x] = 1;
-            }
-        }
-
-        function placeGosperGliderGun() {
-            let cx = Math.floor(cols / 4);
-            let cy = Math.floor(rows / 2);
-            let offsets = [
-                [0,4],[0,5],[1,4],[1,5],
-                [10,4],[10,5],[10,6],[11,3],[11,7],[12,2],[12,8],[13,2],[13,8],
-                [14,5],[15,3],[15,7],[16,4],[16,5],[16,6],[17,5],
-                [20,2],[20,3],[20,4],[21,2],[21,3],[21,4],[22,1],[22,5],
-                [24,0],[24,1],[24,5],[24,6],
-                [34,2],[34,3],[35,2],[35,3]
-            ];
-            placePattern(cx, cy, offsets);
-        }
-
-        function placePulsar() {
-            let cx = Math.floor(cols / 2);
-            let cy = Math.floor(rows / 2);
-            let offsets = [];
-            let pulsarQuarter = [[2,1],[3,1],[4,1],[1,2],[1,3],[1,4],[6,2],[6,3],[6,4],[2,6],[3,6],[4,6]];
-            for (let [x, y] of pulsarQuarter) {
-                offsets.push([x, y]);
-                offsets.push([-x, y]);
-                offsets.push([x, -y]);
-                offsets.push([-x, -y]);
-            }
-            placePattern(cx, cy, offsets);
-        }
-
-        function placeRPentomino() {
-            let cx = Math.floor(cols / 2);
-            let cy = Math.floor(rows / 2);
-            placePattern(cx, cy, [[0,-1],[1,-1],[-1,0],[0,0],[0,1]]);
-        }
-
-        function placeAcorn() {
-            let cx = Math.floor(cols / 2);
-            let cy = Math.floor(rows / 2);
-            placePattern(cx, cy, [[-3,0],[-2,0],[-2,-2],[0,-1],[1,0],[2,0],[3,0]]);
-        }
-
-        function stepSimulation() {
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    let neighbors = 0;
-                    for (let dy = -1; dy <= 1; dy++) {
-                        for (let dx = -1; dx <= 1; dx++) {
-                            if (dx === 0 && dy === 0) continue;
-                            let nx = (x + dx + cols) % cols;
-                            let ny = (y + dy + rows) % rows;
-                            neighbors += gridA[ny * cols + nx];
-                        }
-                    }
-                    let idx = y * cols + x;
-                    if (gridA[idx] === 1) {
-                        gridB[idx] = (neighbors === 2 || neighbors === 3) ? 1 : 0;
-                    } else {
-                        gridB[idx] = (neighbors === 3) ? 1 : 0;
-                    }
-                }
-            }
-            let tmp = gridA;
-            gridA = gridB;
-            gridB = tmp;
-            generation++;
-        }
-
         function draw() {
-            stepSimulation();
+            background(13, 13, 15, 40);
 
-            background(10, 10, 12);
-
-            let aliveOpacity = params.opacity * 255;
-            let glowR = 74, glowG = 222, glowB = 128;
-
-            noStroke();
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    let px = x * cellSize;
-                    let py = y * cellSize;
-
-                    if (gridA[y * cols + x] === 1) {
-                        fill(glowR, glowG, glowB, aliveOpacity);
-                        rect(px, py, cellSize - 0.5, cellSize - 0.5);
-
-                        if (cellSize > 3) {
-                            fill(glowR, glowG, glowB, aliveOpacity * 0.15);
-                            rect(px - cellSize * 0.3, py - cellSize * 0.3,
-                                 cellSize * 1.6, cellSize * 1.6);
-                        }
-                    } else {
-                        fill(14, 16, 14, 180);
-                        rect(px, py, cellSize - 0.5, cellSize - 0.5);
-                    }
-                }
+            for (let boid of flock) {
+                boid.flock(flock);
             }
-
-            image(scanlineGraphics, 0, 0);
-
-            if (random() < 0.3) {
-                fill(255, 255, 255, random(1, 3));
-                rect(0, 0, 800, 800);
+            for (let boid of flock) {
+                boid.update();
+                boid.show();
             }
-
-            let vigR = 60;
-            drawingContext.save();
-            let grad = drawingContext.createRadialGradient(400, 400, 250, 400, 400, 500);
-            grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(1, 'rgba(0,0,0,0.35)');
-            drawingContext.fillStyle = grad;
-            drawingContext.fillRect(0, 0, 800, 800);
-            drawingContext.restore();
-
-            document.getElementById('gen-counter').textContent = generation;
         }
 
         function updateParam(name, value) {
@@ -993,25 +963,16 @@
             params[name] = numVal;
 
             let displayVal;
-            if (name === 'gridsize' || name === 'speed') {
+            if (name === 'flocksize' || name === 'trail') {
                 displayVal = Math.round(numVal);
             } else {
-                displayVal = numVal.toFixed(2);
+                displayVal = numVal.toFixed(1);
             }
             document.getElementById(name + '-value').textContent = displayVal;
 
-            if (name === 'gridsize') {
+            if (name === 'flocksize') {
                 initializeSystem();
             }
-            if (name === 'speed') {
-                frameRate(numVal);
-            }
-        }
-
-        function cyclePattern() {
-            patternIndex = (patternIndex + 1) % patterns.length;
-            document.getElementById('pattern-name').textContent = patterns[patternIndex];
-            initializeSystem();
         }
 
         function updateSeedDisplay() {
@@ -1036,7 +997,8 @@
 
         function toggleEdu(header) {
             header.classList.toggle('active');
-            header.nextElementSibling.classList.toggle('active');
+            let content = header.nextElementSibling;
+            content.classList.toggle('active');
         }
     </script>
 </body>
