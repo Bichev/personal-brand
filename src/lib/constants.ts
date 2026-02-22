@@ -159,6 +159,32 @@ export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: 'nautilus-golden-chamber',
+    title: 'φ — The Golden Chamber: Algorithmic Nautilus',
+    excerpt: 'An interactive generative art piece exploring the golden ratio (φ ≈ 1.618) through algorithmically rendered nautilus shells. Adjust spiral arms, tightness, and luminosity in real-time — with educational panels on mathematics, nature, and the philosophy of growth.',
+    content: '',
+    date: '2026-02-22',
+    readTime: 'Interactive',
+    tags: ['Algorithmic Art', 'Generative', 'Golden Ratio', 'p5.js'],
+    published: true,
+    source: 'internal',
+    localPath: '/blog/ai-art/nautilus_exhibition.html',
+    featured: true,
+  },
+  {
+    id: 'harmonic-emergence',
+    title: 'Harmonic Emergence: Wave Interference as Art',
+    excerpt: 'Thousands of particles dance through invisible harmonic fields in this interactive visualization of wave superposition. Constructive and destructive interference create emergent patterns — a meditation on how simple mathematical rules produce complex beauty.',
+    content: '',
+    date: '2026-02-22',
+    readTime: 'Interactive',
+    tags: ['Algorithmic Art', 'Wave Physics', 'Generative', 'p5.js'],
+    published: true,
+    source: 'internal',
+    localPath: '/blog/ai-art/harmonic_emergence.html',
+    featured: true,
+  },
+  {
     id: 'machiavelli-ai-framework',
     title: 'The Prince & The AI Revolution: A Machiavellian Power Analysis',
     excerpt: 'Applying Niccolò Machiavelli\'s strategic framework from "The Prince" to the modern AI revolution — analyzing power dynamics, Fortune vs. Virtù, and the strategic mistakes companies make today.',

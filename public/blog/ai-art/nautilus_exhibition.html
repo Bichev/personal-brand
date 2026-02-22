@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>φ — The Golden Chamber</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #d4af6a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow: hidden;
+            cursor: default;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Museum wall texture */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Spotlight effect */
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(255, 255, 245, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        /* Museum placard */
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        @keyframes fadeInPlacard {
+            to { opacity: 1; }
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        /* Minimalist controls */
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        @keyframes fadeInControls {
+            to { opacity: 1; }
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(201, 165, 90, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--gold);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--gold);
+            background: rgba(201, 165, 90, 0.1);
+            transform: scale(1.05);
+        }
+
+        /* Seed display */
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(201, 165, 90, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--gold);
+            margin-left: 8px;
+        }
+
+        /* Info panel - minimalist */
+        .info-panel {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            max-width: 280px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+        }
+
+        .phi-symbol {
+            font-family: 'EB Garamond', serif;
+            font-size: 16px;
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        /* Parameters panel */
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(201, 165, 90, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--gold);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        /* Educational accordion */
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gold) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--gold);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--gold);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(201, 165, 90, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--accent);
+            border-color: rgba(201, 165, 90, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--gold);
+            font-weight: 400;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--gold);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        /* Loading state */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--gold);
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/">← BACK TO SITE</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+    <div class="exhibition-space">
+        <div class="spotlight"></div>
+        
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <!-- Parameters Panel -->
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Spiral Arms
+                    <span class="param-value" id="arms-value">1</span>
+                </div>
+                <input type="range" class="param-slider" id="arms-slider" 
+                       min="1" max="5" value="1" step="1" 
+                       oninput="updateParam('arms', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Tightness
+                    <span class="param-value" id="tightness-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="tightness-slider" 
+                       min="0.6" max="1.4" value="1.0" step="0.1" 
+                       oninput="updateParam('tightness', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Animation
+                    <span class="param-value" id="rotation-value">1.2</span>
+                </div>
+                <input type="range" class="param-slider" id="rotation-slider" 
+                       min="0" max="3.0" value="1.2" step="0.1" 
+                       oninput="updateParam('rotation', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Speed
+                    <span class="param-value" id="speed-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="speed-slider" 
+                       min="0.2" max="3.0" value="1.0" step="0.1" 
+                       oninput="updateParam('speed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Luminosity
+                    <span class="param-value" id="luminosity-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="luminosity-slider" 
+                       min="0.5" max="1.5" value="1.0" step="0.1" 
+                       oninput="updateParam('luminosity', this.value)">
+            </div>
+        </div>
+
+        <!-- Education Panel -->
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Golden Ratio</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>φ ≈ 1.618033988...</strong> The golden ratio divides a line so that the whole to the long part equals the long part to the short part.</p>
+                    <p><strong>Golden Angle:</strong> 137.5° creates optimal packing. Sunflowers, pinecones, and nautilus shells use this angle.</p>
+                    <p><strong>Fibonacci Connection:</strong> Ratios between consecutive Fibonacci numbers (1,1,2,3,5,8...) approach φ.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Logarithmic Spiral:</strong> r = a · φ^(θ/π)</p>
+                    <p>Each 180° rotation multiplies radius by φ. The only curve that maintains shape while growing—perfect for organisms keeping proportions.</p>
+                    <p><strong>Self-Similarity:</strong> Removing a square from a golden rectangle leaves another golden rectangle.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Nautilus:</strong> Chambers grow φ times larger, creating perfect logarithmic spirals over 400 million years.</p>
+                    <p><strong>Galaxies:</strong> Spiral galaxies follow logarithmic patterns, including our Milky Way.</p>
+                    <p><strong>DNA:</strong> Double helix proportions follow golden ratios (34Å long, 21Å wide).</p>
+                    <p><strong>Flowers:</strong> Petal counts are Fibonacci numbers (3,5,8,13,21...).</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Parthenon:</strong> Ancient Greeks used φ throughout temple proportions.</p>
+                    <p><strong>Da Vinci:</strong> Golden ratio in Mona Lisa, Last Supper, Vitruvian Man.</p>
+                    <p><strong>Le Corbusier:</strong> Modern architecture based on "Modulor" system using φ.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Divine Proportion:</strong> Greeks called φ the "Divine Proportion," believing it revealed cosmic harmony.</p>
+                    <p><strong>Optimal Growth:</strong> Nautilus represents perfect adaptation—growth without changing shape, evolving while maintaining identity.</p>
+                    <p><strong>Unity:</strong> Same ratio in galaxies, flowers, shells, and art suggests underlying unity in nature's design.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">φ — The Golden Chamber</div>
+            <div class="placard-subtitle">Nautilus pompilius, algorithmically expressed</div>
+            <div class="placard-meta">logarithmic spiral • φ ≈ 1.618 • generative form</div>
+        </div>
+
+        <div class="info-panel">
+            The chambered nautilus grows according to the golden ratio <span class="phi-symbol">φ</span>, adding new chambers in perfect logarithmic progression. Each chamber precisely 1.618 times larger than its predecessor—an ancient geometry repeated across four hundred million years.
+        </div>
+    </div>
+
+    <script>
+        const PHI = 1.618033988749895;
+        const GOLDEN_ANGLE = 137.5;
+
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let shells = [];
+        let growthProgress = 0;
+        let isGrowing = true;
+        let params = {
+            arms: Math.floor(Math.random() * 3) + 1, // 1-3 arms random start
+            tightness: 0.8 + Math.random() * 0.5, // 0.8-1.3 random
+            rotation: 0.8 + Math.random() * 1.0, // 0.8-1.8 random
+            speed: 0.8 + Math.random() * 0.8, // 0.8-1.6 random
+            luminosity: 0.9 + Math.random() * 0.4 // 0.9-1.3 random
+        };
+
+        class ExhibitionShell {
+            constructor(armIndex) {
+                this.armIndex = armIndex;
+                this.baseAngle = armIndex * (GOLDEN_ANGLE * PI / 180);
+                this.outerPoints = [];
+                this.innerPoints = [];
+                this.chambers = [];
+                this.texturePoints = [];
+                this.pearlSpots = [];
+                
+                // Seed variations
+                this.colorBase = random(190, 210);
+                this.rotations = random(3.8, 4.3);
+                this.initialRadius = random(2.5, 4);
+                this.thickness = random(0.36, 0.46);
+                this.organicVariation = random(0.7, 1.1);
+                
+                this.generate();
+            }
+
+            generate() {
+                this.outerPoints = [];
+                this.innerPoints = [];
+                this.chambers = [];
+                this.texturePoints = [];
+                this.pearlSpots = [];
+
+                let maxTheta = TWO_PI * this.rotations * params.tightness;
+                let steps = 700;
+
+                // First pass: generate all points to find max radius
+                let tempPoints = [];
+                let maxRadius = 0;
+                
+                for (let i = 0; i <= steps; i++) {
+                    let progress = i / steps;
+                    let theta = progress * maxTheta;
+                    
+                    let baseRadius = this.initialRadius * pow(PHI, (theta / PI) * params.tightness);
+                    let organic = sin(theta * 8) * 0.35 * this.organicVariation + 
+                                 cos(theta * 13) * 0.25 * this.organicVariation;
+                    let radius = baseRadius + organic;
+                    
+                    maxRadius = max(maxRadius, radius);
+                    tempPoints.push({theta, radius, progress});
+                }
+
+                // Calculate scale factor to fit in canvas with padding
+                let canvasRadius = min(width, height) / 2;
+                let padding = 60; // Leave some breathing room
+                this.scaleFactor = (canvasRadius - padding) / maxRadius;
+
+                // Second pass: create actual points with scaling
+                for (let i = 0; i <= steps; i++) {
+                    let {theta, radius, progress} = tempPoints[i];
+                    radius *= this.scaleFactor; // Apply scale
+                    
+                    let angle = this.baseAngle + theta;
+                    let x = width/2 + cos(angle) * radius;
+                    let y = height/2 + sin(angle) * radius;
+                    
+                    this.outerPoints.push({x, y, theta, radius, progress});
+                    
+                    // Inner curve
+                    let innerRadius = radius * this.thickness;
+                    let xi = width/2 + cos(angle) * innerRadius;
+                    let yi = height/2 + sin(angle) * innerRadius;
+                    this.innerPoints.push({x: xi, y: yi, progress});
+                    
+                    // Texture markers
+                    if (i % 18 === 0 && progress > 0.15) {
+                        this.texturePoints.push({
+                            x, y, progress, 
+                            size: random(0.8, 2.5),
+                            originalIndex: i
+                        });
+                    }
+                }
+
+                // Chamber divisions
+                let numChambers = floor(random(30, 36));
+                for (let i = 0; i < numChambers; i++) {
+                    let progress = i / numChambers;
+                    let theta = progress * maxTheta;
+                    let radius = this.initialRadius * pow(PHI, (theta / PI) * params.tightness) * this.scaleFactor;
+                    let angle = this.baseAngle + theta;
+                    
+                    let innerR = radius * this.thickness;
+                    let outerR = radius;
+                    
+                    this.chambers.push({
+                        x1: width/2 + cos(angle) * innerR,
+                        y1: height/2 + sin(angle) * innerR,
+                        x2: width/2 + cos(angle) * outerR,
+                        y2: height/2 + sin(angle) * outerR,
+                        progress
+                    });
+                }
+
+                // Pearl spots
+                for (let i = 0; i < 60; i++) {
+                    let progress = random(0.3, 1.0);
+                    let theta = progress * maxTheta;
+                    let radius = this.initialRadius * pow(PHI, (theta / PI) * params.tightness) * this.scaleFactor;
+                    let radiusFactor = random(0.5, 0.92);
+                    let radiusPos = radius * radiusFactor;
+                    let angleOffset = random(-0.2, 0.2);
+                    let angle = this.baseAngle + theta + angleOffset;
+                    
+                    this.pearlSpots.push({
+                        x: width/2 + cos(angle) * radiusPos,
+                        y: height/2 + sin(angle) * radiusPos,
+                        size: random(1.5, 4),
+                        brightness: random(0.6, 1.0),
+                        progress,
+                        radiusFactor,
+                        angleOffset
+                    });
+                }
+            }
+
+            display(growthLimit) {
+                push();
+                
+                // Calculate how many points to show based on growth
+                let visiblePoints = Math.floor(this.outerPoints.length * growthLimit);
+                if (visiblePoints < 2) {
+                    pop();
+                    return;
+                }
+                
+                // Deep shadow base
+                colorMode(RGB);
+                drawingContext.shadowBlur = 60;
+                drawingContext.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                
+                // Fill shell body (only grown portion)
+                beginShape();
+                for (let i = 0; i < visiblePoints; i++) {
+                    let p = this.outerPoints[i];
+                    vertex(p.x, p.y);
+                }
+                for (let i = visiblePoints - 1; i >= 0; i--) {
+                    vertex(this.innerPoints[i].x, this.innerPoints[i].y);
+                }
+                endShape(CLOSE);
+                
+                // Dark gradient fill
+                let grad = drawingContext.createRadialGradient(
+                    width/2, height/2, 15,
+                    width/2, height/2, 380
+                );
+                grad.addColorStop(0, 'rgba(20, 25, 32, 0.98)');
+                grad.addColorStop(0.5, 'rgba(28, 35, 42, 0.92)');
+                grad.addColorStop(1, 'rgba(38, 45, 52, 0.8)');
+                drawingContext.fillStyle = grad;
+                drawingContext.fill();
+                
+                drawingContext.shadowBlur = 0;
+                
+                // Chamber walls with depth (only visible ones)
+                colorMode(HSB, 360, 100, 100);
+                for (let chamber of this.chambers) {
+                    if (chamber.progress <= growthLimit) {
+                        let hue = map(chamber.progress, 0, 1, this.colorBase + 20, this.colorBase - 40);
+                        let alpha = map(chamber.progress, 0, 1, 40, 85) * params.luminosity;
+                        stroke(hue, 35, 55, alpha * 0.2);
+                        strokeWeight(0.4);
+                        line(chamber.x1, chamber.y1, chamber.x2, chamber.y2);
+                    }
+                }
+
+                // Inner curve - refined depth edge
+                for (let i = 1; i < visiblePoints; i++) {
+                    let p = this.innerPoints[i];
+                    let prev = this.innerPoints[i-1];
+                    
+                    let hue = map(p.progress, 0, 1, this.colorBase + 25, this.colorBase - 35);
+                    let bright = map(p.progress, 0, 1, 35, 65) * params.luminosity;
+                    let alpha = map(p.progress, 0, 1, 120, 190);
+                    
+                    stroke(hue, 60, bright, alpha * 0.6);
+                    strokeWeight(1.2);
+                    line(prev.x, prev.y, p.x, p.y);
+                }
+
+                // Outer edge - main visual feature with rich gradient
+                for (let i = 1; i < visiblePoints; i++) {
+                    let p = this.outerPoints[i];
+                    let prev = this.outerPoints[i-1];
+                    
+                    let hue, sat, bright, alpha;
+                    if (p.progress < 0.35) {
+                        hue = this.colorBase + 10;
+                        sat = 65;
+                        bright = 60 * params.luminosity;
+                        alpha = 80;
+                    } else if (p.progress < 0.7) {
+                        hue = map(p.progress, 0.35, 0.7, this.colorBase, this.colorBase - 50);
+                        sat = map(p.progress, 0.35, 0.7, 65, 75);
+                        bright = map(p.progress, 0.35, 0.7, 60, 78) * params.luminosity;
+                        alpha = 88;
+                    } else {
+                        hue = map(p.progress, 0.7, 1, this.colorBase - 50, 48);
+                        sat = map(p.progress, 0.7, 1, 75, 88);
+                        bright = map(p.progress, 0.7, 1, 78, 94) * params.luminosity;
+                        alpha = 95;
+                    }
+                    
+                    stroke(hue, sat, bright, alpha);
+                    strokeWeight(1.8);
+                    line(prev.x, prev.y, p.x, p.y);
+                }
+
+                // Multi-layer luminous glow (only on visible grown portion)
+                for (let i = 1; i < visiblePoints; i++) {
+                    let p = this.outerPoints[i];
+                    if (p.progress > 0.6 && p.progress <= growthLimit) {
+                        let prev = this.outerPoints[i-1];
+                        let hue = map(p.progress, 0.6, 1, this.colorBase - 50, 48);
+                        let intensity = map(p.progress, 0.6, 1, 0.3, 1.0);
+                        
+                        stroke(hue, 85, 96 * params.luminosity, 28 * intensity);
+                        strokeWeight(4);
+                        line(prev.x, prev.y, p.x, p.y);
+                        
+                        stroke(hue, 90, 98 * params.luminosity, 16 * intensity);
+                        strokeWeight(7);
+                        line(prev.x, prev.y, p.x, p.y);
+                        
+                        if (p.progress > 0.85) {
+                            stroke(hue, 92, 100 * params.luminosity, 7 * intensity);
+                            strokeWeight(10);
+                            line(prev.x, prev.y, p.x, p.y);
+                        }
+                    }
+                }
+
+                // Texture marks (only visible ones)
+                for (let tp of this.texturePoints) {
+                    if (tp.progress <= growthLimit) {
+                        let hue = map(tp.progress, 0, 1, this.colorBase, 50);
+                        noStroke();
+                        fill(hue, 50, 85 * params.luminosity, 18);
+                        circle(tp.x, tp.y, tp.size * 2.5);
+                        fill(hue, 45, 92 * params.luminosity, 45);
+                        circle(tp.x, tp.y, tp.size);
+                    }
+                }
+
+                // Pearlescent spots (only visible ones)
+                for (let spot of this.pearlSpots) {
+                    if (spot.progress <= growthLimit) {
+                        let hue = map(spot.progress, 0, 1, this.colorBase - 10, 55);
+                        let intensity = spot.brightness * params.luminosity;
+                        
+                        noStroke();
+                        fill(hue, 55, 92, 15 * intensity);
+                        circle(spot.x, spot.y, spot.size * 2.2);
+                        fill(hue, 48, 98, 70 * intensity);
+                        circle(spot.x, spot.y, spot.size * 0.9);
+                    }
+                }
+
+                // Glowing growth edge at the frontier
+                if (visiblePoints > 10 && visiblePoints < this.outerPoints.length - 10) {
+                    let edgePoint = this.outerPoints[visiblePoints - 1];
+                    let hue = map(edgePoint.progress, 0, 1, this.colorBase, 50);
+                    
+                    noStroke();
+                    fill(hue, 80, 100, 40);
+                    circle(edgePoint.x, edgePoint.y, 8);
+                    fill(hue, 90, 100, 70);
+                    circle(edgePoint.x, edgePoint.y, 4);
+                }
+
+                pop();
+            }
+
+            rotate(speed) {
+                this.baseAngle += speed * 0.002;
+                // Regenerate points with new angle
+                this.updatePositions();
+            }
+
+            updatePositions() {
+                let maxTheta = TWO_PI * this.rotations * params.tightness;
+                
+                // Update outer points
+                for (let i = 0; i < this.outerPoints.length; i++) {
+                    let p = this.outerPoints[i];
+                    let angle = this.baseAngle + p.theta;
+                    p.x = width/2 + cos(angle) * p.radius;
+                    p.y = height/2 + sin(angle) * p.radius;
+                }
+
+                // Update inner points
+                for (let i = 0; i < this.innerPoints.length; i++) {
+                    let ip = this.innerPoints[i];
+                    let p = this.outerPoints[i];
+                    let innerRadius = p.radius * this.thickness;
+                    let angle = this.baseAngle + p.theta;
+                    ip.x = width/2 + cos(angle) * innerRadius;
+                    ip.y = height/2 + sin(angle) * innerRadius;
+                }
+
+                // Update chambers
+                for (let i = 0; i < this.chambers.length; i++) {
+                    let chamber = this.chambers[i];
+                    let theta = chamber.progress * maxTheta;
+                    let radius = this.initialRadius * pow(PHI, (theta / PI) * params.tightness) * this.scaleFactor;
+                    let angle = this.baseAngle + theta;
+                    
+                    let innerR = radius * this.thickness;
+                    let outerR = radius;
+                    
+                    chamber.x1 = width/2 + cos(angle) * innerR;
+                    chamber.y1 = height/2 + sin(angle) * innerR;
+                    chamber.x2 = width/2 + cos(angle) * outerR;
+                    chamber.y2 = height/2 + sin(angle) * outerR;
+                }
+
+                // Update texture points
+                for (let tp of this.texturePoints) {
+                    let p = this.outerPoints[Math.floor(tp.originalIndex)];
+                    if (p) {
+                        tp.x = p.x;
+                        tp.y = p.y;
+                    }
+                }
+
+                // Update pearl spots
+                for (let i = 0; i < this.pearlSpots.length; i++) {
+                    let spot = this.pearlSpots[i];
+                    let theta = spot.progress * maxTheta;
+                    let radius = this.initialRadius * pow(PHI, (theta / PI) * params.tightness) * this.scaleFactor;
+                    let radiusPos = radius * spot.radiusFactor;
+                    let angle = this.baseAngle + theta + spot.angleOffset;
+                    
+                    spot.x = width/2 + cos(angle) * radiusPos;
+                    spot.y = height/2 + sin(angle) * radiusPos;
+                }
+            }
+        }
+
+        function setup() {
+            let canvas = createCanvas(800, 800);
+            canvas.parent('canvas-container');
+            background(13, 13, 15);
+            
+            // Update UI to show random starting values
+            document.getElementById('arms-value').textContent = params.arms;
+            document.getElementById('arms-slider').value = params.arms;
+            document.getElementById('tightness-value').textContent = params.tightness.toFixed(1);
+            document.getElementById('tightness-slider').value = params.tightness;
+            document.getElementById('rotation-value').textContent = params.rotation.toFixed(1);
+            document.getElementById('rotation-slider').value = params.rotation;
+            document.getElementById('speed-value').textContent = params.speed.toFixed(1);
+            document.getElementById('speed-slider').value = params.speed;
+            document.getElementById('luminosity-value').textContent = params.luminosity.toFixed(1);
+            document.getElementById('luminosity-slider').value = params.luminosity;
+            
+            initShells();
+            
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initShells() {
+            randomSeed(currentSeed);
+            noiseSeed(currentSeed);
+            shells = [];
+            for (let i = 0; i < params.arms; i++) {
+                shells.push(new ExhibitionShell(i));
+            }
+            updateSeedDisplay();
+            
+            // Reset growth animation
+            growthProgress = 0;
+            isGrowing = true;
+        }
+
+        function draw() {
+            background(13, 13, 15);
+            
+            // Animate growth
+            if (isGrowing) {
+                growthProgress += 0.005; // Slow, elegant growth
+                if (growthProgress >= 1.0) {
+                    growthProgress = 1.0;
+                    isGrowing = false;
+                }
+            } else {
+                // After growth completes, start rotation
+                for (let shell of shells) {
+                    shell.rotate(params.rotation * params.speed);
+                }
+            }
+            
+            // Display with current growth progress
+            for (let shell of shells) {
+                shell.display(growthProgress);
+            }
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+            document.getElementById(name + '-value').textContent = numVal.toFixed(1);
+            
+            if (name === 'arms' || name === 'tightness') {
+                initShells();
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent = 
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initShells();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initShells();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initShells();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            let content = header.nextElementSibling;
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
