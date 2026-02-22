@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Depth — Mandelbrot & Julia Set Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #e04898;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(224, 72, 152, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(224, 72, 152, 0.025) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+            cursor: crosshair;
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(224, 72, 152, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(224, 72, 152, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(224, 72, 152, 0.1);
+            transform: scale(1.05);
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            z-index: 10;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(224, 72, 152, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        .mode-toggle {
+            display: flex;
+            border: 1px solid rgba(224, 72, 152, 0.3);
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 5px 0;
+            font-family: 'Crimson Pro', serif;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: transparent;
+            color: var(--silver);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: rgba(224, 72, 152, 0.15);
+            color: var(--accent);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: rgba(224, 72, 152, 0.05);
+        }
+
+        .julia-params {
+            transition: opacity 0.3s ease, max-height 0.4s ease;
+            overflow: hidden;
+        }
+
+        .julia-params.hidden {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(224, 72, 152, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #f06aad;
+            border-color: rgba(224, 72, 152, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: rgba(224, 72, 152, 0.4);
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeInPlacard { to { opacity: 1; } }
+        @keyframes fadeInControls { to { opacity: 1; } }
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Room 2 — Article */
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--silver);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 12px 24px;
+            margin: 0 0 40px 0;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 8px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: rgba(159, 168, 171, 0.6);
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(224, 72, 152, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(224, 72, 152, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .parameters-panel {
+                display: none;
+            }
+            .education-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 860px) {
+            #canvas-container canvas {
+                width: 90vw !important;
+                height: 90vw !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="exhibit">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Max Iterations
+                    <span class="param-value" id="iterations-value">200</span>
+                </div>
+                <input type="range" class="param-slider" id="iterations-slider"
+                       min="50" max="500" value="200" step="10"
+                       oninput="updateParam('maxIter', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Color Shift
+                    <span class="param-value" id="colorshift-value">0°</span>
+                </div>
+                <input type="range" class="param-slider" id="colorshift-slider"
+                       min="0" max="360" value="0" step="1"
+                       oninput="updateParam('colorShift', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Zoom Level
+                    <span class="param-value" id="zoom-value">1.0x</span>
+                </div>
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">Mode</div>
+                <div class="mode-toggle">
+                    <button class="mode-btn active" id="mode-mandelbrot" onclick="setMode('mandelbrot')">Mandelbrot</button>
+                    <button class="mode-btn" id="mode-julia" onclick="setMode('julia')">Julia</button>
+                </div>
+            </div>
+
+            <div class="julia-params hidden" id="julia-params">
+                <div class="param-group">
+                    <div class="param-label">
+                        Julia Real
+                        <span class="param-value" id="juliareal-value">-0.700</span>
+                    </div>
+                    <input type="range" class="param-slider" id="juliareal-slider"
+                           min="-2" max="2" value="-0.7" step="0.005"
+                           oninput="updateParam('juliaReal', this.value)">
+                </div>
+
+                <div class="param-group">
+                    <div class="param-label">
+                        Julia Imaginary
+                        <span class="param-value" id="juliaimag-value">0.270</span>
+                    </div>
+                    <input type="range" class="param-slider" id="juliaimag-slider"
+                           min="-2" max="2" value="0.27015" step="0.005"
+                           oninput="updateParam('juliaImag', this.value)">
+                </div>
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine zooming into a shape that never ends — there's always more detail! No matter how close you look, you keep finding tiny copies of the whole picture hiding inside. It's like a magic pattern that goes on forever and ever.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Benoit Mandelbrot, 1980</strong> — first visualized by computer, revealing infinite complexity from a simple iterative formula.</p>
+                    <p>The algorithm iterates <strong>z = z² + c</strong> for each point in the complex plane. The <strong>escape-time algorithm</strong> counts how many iterations before |z| exceeds 2, and uses that count to assign a color.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>z<sub>n+1</sub> = z<sub>n</sub>² + c</strong></p>
+                    <p>If <strong>|z| > 2</strong>, the point escapes — it will diverge to infinity. Count the iterations before escape to determine the color. Points that never escape belong to the set and are colored black.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Coastlines, mountain ranges, clouds, broccoli, snowflakes — nature is full of fractal geometry. The measured length of a coastline depends on the ruler you use. Mountains look similar at every magnification.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art & Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The <strong>fractal art movement</strong> emerged from early computer graphics. Fractals drive <strong>psychedelic art</strong>, album covers, and <strong>digital cinema VFX</strong> — from alien landscapes to volumetric clouds.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Infinite complexity from <strong>z² + c</strong> — a three-character formula that contains more structure than any finite description can capture. Self-similarity at every scale. The boundary between order and chaos is itself infinitely complex.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Infinite Depth</div>
+            <div class="placard-subtitle">The Mandelbrot set and its Julia companions</div>
+            <div class="placard-meta">z² + c · escape time · fractal boundary</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Room 2: Article -->
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Infinite Depth</h1>
+        <p class="article-subtitle">The Boundary Between Order and Chaos</p>
+
+        <blockquote class="article-epigraph">
+            "Clouds are not spheres, mountains are not cones, coastlines are not circles, and bark is not smooth, nor does lightning travel in a straight line."
+            <cite>— Benoit Mandelbrot</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Benoit Mandelbrot's 1980 discovery of the set that bears his name revealed the most complex mathematical object ever visualized — generated by the simplest possible formula: z² + c. A two-variable equation, three characters of notation, producing infinite worlds within worlds, structures no one had ever imagined, let alone seen.</p>
+
+            <p>The algorithm is disarmingly simple. For each point c in the complex plane, iterate z = z² + c starting from z = 0. If z escapes to infinity (|z| > 2), color the point by how many iterations it took to escape. If it never escapes, the point belongs to the set. The boundary between escape and captivity — between points that fly away and points that remain trapped — creates infinite fractal detail.</p>
+
+            <p>What the viewer sees is an infinitely detailed boundary, with miniature copies of the whole set appearing at every scale. Zoom in a million times and discover structures as complex as the original. Spiral arms, seahorse valleys, embedded Julia sets — the deeper you go, the more alien the landscape becomes, and yet the entire shape is always there, nested within itself. The Julia sets are cross-sections: each point in the Mandelbrot set corresponds to a connected Julia set, a shadow world defined by a single complex number.</p>
+
+            <p>Real-world fractals are everywhere once you learn to see them. Coastlines whose measured length depends on the ruler — shorter ruler, longer coast. Mountains whose silhouettes are statistically identical at any magnification. The branching of rivers, the shape of clouds, the surface of broccoli. Mandelbrot gave us the mathematics to describe nature's roughness, the geometry of the irregular.</p>
+
+            <p>The philosophical weight of the Mandelbrot set is staggering: infinite complexity from a three-character formula. The set contains more structure than any finite description can capture. It challenges our deepest notions of simplicity — is z² + c simple or complex? The formula is simple. The consequences are infinite. Perhaps this is the deepest truth about mathematics: that complexity is not added from outside, but is latent within even the most elementary operations.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
+            <div class="math-box-formula">
+                z<sub>n+1</sub> = z<sub>n</sub>² + c
+            </div>
+            <div class="math-box-description">Iterate from z₀ = 0. If the sequence escapes (|z| > 2), the point c is outside the set. The number of iterations before escape determines the color. At the boundary lies infinite fractal complexity — more detail than any finite computation can reveal.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let rendering = false;
+
+        let params = {
+            maxIter: 200,
+            colorShift: 0,
+            mode: 'mandelbrot',
+            juliaReal: -0.7,
+            juliaImag: 0.27015,
+        };
+
+        let viewXmin = -2.5;
+        let viewXmax = 1.0;
+        let viewYmin = -1.25;
+        let viewYmax = 1.25;
+        let zoomLevel = 1;
+
+        const CANVAS_SIZE = 800;
+
+        const JULIA_PRESETS = [
+            { r: -0.7,     i: 0.27015  },
+            { r: -0.8,     i: 0.156    },
+            { r: -0.4,     i: 0.6      },
+            { r:  0.285,   i: 0.01     },
+            { r: -0.70176, i: -0.3842  },
+            { r: -0.835,   i: -0.2321  },
+            { r:  0.355,   i: 0.355    },
+            { r: -0.54,    i: 0.54     },
+            { r:  0.37,    i: 0.1      },
+            { r: -0.123,   i: 0.745    },
+        ];
+
+        function seededRandom(seed) {
+            let s = seed;
+            return function() {
+                s = (s * 16807 + 0) % 2147483647;
+                return (s - 1) / 2147483646;
+            };
+        }
+
+        function applyVariation() {
+            let rng = seededRandom(currentSeed);
+            let idx = Math.floor(rng() * JULIA_PRESETS.length);
+            let preset = JULIA_PRESETS[idx];
+            let drift = (rng() - 0.5) * 0.05;
+            params.juliaReal = preset.r + drift;
+            params.juliaImag = preset.i + (rng() - 0.5) * 0.05;
+            params.colorShift = Math.floor(rng() * 360);
+
+            document.getElementById('juliareal-slider').value = params.juliaReal;
+            document.getElementById('juliaimag-slider').value = params.juliaImag;
+            document.getElementById('colorshift-slider').value = params.colorShift;
+            document.getElementById('juliareal-value').textContent = params.juliaReal.toFixed(3);
+            document.getElementById('juliaimag-value').textContent = params.juliaImag.toFixed(3);
+            document.getElementById('colorshift-value').textContent = params.colorShift + '°';
+
+            updateSeedDisplay();
+        }
+
+        function resetView() {
+            if (params.mode === 'mandelbrot') {
+                viewXmin = -2.5;
+                viewXmax = 1.0;
+                viewYmin = -1.25;
+                viewYmax = 1.25;
+            } else {
+                viewXmin = -2.0;
+                viewXmax = 2.0;
+                viewYmin = -2.0;
+                viewYmax = 2.0;
+            }
+            zoomLevel = 1;
+            document.getElementById('zoom-value').textContent = '1.0x';
+        }
+
+        function iterColor(n, maxIter, zx, zy) {
+            if (n >= maxIter) return [0, 0, 0];
+
+            let smoothed = n + 1 - Math.log(Math.log(Math.sqrt(zx * zx + zy * zy))) / Math.log(2);
+            let t = smoothed / maxIter;
+
+            let hueBase = params.colorShift;
+
+            let palette = [
+                { pos: 0.0,  r: 224, g: 72,  b: 152 },
+                { pos: 0.15, r: 160, g: 50,  b: 200 },
+                { pos: 0.30, r: 80,  g: 60,  b: 220 },
+                { pos: 0.45, r: 40,  g: 150, b: 220 },
+                { pos: 0.60, r: 40,  g: 200, b: 180 },
+                { pos: 0.75, r: 60,  g: 200, b: 100 },
+                { pos: 0.90, r: 201, g: 165, b: 90  },
+                { pos: 1.0,  r: 224, g: 72,  b: 152 },
+            ];
+
+            let cycled = (t * 3 + hueBase / 360) % 1.0;
+
+            let c0 = palette[0], c1 = palette[palette.length - 1];
+            for (let k = 0; k < palette.length - 1; k++) {
+                if (cycled >= palette[k].pos && cycled <= palette[k + 1].pos) {
+                    c0 = palette[k];
+                    c1 = palette[k + 1];
+                    break;
+                }
+            }
+
+            let local = (cycled - c0.pos) / (c1.pos - c0.pos);
+            local = local * local * (3 - 2 * local);
+
+            let r = c0.r + (c1.r - c0.r) * local;
+            let g = c0.g + (c1.g - c0.g) * local;
+            let b = c0.b + (c1.b - c0.b) * local;
+
+            let brightness = 0.5 + 0.5 * Math.sin(smoothed * 0.15);
+            r *= (0.6 + 0.4 * brightness);
+            g *= (0.6 + 0.4 * brightness);
+            b *= (0.6 + 0.4 * brightness);
+
+            return [Math.min(255, r), Math.min(255, g), Math.min(255, b)];
+        }
+
+        function renderFractal() {
+            if (rendering) return;
+            rendering = true;
+
+            loadPixels();
+
+            let maxIter = params.maxIter;
+            let w = width;
+            let h = height;
+            let d = pixelDensity();
+            let pw = w * d;
+            let ph = h * d;
+
+            let xRange = viewXmax - viewXmin;
+            let yRange = viewYmax - viewYmin;
+
+            for (let py = 0; py < ph; py++) {
+                for (let px = 0; px < pw; px++) {
+                    let x0 = viewXmin + (px / pw) * xRange;
+                    let y0 = viewYmin + (py / ph) * yRange;
+
+                    let zx, zy, cx, cy;
+
+                    if (params.mode === 'mandelbrot') {
+                        zx = 0; zy = 0;
+                        cx = x0; cy = y0;
+                    } else {
+                        zx = x0; zy = y0;
+                        cx = params.juliaReal;
+                        cy = params.juliaImag;
+                    }
+
+                    let n = 0;
+                    while (n < maxIter && zx * zx + zy * zy <= 4) {
+                        let tmp = zx * zx - zy * zy + cx;
+                        zy = 2 * zx * zy + cy;
+                        zx = tmp;
+                        n++;
+                    }
+
+                    let col = iterColor(n, maxIter, zx, zy);
+                    let idx = (py * pw + px) * 4;
+                    pixels[idx]     = col[0];
+                    pixels[idx + 1] = col[1];
+                    pixels[idx + 2] = col[2];
+                    pixels[idx + 3] = 255;
+                }
+            }
+
+            updatePixels();
+            rendering = false;
+        }
+
+        function setup() {
+            let canvas = createCanvas(CANVAS_SIZE, CANVAS_SIZE);
+            canvas.parent('canvas-container');
+            pixelDensity(1);
+            noLoop();
+
+            applyVariation();
+            resetView();
+            renderFractal();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function mousePressed() {
+            let container = document.getElementById('canvas-container');
+            let rect = container.getBoundingClientRect();
+            let mx = mouseX;
+            let my = mouseY;
+
+            if (mx < 0 || mx > width || my < 0 || my > height) return;
+
+            let xRange = viewXmax - viewXmin;
+            let yRange = viewYmax - viewYmin;
+            let clickX = viewXmin + (mx / width) * xRange;
+            let clickY = viewYmin + (my / height) * yRange;
+
+            let newXRange = xRange / 2;
+            let newYRange = yRange / 2;
+
+            viewXmin = clickX - newXRange / 2;
+            viewXmax = clickX + newXRange / 2;
+            viewYmin = clickY - newYRange / 2;
+            viewYmax = clickY + newYRange / 2;
+
+            zoomLevel *= 2;
+            document.getElementById('zoom-value').textContent = zoomLevel.toFixed(1) + 'x';
+
+            renderFractal();
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+
+            if (name === 'maxIter') {
+                params.maxIter = Math.round(numVal);
+                document.getElementById('iterations-value').textContent = params.maxIter;
+            } else if (name === 'colorShift') {
+                params.colorShift = Math.round(numVal);
+                document.getElementById('colorshift-value').textContent = params.colorShift + '°';
+            } else if (name === 'juliaReal') {
+                params.juliaReal = numVal;
+                document.getElementById('juliareal-value').textContent = numVal.toFixed(3);
+            } else if (name === 'juliaImag') {
+                params.juliaImag = numVal;
+                document.getElementById('juliaimag-value').textContent = numVal.toFixed(3);
+            }
+
+            renderFractal();
+        }
+
+        function setMode(mode) {
+            params.mode = mode;
+
+            document.getElementById('mode-mandelbrot').classList.toggle('active', mode === 'mandelbrot');
+            document.getElementById('mode-julia').classList.toggle('active', mode === 'julia');
+            document.getElementById('julia-params').classList.toggle('hidden', mode === 'mandelbrot');
+
+            resetView();
+            renderFractal();
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            applyVariation();
+            resetView();
+            renderFractal();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            applyVariation();
+            resetView();
+            renderFractal();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            applyVariation();
+            resetView();
+            renderFractal();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

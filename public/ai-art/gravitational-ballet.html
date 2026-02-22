@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravitational Ballet — N-Body Orbital Mechanics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #e8c96e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(232, 201, 110, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(232, 201, 110, 0.025) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(232, 201, 110, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(232, 201, 110, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(232, 201, 110, 0.1);
+            transform: scale(1.05);
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            z-index: 10;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(232, 201, 110, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(232, 201, 110, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #f0d88a;
+            border-color: rgba(232, 201, 110, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: rgba(232, 201, 110, 0.4);
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeInPlacard { to { opacity: 1; } }
+        @keyframes fadeInControls { to { opacity: 1; } }
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Room 2 — Article */
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--silver);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 12px 24px;
+            margin: 0 0 40px 0;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 8px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: rgba(159, 168, 171, 0.6);
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(232, 201, 110, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(232, 201, 110, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .parameters-panel {
+                display: none;
+            }
+            .education-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 860px) {
+            #canvas-container canvas {
+                width: 90vw !important;
+                height: 90vw !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="exhibit">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Bodies
+                    <span class="param-value" id="bodies-value">3</span>
+                </div>
+                <input type="range" class="param-slider" id="bodies-slider"
+                       min="2" max="5" value="3" step="1"
+                       oninput="updateParam('bodies', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Gravity
+                    <span class="param-value" id="gravity-value">2.0</span>
+                </div>
+                <input type="range" class="param-slider" id="gravity-slider"
+                       min="0.5" max="5" value="2" step="0.1"
+                       oninput="updateParam('gravity', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Particles
+                    <span class="param-value" id="particles-value">800</span>
+                </div>
+                <input type="range" class="param-slider" id="particles-slider"
+                       min="200" max="2000" value="800" step="50"
+                       oninput="updateParam('particles', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Trail Length
+                    <span class="param-value" id="trail-value">40</span>
+                </div>
+                <input type="range" class="param-slider" id="trail-slider"
+                       min="10" max="100" value="40" step="1"
+                       oninput="updateParam('trail', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Speed
+                    <span class="param-value" id="speed-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="speed-slider"
+                       min="0.5" max="3" value="1" step="0.1"
+                       oninput="updateParam('speed', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine heavy invisible magnets pulling tiny sparkles toward them — the sparkles try to fly past but keep getting pulled back, making beautiful loopy orbits like planets around suns!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Newton's law of universal gravitation</strong> — every mass attracts every other mass with force F = Gm₁m₂/r².</p>
+                    <p><strong>Orbital mechanics</strong> govern the motion of planets, moons, and satellites. The three-body problem has no general closed-form solution.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>F = G · M · m / r²</strong></p>
+                    <p><strong>Acceleration a = F / m</strong></p>
+                    <p>Velocity-Verlet integration for numerical stability — a symplectic integrator that conserves energy better than naive Euler methods.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Planets, moons, binary stars, galaxy spiral arms, asteroid belts, comet orbits — gravity sculpts the universe at every scale.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art & Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The astronomical illustration tradition, <strong>Kepler's Harmonices Mundi</strong> imagined the planets producing celestial music. Cosmic art from cave paintings to Hubble images celebrates our place in the gravitational dance.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The <strong>three-body problem</strong> — even with perfect knowledge of the laws, prediction becomes impossible with three or more bodies. Simple rules, infinite complexity. An echo of chaos theory in celestial mechanics.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Gravitational Ballet</div>
+            <div class="placard-subtitle">N-body orbital mechanics and celestial dance</div>
+            <div class="placard-meta">F = Gm₁m₂/r² · orbital resonance · three-body problem</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Room 2: Article -->
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Gravitational Ballet</h1>
+        <p class="article-subtitle">The Dance of Celestial Mechanics</p>
+
+        <blockquote class="article-epigraph">
+            "Gravity explains the motions of the planets, but it cannot explain who set the planets in motion."
+            <cite>— Isaac Newton</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Isaac Newton's universal gravitation is the quiet thread that stitches the cosmos together. The same force that pulls an apple to the ground holds galaxies in their sprawling forms. A single equation — F = Gm₁m₂/r² — governs motion from the jostling of atoms to the stately waltz of galactic superclusters. No force in nature is more universal, more democratic, or more inescapable.</p>
+
+            <p>The beauty of orbital mechanics begins with elegance and ends with mystery. Two bodies produce the graceful elliptical orbits that Kepler described — closed curves repeating forever, predictable for eternity. But add a third body and the problem becomes analytically unsolvable. The three-body problem is one of the oldest unsolved problems in physics, and Henri Poincaré showed that it conceals the seeds of chaos itself.</p>
+
+            <p>In this visualization, particles are caught in gravitational fields cast by massive golden bodies. They trace complex orbital patterns — some finding stable orbits and circling faithfully, others slingshotting between attractors in wild figure-eights, and some escaping entirely into the void. The fading trails create a golden tapestry of celestial motion, each thread a small story of attraction, momentum, and the endless negotiation between falling and flying.</p>
+
+            <p>This same mathematics powers humanity's greatest journeys. The Voyager spacecraft used gravity assists — slingshotting off Jupiter and Saturn — to achieve velocities no rocket could provide alone. Lagrange points, where gravitational forces balance, host space telescopes like the James Webb. Every satellite orbit, every interplanetary trajectory, every docking maneuver in space is choreographed by the same equation that governs the dance on this screen.</p>
+
+            <p>Gravity is the invisible choreographer of the universe. From a single, simple law emerges infinite variety — spiraling galaxies, resonant moons, binary stars locked in eternal embrace, and rogue planets flung into the dark between stars. And the three-body problem reminds us of a humbling truth: simplicity of rules does not guarantee simplicity of behavior. The universe dances to a law we can write in a single line, yet produces a performance we can never fully predict.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">NEWTON'S LAW OF UNIVERSAL GRAVITATION</div>
+            <div class="math-box-formula">
+                F = G · m₁m₂ / r²
+            </div>
+            <div class="math-box-description">Every mass attracts every other mass with a force proportional to their product and inversely proportional to the square of their separation. Simple, universal, and — with three or more bodies — unsolvable in closed form.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let bodies = [];
+        let orbitParticles = [];
+        let trailBuffer;
+
+        let params = {
+            bodies: 3,
+            gravity: 2,
+            particles: 800,
+            trail: 40,
+            speed: 1
+        };
+
+        const CANVAS_SIZE = 800;
+        const CENTER = CANVAS_SIZE / 2;
+        const BODY_MASS = 5000;
+        const SOFTENING = 12;
+        const RESPAWN_CLOSE = 8;
+        const RESPAWN_FAR = 500;
+
+        function seededRandom(seed) {
+            let s = seed;
+            return function () {
+                s = (s * 16807 + 0) % 2147483647;
+                return (s - 1) / 2147483646;
+            };
+        }
+
+        class MassiveBody {
+            constructor(x, y, mass, phase) {
+                this.x = x;
+                this.y = y;
+                this.mass = mass;
+                this.phase = phase;
+                this.radius = 6 + mass / 2000;
+            }
+        }
+
+        class OrbitalParticle {
+            constructor(x, y, vx, vy) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.ax = 0;
+                this.ay = 0;
+                this.trail = [];
+                this.alive = true;
+            }
+
+            computeAcceleration() {
+                let ax = 0, ay = 0;
+                for (let b of bodies) {
+                    let dx = b.x - this.x;
+                    let dy = b.y - this.y;
+                    let distSq = dx * dx + dy * dy + SOFTENING * SOFTENING;
+                    let dist = Math.sqrt(distSq);
+                    let force = params.gravity * b.mass / distSq;
+                    ax += force * dx / dist;
+                    ay += force * dy / dist;
+                }
+                return { ax, ay };
+            }
+
+            step(dt) {
+                let { ax: newAx, ay: newAy } = this.computeAcceleration();
+
+                this.x += this.vx * dt + 0.5 * this.ax * dt * dt;
+                this.y += this.vy * dt + 0.5 * this.ay * dt * dt;
+
+                let next = this.computeAcceleration();
+                this.vx += 0.5 * (this.ax + next.ax) * dt;
+                this.vy += 0.5 * (this.ay + next.ay) * dt;
+
+                this.ax = next.ax;
+                this.ay = next.ay;
+
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > params.trail) {
+                    this.trail.shift();
+                }
+
+                let tooClose = false;
+                for (let b of bodies) {
+                    let dx = b.x - this.x;
+                    let dy = b.y - this.y;
+                    if (dx * dx + dy * dy < RESPAWN_CLOSE * RESPAWN_CLOSE) {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                let distFromCenter = Math.sqrt(
+                    (this.x - CENTER) * (this.x - CENTER) +
+                    (this.y - CENTER) * (this.y - CENTER)
+                );
+                if (tooClose || distFromCenter > RESPAWN_FAR) {
+                    this.alive = false;
+                }
+            }
+        }
+
+        function spawnParticle(rng) {
+            let bIdx = Math.floor(rng() * bodies.length);
+            let b = bodies[bIdx];
+            let angle = rng() * Math.PI * 2;
+            let dist = 30 + rng() * 180;
+            let x = b.x + Math.cos(angle) * dist;
+            let y = b.y + Math.sin(angle) * dist;
+
+            let orbitalSpeed = Math.sqrt(params.gravity * b.mass / dist) * (0.6 + rng() * 0.8);
+            let vx = -Math.sin(angle) * orbitalSpeed + (rng() - 0.5) * 0.3;
+            let vy = Math.cos(angle) * orbitalSpeed + (rng() - 0.5) * 0.3;
+
+            return new OrbitalParticle(x, y, vx, vy);
+        }
+
+        function initSimulation() {
+            let rng = seededRandom(currentSeed);
+            bodies = [];
+            orbitParticles = [];
+
+            let numBodies = params.bodies;
+            let orbitRadius = 100 + rng() * 60;
+            let baseAngle = rng() * Math.PI * 2;
+
+            for (let i = 0; i < numBodies; i++) {
+                let angle = baseAngle + (i / numBodies) * Math.PI * 2;
+                let r = orbitRadius * (0.7 + rng() * 0.6);
+                let bx = CENTER + Math.cos(angle) * r;
+                let by = CENTER + Math.sin(angle) * r;
+                let mass = BODY_MASS * (0.6 + rng() * 0.8);
+                let phase = rng() * Math.PI * 2;
+                bodies.push(new MassiveBody(bx, by, mass, phase));
+            }
+
+            for (let i = 0; i < params.particles; i++) {
+                orbitParticles.push(spawnParticle(rng));
+            }
+
+            if (trailBuffer) {
+                trailBuffer.clear();
+            }
+
+            updateSeedDisplay();
+        }
+
+        function setup() {
+            let canvas = createCanvas(CANVAS_SIZE, CANVAS_SIZE);
+            canvas.parent('canvas-container');
+            trailBuffer = createGraphics(CANVAS_SIZE, CANVAS_SIZE);
+            trailBuffer.clear();
+            initSimulation();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function draw() {
+            background(13, 13, 15);
+
+            let dt = 0.4 * params.speed;
+            let steps = 3;
+            let rng = seededRandom(currentSeed + frameCount);
+
+            for (let s = 0; s < steps; s++) {
+                for (let p of orbitParticles) {
+                    p.step(dt);
+                }
+            }
+
+            let respawnCount = 0;
+            for (let i = 0; i < orbitParticles.length; i++) {
+                if (!orbitParticles[i].alive) {
+                    orbitParticles[i] = spawnParticle(rng);
+                    respawnCount++;
+                }
+            }
+
+            while (orbitParticles.length < params.particles) {
+                orbitParticles.push(spawnParticle(rng));
+            }
+            if (orbitParticles.length > params.particles) {
+                orbitParticles.length = params.particles;
+            }
+
+            trailBuffer.clear();
+            for (let p of orbitParticles) {
+                drawParticleTrail(p);
+            }
+            image(trailBuffer, 0, 0);
+
+            for (let b of bodies) {
+                drawBody(b);
+            }
+        }
+
+        function drawParticleTrail(particle) {
+            let trail = particle.trail;
+            if (trail.length < 2) return;
+
+            for (let i = 1; i < trail.length; i++) {
+                let progress = i / trail.length;
+                let alpha = progress * progress * 180;
+
+                let speed = 0;
+                if (i < trail.length - 1) {
+                    let dx = trail[i + 1 === trail.length ? i : i + 1].x - trail[i].x;
+                    let dy = trail[i + 1 === trail.length ? i : i + 1].y - trail[i].y;
+                    speed = Math.sqrt(dx * dx + dy * dy);
+                }
+
+                let speedNorm = Math.min(speed / 8, 1);
+                let r = lerp(201, 253, speedNorm);
+                let g = lerp(165, 220, speedNorm);
+                let bVal = lerp(90, 140, speedNorm);
+
+                trailBuffer.stroke(r, g, bVal, alpha);
+                trailBuffer.strokeWeight(0.5 + progress * 1.2);
+                trailBuffer.line(trail[i - 1].x, trail[i - 1].y, trail[i].x, trail[i].y);
+            }
+        }
+
+        function drawBody(body) {
+            let pulse = 0.85 + 0.15 * Math.sin(frameCount * 0.04 + body.phase);
+            let glowRadius = body.radius * 5 * pulse;
+
+            for (let layer = 5; layer >= 0; layer--) {
+                let t = layer / 5;
+                let r = body.radius + (glowRadius - body.radius) * t;
+                let alpha = (1 - t) * 0.08;
+                noStroke();
+                fill(232, 201, 110, alpha * 255);
+                ellipse(body.x, body.y, r * 2, r * 2);
+            }
+
+            noStroke();
+            fill(232, 201, 110, 240);
+            ellipse(body.x, body.y, body.radius * 2 * pulse, body.radius * 2 * pulse);
+
+            fill(253, 240, 200, 200);
+            ellipse(body.x, body.y, body.radius * 0.7 * pulse, body.radius * 0.7 * pulse);
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+
+            let displayId = name + '-value';
+            let el = document.getElementById(displayId);
+            if (!el) return;
+
+            if (name === 'particles' || name === 'trail' || name === 'bodies') {
+                el.textContent = Math.round(numVal);
+            } else {
+                el.textContent = numVal.toFixed(1);
+            }
+
+            if (name === 'bodies') {
+                initSimulation();
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initSimulation();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initSimulation();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initSimulation();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

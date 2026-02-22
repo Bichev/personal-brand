@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphogenesis — Reaction-Diffusion Patterns</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #d4956a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(255, 255, 245, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        @keyframes fadeInPlacard {
+            to { opacity: 1; }
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        @keyframes fadeInControls {
+            to { opacity: 1; }
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(212, 149, 106, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(212, 149, 106, 0.1);
+            transform: scale(1.05);
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(212, 149, 106, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(212, 149, 106, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(212, 149, 106, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--gold);
+            border-color: rgba(212, 149, 106, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-nav a:hover { opacity: 1; }
+
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: rgba(212, 149, 106, 0.4);
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Room 2: Article */
+        .article-section {
+            background: #0d0d0f;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: #0d0d0f;
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--silver);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 12px 24px;
+            margin: 0 0 40px 0;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 8px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: rgba(159, 168, 171, 0.6);
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(212, 149, 106, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 12px;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(212, 149, 106, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="exhibit">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Feed Rate
+                    <span class="param-value" id="feed-value">0.055</span>
+                </div>
+                <input type="range" class="param-slider" id="feed-slider"
+                       min="0.02" max="0.08" value="0.055" step="0.001"
+                       oninput="updateParam('feed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Kill Rate
+                    <span class="param-value" id="kill-value">0.062</span>
+                </div>
+                <input type="range" class="param-slider" id="kill-slider"
+                       min="0.06" max="0.07" value="0.062" step="0.001"
+                       oninput="updateParam('kill', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Diffusion A
+                    <span class="param-value" id="dA-value">1.00</span>
+                </div>
+                <input type="range" class="param-slider" id="dA-slider"
+                       min="0.5" max="1.5" value="1.0" step="0.01"
+                       oninput="updateParam('dA', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Diffusion B
+                    <span class="param-value" id="dB-value">0.50</span>
+                </div>
+                <input type="range" class="param-slider" id="dB-slider"
+                       min="0.2" max="0.8" value="0.5" step="0.01"
+                       oninput="updateParam('dB', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Speed
+                    <span class="param-value" id="speed-value">5</span>
+                </div>
+                <input type="range" class="param-slider" id="speed-slider"
+                       min="1" max="10" value="5" step="1"
+                       oninput="updateParam('speed', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine two types of invisible paint spreading on a surface. One paint helps the other grow, but the second paint eats the first. Where they battle, beautiful patterns appear — spots, stripes, and swirls — just like the patterns on animals!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Alan Turing's 1952 paper</strong> "The Chemical Basis of Morphogenesis" proposed that two chemicals — an <strong>activator</strong> and an <strong>inhibitor</strong> — diffusing at different rates could generate biological patterns.</p>
+                    <p>The activator promotes its own production and the inhibitor's, while the inhibitor suppresses the activator. Different diffusion rates create instability in a uniform state, and from that instability, patterns spontaneously emerge.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Gray-Scott model:</strong></p>
+                    <p>∂A/∂t = Dₐ∇²A − AB² + f(1−A)</p>
+                    <p>∂B/∂t = D_b∇²B + AB² − (f+k)B</p>
+                    <p>Where <strong>f</strong> = feed rate, <strong>k</strong> = kill rate, <strong>Dₐ</strong> and <strong>D_b</strong> = diffusion rates. Patterns emerge when Dₐ &gt; D_b.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Leopard spots</strong>, zebra stripes, giraffe patches, tropical fish pigmentation, coral growth patterns, fingerprints, and sand dunes — all follow reaction-diffusion dynamics.</p>
+                    <p>The same mathematics governs pattern formation across vastly different scales and organisms.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art & Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Textile design:</strong> Turing patterns inspire generative fabric patterns and surface textures in contemporary design.</p>
+                    <p><strong>Biological research:</strong> Morphogenesis models continue to shape our understanding of embryonic development and tissue formation.</p>
+                    <p><strong>Generative design:</strong> Architects and designers use reaction-diffusion to create organic structural forms.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Order from chaos:</strong> The same mathematics that creates leopard spots also describes galaxy structures. Pattern is universal.</p>
+                    <p>Complexity arises not from complex rules, but from simple interactions repeated across space and time. Beauty is not designed — it is emergent.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">DIFFUSING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Morphogenesis</div>
+            <div class="placard-subtitle">Reaction-diffusion patterns after Alan Turing</div>
+            <div class="placard-meta">activator-inhibitor · Gray-Scott model · emergent form</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Room 2: Full Article -->
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Morphogenesis</h1>
+        <p class="article-subtitle">The Mathematics of Biological Pattern</p>
+
+        <blockquote class="article-epigraph">
+            "The Analytical Engine weaves algebraical patterns, just as the Jacquard loom weaves flowers and leaves."
+            <cite>— Ada Lovelace</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>In 1952, Alan Turing — already immortal as the father of computer science, the man who broke the Enigma and formalized the very concept of computation — turned his extraordinary mind toward biology. His paper "The Chemical Basis of Morphogenesis" asked a question that had haunted naturalists for centuries: how does a spherically symmetric embryo develop the asymmetric, patterned structures we see in living organisms? His answer was elegant, radical, and decades ahead of its time. Simple chemical reactions, he proposed, could spontaneously generate the stripes on a zebra, the spots on a leopard, and the intricate geometries that decorate life at every scale.</p>
+
+            <p>The mechanism Turing described is disarmingly simple. Two chemicals diffuse through a tissue — an activator that promotes its own production, and an inhibitor that suppresses it. If both chemicals diffused at the same rate, the system would settle into bland uniformity. But when the inhibitor diffuses faster than the activator, something remarkable happens: the uniform state becomes unstable. Small random fluctuations amplify rather than dissipate. The activator concentrates in local peaks, surrounded by halos of inhibitor that prevent neighboring peaks from forming too close. From perfect homogeneity, patterns crystallize — spots, stripes, and labyrinths, depending on the precise balance of parameters.</p>
+
+            <p>What you see unfolding in the exhibition above is this process made visible. Beginning from a nearly uniform field seeded with small perturbations, the Gray-Scott reaction-diffusion model runs in real time. Watch as the initial noise self-organizes: spots emerge and stabilize, or elongate into winding stripes, or branch into coral-like labyrinths. The visualization captures the moment of symmetry breaking — that critical threshold when uniformity gives way to structure, when nothing becomes something. Adjust the feed and kill rates to explore the parameter space: some regions produce mitotic spots that divide like cells, others create standing waves, and narrow corridors of parameter space yield the most intricate labyrinthine forms.</p>
+
+            <p>The same mathematics describes an astonishing range of natural phenomena. The rosettes on a jaguar's coat, the labyrinthine folds of a brain, the branching patterns of coral colonies, the pigmentation of angelfish, the ridges of human fingerprints — all are believed to arise from reaction-diffusion dynamics. The equations don't know whether they are modeling chemistry, biology, or geology. They describe a universal process: the spontaneous emergence of spatial order from the interplay of local activation and long-range inhibition. This is pattern formation as a fundamental physical process, as inevitable as gravity.</p>
+
+            <p>There is a deep philosophical beauty in Turing's insight. The man who showed that a simple machine could compute anything computable also showed that simple chemistry could generate anything patterned. Complexity does not require a complex cause. The leopard does not carry a blueprint of its spots — the spots emerge from the physics of diffusing molecules, the same way a snowflake emerges from the physics of crystallizing water. Beauty, in this view, is not designed. It is the inevitable consequence of simple rules playing out in space and time. Alan Turing gave us two of the deepest ideas of the twentieth century: that machines can think, and that nature itself computes its own form.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
+            <div class="math-box-formula">∂A/∂t = Dₐ∇²A − AB² + f(1−A)</div>
+            <div class="math-box-description">The Gray-Scott model: two coupled partial differential equations where A is the activator, B the inhibitor, f the feed rate, and k the kill rate. Patterns emerge when Dₐ &gt; D_b — when inhibition travels faster than activation.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        const GRID = 200;
+        let gridA, gridB, nextA, nextB;
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let simStarted = false;
+        let pg;
+
+        let params = {
+            feed: 0.055,
+            kill: 0.062,
+            dA: 1.0,
+            dB: 0.5,
+            speed: 5
+        };
+
+        function mulberry32(seed) {
+            return function() {
+                seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+                let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        function initGrid() {
+            let rng = mulberry32(currentSeed);
+
+            gridA = new Float32Array(GRID * GRID);
+            gridB = new Float32Array(GRID * GRID);
+            nextA = new Float32Array(GRID * GRID);
+            nextB = new Float32Array(GRID * GRID);
+
+            gridA.fill(1.0);
+            gridB.fill(0.0);
+
+            let numSeeds = Math.floor(rng() * 6) + 3;
+            for (let s = 0; s < numSeeds; s++) {
+                let cx = Math.floor(rng() * (GRID - 40)) + 20;
+                let cy = Math.floor(rng() * (GRID - 40)) + 20;
+                let radius = Math.floor(rng() * 6) + 4;
+
+                for (let dy = -radius; dy <= radius; dy++) {
+                    for (let dx = -radius; dx <= radius; dx++) {
+                        if (dx * dx + dy * dy <= radius * radius) {
+                            let gx = cx + dx;
+                            let gy = cy + dy;
+                            if (gx >= 0 && gx < GRID && gy >= 0 && gy < GRID) {
+                                let idx = gy * GRID + gx;
+                                gridA[idx] = 0.5 + rng() * 0.1;
+                                gridB[idx] = 0.25 + rng() * 0.1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            simStarted = true;
+            updateSeedDisplay();
+        }
+
+        function simulateStep() {
+            let f = params.feed;
+            let k = params.kill;
+            let dA = params.dA;
+            let dB = params.dB;
+
+            for (let y = 0; y < GRID; y++) {
+                let ym = y === 0 ? GRID - 1 : y - 1;
+                let yp = y === GRID - 1 ? 0 : y + 1;
+                let rowC = y * GRID;
+                let rowU = ym * GRID;
+                let rowD = yp * GRID;
+
+                for (let x = 0; x < GRID; x++) {
+                    let xm = x === 0 ? GRID - 1 : x - 1;
+                    let xp = x === GRID - 1 ? 0 : x + 1;
+
+                    let idx = rowC + x;
+                    let a = gridA[idx];
+                    let b = gridB[idx];
+
+                    let lapA = 0.2  * (gridA[rowC + xm] + gridA[rowC + xp] +
+                                       gridA[rowU + x]  + gridA[rowD + x]) +
+                               0.05 * (gridA[rowU + xm] + gridA[rowU + xp] +
+                                       gridA[rowD + xm] + gridA[rowD + xp]) -
+                               a;
+
+                    let lapB = 0.2  * (gridB[rowC + xm] + gridB[rowC + xp] +
+                                       gridB[rowU + x]  + gridB[rowD + x]) +
+                               0.05 * (gridB[rowU + xm] + gridB[rowU + xp] +
+                                       gridB[rowD + xm] + gridB[rowD + xp]) -
+                               b;
+
+                    let abb = a * b * b;
+
+                    nextA[idx] = a + dA * lapA - abb + f * (1.0 - a);
+                    nextB[idx] = b + dB * lapB + abb - (f + k) * b;
+
+                    if (nextA[idx] < 0) nextA[idx] = 0;
+                    if (nextA[idx] > 1) nextA[idx] = 1;
+                    if (nextB[idx] < 0) nextB[idx] = 0;
+                    if (nextB[idx] > 1) nextB[idx] = 1;
+                }
+            }
+
+            let tmp;
+            tmp = gridA; gridA = nextA; nextA = tmp;
+            tmp = gridB; gridB = nextB; nextB = tmp;
+        }
+
+        function renderGrid() {
+            pg.loadPixels();
+            let d = pg.pixelDensity();
+            let pw = pg.width * d;
+            let ph = pg.height * d;
+            let pix = pg.pixels;
+
+            let scaleX = GRID / pw;
+            let scaleY = GRID / ph;
+
+            for (let py = 0; py < ph; py++) {
+                let gy = (py * scaleY) | 0;
+                if (gy >= GRID) gy = GRID - 1;
+                let rowOff = gy * GRID;
+
+                for (let px = 0; px < pw; px++) {
+                    let gx = (px * scaleX) | 0;
+                    if (gx >= GRID) gx = GRID - 1;
+
+                    let b = gridB[rowOff + gx];
+                    let a = gridA[rowOff + gx];
+
+                    let val = b * 3.0;
+                    if (val > 1.0) val = 1.0;
+
+                    let r, g, bl;
+
+                    if (val < 0.15) {
+                        let t = val / 0.15;
+                        r = 13 + t * 30;
+                        g = 13 + t * 14;
+                        bl = 15 + t * 8;
+                    } else if (val < 0.4) {
+                        let t = (val - 0.15) / 0.25;
+                        r = 43 + t * 100;
+                        g = 27 + t * 42;
+                        bl = 23 + t * 15;
+                    } else if (val < 0.7) {
+                        let t = (val - 0.4) / 0.3;
+                        r = 143 + t * 69;
+                        g = 69 + t * 80;
+                        bl = 38 + t * 68;
+                    } else {
+                        let t = (val - 0.7) / 0.3;
+                        r = 212 + t * 41;
+                        g = 149 + t * 80;
+                        bl = 106 + t * 80;
+                    }
+
+                    let edge = (1.0 - a) * 0.15;
+                    r = r + edge * 20;
+                    g = g + edge * 15;
+                    bl = bl + edge * 10;
+
+                    let i = (py * pw + px) * 4;
+                    pix[i]     = r > 255 ? 255 : r;
+                    pix[i + 1] = g > 255 ? 255 : g;
+                    pix[i + 2] = bl > 255 ? 255 : bl;
+                    pix[i + 3] = 255;
+                }
+            }
+            pg.updatePixels();
+        }
+
+        function setup() {
+            let canvas = createCanvas(800, 800);
+            canvas.parent('canvas-container');
+            pixelDensity(1);
+            pg = createGraphics(800, 800);
+            pg.pixelDensity(1);
+            background(13, 13, 15);
+
+            initGrid();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function draw() {
+            if (!simStarted) return;
+
+            let steps = params.speed;
+            for (let i = 0; i < steps; i++) {
+                simulateStep();
+            }
+
+            renderGrid();
+            image(pg, 0, 0);
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+
+            let display;
+            if (name === 'speed') {
+                display = numVal.toFixed(0);
+            } else if (name === 'feed' || name === 'kill') {
+                display = numVal.toFixed(3);
+            } else {
+                display = numVal.toFixed(2);
+            }
+            document.getElementById(name + '-value').textContent = display;
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initGrid();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initGrid();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initGrid();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

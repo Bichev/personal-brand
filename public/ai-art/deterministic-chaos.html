@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deterministic Chaos — The Lorenz Attractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(139, 92, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.025) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(139, 92, 246, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
+            transform: scale(1.05);
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            z-index: 10;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(139, 92, 246, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: rgba(139, 92, 246, 0.4);
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeInPlacard { to { opacity: 1; } }
+        @keyframes fadeInControls { to { opacity: 1; } }
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Room 2 — Article */
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--silver);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 12px 24px;
+            margin: 0 0 40px 0;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 8px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: rgba(159, 168, 171, 0.6);
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .parameters-panel {
+                display: none;
+            }
+            .education-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 860px) {
+            #canvas-container canvas {
+                width: 90vw !important;
+                height: 90vw !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="exhibit">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Sigma (σ)
+                    <span class="param-value" id="sigma-value">10.0</span>
+                </div>
+                <input type="range" class="param-slider" id="sigma-slider"
+                       min="5" max="15" value="10" step="0.5"
+                       oninput="updateParam('sigma', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Rho (ρ)
+                    <span class="param-value" id="rho-value">28.0</span>
+                </div>
+                <input type="range" class="param-slider" id="rho-slider"
+                       min="20" max="35" value="28" step="0.5"
+                       oninput="updateParam('rho', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Beta (β)
+                    <span class="param-value" id="beta-value">2.667</span>
+                </div>
+                <input type="range" class="param-slider" id="beta-slider"
+                       min="1" max="5" value="2.667" step="0.1"
+                       oninput="updateParam('beta', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Trail Length
+                    <span class="param-value" id="trail-value">800</span>
+                </div>
+                <input type="range" class="param-slider" id="trail-slider"
+                       min="200" max="2000" value="800" step="50"
+                       oninput="updateParam('trail', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Particles
+                    <span class="param-value" id="particles-value">3</span>
+                </div>
+                <input type="range" class="param-slider" id="particles-slider"
+                       min="1" max="8" value="3" step="1"
+                       oninput="updateParam('particles', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Rotation Speed
+                    <span class="param-value" id="rotspeed-value">0.3</span>
+                </div>
+                <input type="range" class="param-slider" id="rotspeed-slider"
+                       min="0" max="2" value="0.3" step="0.1"
+                       oninput="updateParam('rotspeed', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine you're watching a butterfly fly in a room. It never flies the exact same path twice, but it always stays in the same area, making a shape like butterfly wings! Even though you know all the rules for how it flies, you can never predict exactly where it will be. That's chaos!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Edward Lorenz's 1963 discovery</strong> while modeling weather. A deterministic system (no randomness) that produces unpredictable behavior.</p>
+                    <p><strong>Sensitive dependence on initial conditions</strong> — the "butterfly effect." The tiniest change in starting position leads to completely different trajectories.</p>
+                    <p>The attractor is a <strong>fractal</strong> with non-integer dimension (~2.06).</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>dx/dt = σ(y − x)</strong></p>
+                    <p><strong>dy/dt = x(ρ − z) − y</strong></p>
+                    <p><strong>dz/dt = xy − βz</strong></p>
+                    <p>Standard parameters: σ = 10, ρ = 28, β = 8/3. The system is dissipative with Lyapunov exponents that guarantee chaotic behavior.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Weather systems, fluid turbulence, population dynamics, cardiac arrhythmia, dripping faucets, planetary orbits over long timescales.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art & Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Chaos theory in <strong>Jurassic Park</strong>, fractal art, algorithmic music composition, postmodern philosophy of unpredictability.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Determinism without predictability. The universe may follow exact rules yet remain fundamentally unknowable. <strong>Chaos is not disorder</strong> — it is a higher order of complexity.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Deterministic Chaos</div>
+            <div class="placard-subtitle">The Lorenz attractor and the butterfly effect</div>
+            <div class="placard-meta">σ=10 · ρ=28 · β=8/3 · sensitive dependence</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Room 2: Article -->
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Deterministic Chaos</h1>
+        <p class="article-subtitle">When Rules Produce Unpredictability</p>
+
+        <blockquote class="article-epigraph">
+            "Does the flap of a butterfly's wings in Brazil set off a tornado in Texas?"
+            <cite>— Edward Lorenz</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>In 1963, meteorologist Edward Lorenz made a discovery that would reshape our understanding of prediction itself. While running a simplified weather simulation, he re-entered an initial condition rounded to three decimal places instead of six. The result was a completely different weather pattern. The "butterfly effect" was born — the insight that in certain systems, infinitesimal differences in starting conditions lead to wildly divergent outcomes.</p>
+
+            <p>The Lorenz attractor is a paradox made visible. The system is entirely deterministic — no randomness, no coin flips, no uncertainty in the equations themselves. Yet trajectories never repeat. They trace an infinite, non-intersecting path around two lobes, creating a shape of haunting beauty. The attractor is a fractal, with a dimension of approximately 2.06 — neither a surface nor a solid, but something in between that defies our usual geometric categories.</p>
+
+            <p>In this visualization, luminous trails weave through dark space, tracing the characteristic butterfly wings of the Lorenz attractor. Multiple particles, started at nearly identical positions, diverge exponentially — visually demonstrating the sensitive dependence on initial conditions that makes chaos so profound. The slow 3D rotation reveals the attractor's depth, showing how the two lobes interleave in three-dimensional space, the trajectories spiraling outward on one lobe before crossing over to spiral inward on the other.</p>
+
+            <p>The mathematics of the Lorenz system connects to real-world phenomena across scales. Weather forecasting faces fundamental limits — not because our instruments are imprecise, but because the atmosphere itself is a chaotic system. Financial markets, ecological populations, the rhythm of a dripping faucet, and even the beating of the human heart all exhibit chaotic dynamics. Chaos explains why long-term weather prediction is fundamentally impossible, and why small policy changes can have outsized, unpredictable effects.</p>
+
+            <p>Perhaps the deepest lesson of chaos theory is philosophical: determinism and predictability are not the same thing. A clockwork universe can still surprise us. The Lorenz attractor demonstrates that a system can be fully described by three simple equations — rules that a high school student could understand — and yet produce behavior so complex that no computation, no matter how powerful, can predict it indefinitely. In leadership and engineering, this suggests humility before complexity — we can understand the rules without controlling the outcomes.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
+            <div class="math-box-formula">
+                dx/dt = σ(y − x)<br>
+                dy/dt = x(ρ − z) − y<br>
+                dz/dt = xy − βz
+            </div>
+            <div class="math-box-description">Three coupled differential equations. Fully deterministic — no randomness anywhere. Yet the system exhibits sensitive dependence on initial conditions: two points starting 0.000001 apart diverge exponentially. This is the mathematical foundation of the butterfly effect.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let particles = [];
+        let angleY = 0;
+        let angleX = 0;
+
+        let params = {
+            sigma: 10,
+            rho: 28,
+            beta: 2.667,
+            trail: 800,
+            particles: 3,
+            rotspeed: 0.3
+        };
+
+        const DT = 0.005;
+        const SCALE = 7;
+        const WARMUP_STEPS = 500;
+
+        class LorenzParticle {
+            constructor(x, y, z, hueOffset) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.hueOffset = hueOffset;
+                this.trail = [];
+            }
+
+            step() {
+                let dx = params.sigma * (this.y - this.x) * DT;
+                let dy = (this.x * (params.rho - this.z) - this.y) * DT;
+                let dz = (this.x * this.y - params.beta * this.z) * DT;
+
+                this.x += dx;
+                this.y += dy;
+                this.z += dz;
+
+                this.trail.push({ x: this.x, y: this.y, z: this.z });
+
+                if (this.trail.length > params.trail) {
+                    this.trail.shift();
+                }
+            }
+        }
+
+        function seededRandom(seed) {
+            let s = seed;
+            return function() {
+                s = (s * 16807 + 0) % 2147483647;
+                return (s - 1) / 2147483646;
+            };
+        }
+
+        function initParticles() {
+            particles = [];
+            let rng = seededRandom(currentSeed);
+
+            let baseX = 1 + rng() * 0.5;
+            let baseY = 1 + rng() * 0.5;
+            let baseZ = 20 + rng() * 5;
+
+            for (let i = 0; i < params.particles; i++) {
+                let offset = (i - Math.floor(params.particles / 2)) * 0.0001;
+                let px = baseX + offset + rng() * 0.00001;
+                let py = baseY + offset + rng() * 0.00001;
+                let pz = baseZ + offset * 10;
+
+                let hueOffset = (i / params.particles) * 60 - 30;
+
+                let p = new LorenzParticle(px, py, pz, hueOffset);
+
+                for (let w = 0; w < WARMUP_STEPS; w++) {
+                    p.step();
+                }
+
+                particles.push(p);
+            }
+
+            updateSeedDisplay();
+        }
+
+        function setup() {
+            let canvas = createCanvas(800, 800, WEBGL);
+            canvas.parent('canvas-container');
+
+            initParticles();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function draw() {
+            background(13, 13, 15);
+
+            angleY += params.rotspeed * 0.003;
+            angleX = sin(frameCount * 0.001) * 0.3;
+
+            rotateX(angleX);
+            rotateY(angleY);
+
+            translate(0, 0, 0);
+
+            for (let i = 0; i < 4; i++) {
+                for (let p of particles) {
+                    p.step();
+                }
+            }
+
+            for (let p of particles) {
+                drawTrail(p);
+            }
+        }
+
+        function drawTrail(particle) {
+            let trail = particle.trail;
+            if (trail.length < 2) return;
+
+            noFill();
+
+            let segmentSize = 6;
+            for (let i = 1; i < trail.length; i += segmentSize) {
+                let progress = i / trail.length;
+
+                let baseHue = 270 + particle.hueOffset;
+                let h = baseHue + progress * 30;
+                let s = 70 + progress * 25;
+                let b = 30 + progress * 70;
+                let a = progress * progress;
+
+                let r, g, bl;
+                let hNorm = ((h % 360) + 360) % 360;
+                let sNorm = s / 100;
+                let bNorm = b / 100;
+
+                let c = bNorm * sNorm;
+                let x2 = c * (1 - Math.abs((hNorm / 60) % 2 - 1));
+                let m = bNorm - c;
+
+                if (hNorm < 60)       { r = c; g = x2; bl = 0; }
+                else if (hNorm < 120) { r = x2; g = c; bl = 0; }
+                else if (hNorm < 180) { r = 0; g = c; bl = x2; }
+                else if (hNorm < 240) { r = 0; g = x2; bl = c; }
+                else if (hNorm < 300) { r = x2; g = 0; bl = c; }
+                else                  { r = c; g = 0; bl = x2; }
+
+                r = (r + m) * 255;
+                g = (g + m) * 255;
+                bl = (bl + m) * 255;
+
+                stroke(r, g, bl, a * 255);
+                strokeWeight(Math.max(0.5, progress * 2.2));
+
+                beginShape();
+                let end = Math.min(i + segmentSize + 1, trail.length);
+                for (let j = i - 1; j < end; j++) {
+                    let pt = trail[j];
+                    vertex(
+                        (pt.x) * SCALE,
+                        (pt.z - 25) * SCALE,
+                        (pt.y) * SCALE
+                    );
+                }
+                endShape();
+            }
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+
+            let displayId = name + '-value';
+            let el = document.getElementById(displayId);
+            if (!el) return;
+
+            if (name === 'trail' || name === 'particles') {
+                el.textContent = Math.round(numVal);
+            } else {
+                el.textContent = numVal.toFixed(name === 'beta' ? 3 : 1);
+            }
+
+            if (name === 'particles') {
+                initParticles();
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initParticles();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initParticles();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initParticles();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

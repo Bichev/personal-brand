@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invisible Currents — Perlin Noise Flow Field</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #4ecdc4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(78, 205, 196, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(78, 205, 196, 0.025) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(78, 205, 196, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(78, 205, 196, 0.1);
+            transform: scale(1.05);
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            z-index: 10;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(78, 205, 196, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(78, 205, 196, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #7eddd6;
+            border-color: rgba(78, 205, 196, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: rgba(78, 205, 196, 0.4);
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeInPlacard { to { opacity: 1; } }
+        @keyframes fadeInControls { to { opacity: 1; } }
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Room 2 — Article */
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--silver);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 12px 24px;
+            margin: 0 0 40px 0;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 8px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: rgba(159, 168, 171, 0.6);
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(78, 205, 196, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(78, 205, 196, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .parameters-panel {
+                display: none;
+            }
+            .education-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 860px) {
+            #canvas-container canvas {
+                width: 90vw !important;
+                height: 90vw !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="exhibit">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Noise Scale
+                    <span class="param-value" id="scale-value">0.005</span>
+                </div>
+                <input type="range" class="param-slider" id="scale-slider"
+                       min="0.001" max="0.01" value="0.005" step="0.001"
+                       oninput="updateParam('noiseScale', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Particle Count
+                    <span class="param-value" id="count-value">2000</span>
+                </div>
+                <input type="range" class="param-slider" id="count-slider"
+                       min="500" max="5000" value="2000" step="100"
+                       oninput="updateParam('particleCount', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Speed
+                    <span class="param-value" id="speed-value">1.5</span>
+                </div>
+                <input type="range" class="param-slider" id="speed-slider"
+                       min="0.5" max="3" value="1.5" step="0.1"
+                       oninput="updateParam('speed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Trail Fade
+                    <span class="param-value" id="fade-value">12</span>
+                </div>
+                <input type="range" class="param-slider" id="fade-slider"
+                       min="5" max="40" value="12" step="1"
+                       oninput="updateParam('trailFade', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Evolution
+                    <span class="param-value" id="evolution-value">0.002</span>
+                </div>
+                <input type="range" class="param-slider" id="evolution-slider"
+                       min="0" max="0.01" value="0.002" step="0.001"
+                       oninput="updateParam('evolution', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine invisible wind blowing across the screen — the dots are like leaves showing you which way the wind blows! The wind is always changing, making beautiful swirly patterns.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Ken Perlin created his noise function in 1983</strong> while working on the original <em>Tron</em>. He needed a way to generate textures that looked natural rather than machine-made.</p>
+                    <p>Perlin noise is a <strong>gradient noise function</strong> — it produces coherent randomness by interpolating between random gradients on a grid. The result won an Academy Award for Technical Achievement.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>noise(x, y, z)</strong> returns smooth pseudo-random values between 0 and 1 that vary gradually across space.</p>
+                    <p>Sampled as an angle field: <strong>θ = noise(x·scale, y·scale, t) × 4π</strong></p>
+                    <p>Each point in space gets a direction, and particles follow these invisible vectors to reveal the underlying flow.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Wind patterns, ocean currents, magnetic field lines, the aurora borealis, jet streams — all exhibit the kind of smooth, coherent flow that Perlin noise captures mathematically.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art & Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Procedural textures in every major film with CGI. The generative art movement embraced Perlin noise as a fundamental building block. Creative coding communities use it as a starting point for organic visual explorations.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Organic randomness versus pure chaos — Perlin noise is <strong>"interesting" because it has spatial coherence</strong>, unlike white noise. It occupies the fertile middle ground between rigid order and meaningless randomness, where beauty and complexity emerge.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Invisible Currents</div>
+            <div class="placard-subtitle">Perlin noise flow fields and emergent streams</div>
+            <div class="placard-meta">gradient noise · vector field · coherent randomness</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Room 2: Article -->
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Invisible Currents</h1>
+        <p class="article-subtitle">The Art of Coherent Randomness</p>
+
+        <blockquote class="article-epigraph">
+            "The purpose of computing is insight, not numbers."
+            <cite>— Richard Hamming</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Ken Perlin created his noise function in 1983, frustrated that computer graphics looked too perfect, too clean. He needed randomness that felt natural — smooth, flowing, organic. The result won an Academy Award and transformed digital art.</p>
+
+            <p>Perlin noise generates smooth pseudo-random values that vary gradually across space. When sampled as a vector field — each point assigned a direction based on the noise value — particles following these invisible currents create organic flow patterns reminiscent of wind, water, and magnetic fields. The key insight is that nearby points receive similar but not identical directions, producing coherent streams rather than chaotic scatter.</p>
+
+            <p>What the viewer sees is thousands of particles tracing invisible currents, creating streams and eddies that feel alive. The noise field evolves slowly over time, and patterns form and dissolve like weather systems on a microscopic scale. Convergence zones appear where currents collide, while empty channels open where flows diverge — an emergent geography written in light.</p>
+
+            <p>Perlin noise is everywhere in digital visual culture. Every film with CGI fire, water, clouds, or terrain uses it. Every procedural texture in games. Every volumetric fog effect and displacement map. It is the invisible infrastructure of the digital visual world — so fundamental that most viewers never realize the same mathematical function underlies the waves, the flames, and the alien landscapes they see on screen.</p>
+
+            <p>There is a philosophical beauty in "interesting" randomness. Pure randomness is static noise — every pixel independent, no structure, no meaning. Perfect order is boring — grids, repetition, predictability. Between them lies Perlin noise: coherent, structured, organic. It teaches us that the most beautiful systems exist at the edge between order and chaos, where local structure gives rise to global complexity, and simple rules produce infinite variety.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE FLOW EQUATION</div>
+            <div class="math-box-formula">
+                θ(x, y) = noise(x·s, y·s, t) × 4π
+            </div>
+            <div class="math-box-description">At each point, Perlin noise produces a smooth, locally coherent value that becomes a flow direction. Particles follow these invisible vectors, revealing the underlying field through their accumulated trails.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let flowParticles = [];
+        let pg;
+        let t = 0;
+
+        let params = {
+            noiseScale: 0.005,
+            particleCount: 2000,
+            speed: 1.5,
+            trailFade: 12,
+            evolution: 0.002
+        };
+
+        const W = 800;
+        const H = 800;
+
+        class FlowParticle {
+            constructor() {
+                this.respawn();
+                this.prevX = this.x;
+                this.prevY = this.y;
+            }
+
+            respawn() {
+                this.x = random(W);
+                this.y = random(H);
+                this.prevX = this.x;
+                this.prevY = this.y;
+            }
+
+            update() {
+                this.prevX = this.x;
+                this.prevY = this.y;
+
+                let angle = noise(this.x * params.noiseScale, this.y * params.noiseScale, t) * TWO_PI * 2;
+
+                this.x += cos(angle) * params.speed;
+                this.y += sin(angle) * params.speed;
+
+                if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) {
+                    this.respawn();
+                }
+            }
+
+            draw(gfx) {
+                let n = noise(this.x * params.noiseScale, this.y * params.noiseScale, t);
+
+                let hue = 170 + n * 30;
+                let sat = 50 + n * 30;
+                let bri = 60 + n * 35;
+
+                gfx.stroke(hue, sat, bri, 15);
+                gfx.strokeWeight(1);
+                gfx.line(this.prevX, this.prevY, this.x, this.y);
+            }
+        }
+
+        function initParticles() {
+            noiseSeed(currentSeed);
+            flowParticles = [];
+            t = 0;
+
+            for (let i = 0; i < params.particleCount; i++) {
+                flowParticles.push(new FlowParticle());
+            }
+
+            if (pg) {
+                pg.clear();
+                pg.background(13, 13, 15);
+            }
+
+            updateSeedDisplay();
+        }
+
+        function setup() {
+            let canvas = createCanvas(W, H);
+            canvas.parent('canvas-container');
+            colorMode(HSB, 360, 100, 100, 100);
+
+            pg = createGraphics(W, H);
+            pg.colorMode(HSB, 360, 100, 100, 100);
+            pg.background(13, 13, 15);
+
+            initParticles();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function draw() {
+            pg.noStroke();
+            pg.fill(13, 13, 15, params.trailFade);
+            pg.rect(0, 0, W, H);
+
+            for (let p of flowParticles) {
+                p.update();
+                p.draw(pg);
+            }
+
+            t += params.evolution;
+
+            image(pg, 0, 0);
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+
+            let displayMap = {
+                noiseScale: 'scale-value',
+                particleCount: 'count-value',
+                speed: 'speed-value',
+                trailFade: 'fade-value',
+                evolution: 'evolution-value'
+            };
+
+            let el = document.getElementById(displayMap[name]);
+            if (!el) return;
+
+            if (name === 'particleCount' || name === 'trailFade') {
+                el.textContent = Math.round(numVal);
+            } else {
+                el.textContent = numVal.toFixed(3);
+            }
+
+            if (name === 'particleCount') {
+                let diff = Math.round(numVal) - flowParticles.length;
+                if (diff > 0) {
+                    for (let i = 0; i < diff; i++) {
+                        flowParticles.push(new FlowParticle());
+                    }
+                } else if (diff < 0) {
+                    flowParticles.splice(0, -diff);
+                }
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initParticles();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initParticles();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initParticles();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

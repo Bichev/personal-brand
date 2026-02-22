@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonic Emergence — Wave Interference</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #d4af6a;
+            --wave-cyan: #4ecdc4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(255, 255, 245, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        @keyframes fadeInPlacard {
+            to { opacity: 1; }
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--wave-cyan);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        @keyframes fadeInControls {
+            to { opacity: 1; }
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--wave-cyan);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--wave-cyan);
+            background: rgba(78, 205, 196, 0.1);
+            transform: scale(1.05);
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(13, 13, 15, 0.7);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--wave-cyan);
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .param-group {
+            margin-bottom: 20px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--wave-cyan);
+            font-weight: 600;
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 2px;
+            background: rgba(78, 205, 196, 0.3);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: var(--wave-cyan);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            background: var(--wave-cyan);
+            cursor: pointer;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: var(--wave-cyan) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--wave-cyan);
+            border-radius: 2px;
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(78, 205, 196, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--wave-cyan);
+            border-color: var(--wave-cyan);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--wave-cyan);
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #333;
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--wave-cyan);
+            font-weight: 500;
+        }
+
+        .edu-content ul {
+            margin: 8px 0 8px 16px;
+            list-style: none;
+        }
+
+        .edu-content li {
+            margin-bottom: 4px;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .edu-content li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--wave-cyan);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--wave-cyan);
+            z-index: 5;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--wave-cyan);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--wave-cyan);
+            opacity: 0.4;
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Article section */
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--wave-cyan);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--wave-cyan);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--wave-cyan);
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: 300;
+            font-size: 18px;
+            color: var(--silver);
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--wave-cyan);
+            padding: 16px 24px;
+            margin-bottom: 48px;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 12px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(78, 205, 196, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--wave-cyan);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 16px;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(78, 205, 196, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--wave-cyan);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+    <div class="exhibition-space" id="top">
+        <div class="spotlight"></div>
+        
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Harmonic Layers
+                    <span class="param-value" id="layers-value">5</span>
+                </div>
+                <input type="range" class="param-slider" id="layers-slider" 
+                       min="2" max="8" value="5" step="1" 
+                       oninput="updateParam('layers', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Wave Speed
+                    <span class="param-value" id="wavespeed-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="wavespeed-slider" 
+                       min="0.1" max="3.0" value="1.0" step="0.1" 
+                       oninput="updateParam('wavespeed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Frequency
+                    <span class="param-value" id="frequency-value">1.5</span>
+                </div>
+                <input type="range" class="param-slider" id="frequency-slider" 
+                       min="0.5" max="3.0" value="1.5" step="0.1" 
+                       oninput="updateParam('frequency', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Particle Count
+                    <span class="param-value" id="particles-value">4000</span>
+                </div>
+                <input type="range" class="param-slider" id="particles-slider" 
+                       min="1000" max="8000" value="4000" step="500" 
+                       oninput="updateParam('particles', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Field Strength
+                    <span class="param-value" id="strength-value">1.5</span>
+                </div>
+                <input type="range" class="param-slider" id="strength-slider" 
+                       min="0.5" max="3.0" value="1.5" step="0.1" 
+                       oninput="updateParam('strength', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Trail Fade
+                    <span class="param-value" id="fade-value">15</span>
+                </div>
+                <input type="range" class="param-slider" id="fade-slider" 
+                       min="5" max="40" value="15" step="1" 
+                       oninput="updateParam('fade', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine dropping lots of pebbles into a calm pond. Each pebble makes ripples (circles in the water). When the ripples bump into each other, sometimes they make bigger waves (when they meet at the top), and sometimes they cancel out and become flat (when a top meets a bottom)!</p>
+                    <p>The colorful dots you see are like tiny boats floating on these invisible ripples. They ride up and down and spin around, leaving trails that show where they've been. Different colored trails mean the boats are riding on different kinds of waves!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Physics: Wave Interference</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Superposition Principle:</strong> When two or more waves occupy the same space, they combine. The resulting wave is the sum of all individual waves at each point.</p>
+                    <p><strong>Constructive Interference:</strong> Wave peaks align (in phase), creating regions of high amplitude. Particles move quickly with bright colors.</p>
+                    <p><strong>Destructive Interference:</strong> Peaks meet troughs (out of phase), canceling each other. Particles move slowly or remain still.</p>
+                    <p><strong>Standing Waves:</strong> Regions of consistent high and low amplitude that appear stationary even as waves propagate.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Sine Waves:</strong> f(x,y,t) = A·sin(ω·r + θ + φ + t·v)</p>
+                    <ul>
+                        <li><strong>A</strong> = amplitude (wave height)</li>
+                        <li><strong>ω</strong> = frequency (waves per distance)</li>
+                        <li><strong>r</strong> = distance from center</li>
+                        <li><strong>θ</strong> = angle around center</li>
+                        <li><strong>φ</strong> = phase offset</li>
+                        <li><strong>t</strong> = time</li>
+                        <li><strong>v</strong> = wave speed</li>
+                    </ul>
+                    <p><strong>Harmonic Series:</strong> Frequency ratios (1:2:3:4...) create natural resonance, similar to musical overtones.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Water Ripples:</strong> Drop two stones in a pond—circular waves interact exactly like this!</p>
+                    <p><strong>Sound:</strong> Musical instruments create harmonics. Guitar strings vibrate at multiple frequencies simultaneously.</p>
+                    <p><strong>Light:</strong> Soap bubble colors come from light wave interference—same principle!</p>
+                    <p><strong>Cymatics:</strong> Vibrating plates with sand create patterns based on standing wave nodes.</p>
+                    <p><strong>Quantum Mechanics:</strong> Electrons exist as probability waves that interfere with themselves.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art &amp; Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Cymatics Art:</strong> Artists like John Stuart Reid visualize sound by vibrating water or particles.</p>
+                    <p><strong>Op Art:</strong> Bridget Riley used repeating patterns that create optical interference.</p>
+                    <p><strong>Islamic Geometric Art:</strong> Mathematical ratios create visual harmony like acoustic harmony.</p>
+                    <p><strong>Music Theory:</strong> Harmonic series (octaves, fifths, thirds) follows the same mathematical ratios.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy &amp; Meaning</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Order from Chaos:</strong> Simple rules (sine waves) create complex emergent patterns—how natural laws generate universal complexity.</p>
+                    <p><strong>Unity in Diversity:</strong> Individual particles follow unique paths yet reveal underlying harmonic structure.</p>
+                    <p><strong>Resonance:</strong> Things "in tune" amplify; discord cancels—a metaphor for cooperation.</p>
+                    <p><strong>The Invisible Made Visible:</strong> We see wave effects on particles, like understanding invisible forces (gravity, magnetism) through their effects.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Harmonic Emergence</div>
+            <div class="placard-subtitle">Wave interference patterns through phase-modulated oscillators</div>
+            <div class="placard-meta">superposition • constructive interference • standing waves</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Harmonic Emergence</h1>
+        <p class="article-subtitle">An Algorithmic Philosophy</p>
+
+        <blockquote class="article-epigraph">
+            "The universe is written in the language of mathematics, and its characters are triangles, circles, and other geometric figures."
+            <cite>— Galileo Galilei</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>At the intersection of mathematics and aesthetics lies a profound truth: complexity need not be chaotic, and simplicity need not be sterile. Harmonic Emergence explores the delicate balance between these polarities through the language of wave interference and resonant frequencies. This is not about simulating natural phenomena but about discovering the intrinsic beauty hidden within mathematical relationships themselves—the way sine and cosine functions, when properly orchestrated, can dance together to create patterns that feel both inevitable and surprising.</p>
+
+            <p>The computational heart of this philosophy rests on phase-modulated oscillators arranged in carefully calibrated layers. Each layer operates at a distinct frequency ratio, chosen not arbitrarily but according to harmonic principles that resonate with fundamental musical intervals. These oscillators don't simply exist in isolation; they interact through constructive and destructive interference, creating regions of intense activity and peaceful stillness.</p>
+
+            <p>The visual manifestation emerges through a field of particles, each one a witness to the invisible harmonic forces that permeate the space. These particles don't follow predetermined paths; instead, they respond to the local field intensity at their position, which is determined by the sum of all overlapping wave functions. Where waves reinforce, particles gather and glow with accumulated energy. Where waves cancel, particles drift slowly or find stillness.</p>
+
+            <p>Color in this philosophy is not decoration but information—a direct encoding of the underlying wave dynamics. Hue represents the dominant frequency at each location, shifting smoothly as different oscillators take precedence. Saturation maps to wave amplitude, revealing the strength of the field. Brightness encodes particle density and velocity, creating natural contrast between active and dormant regions.</p>
+
+            <p>The parameter space has been carefully constrained to ensure that every configuration produces compelling results while still offering meaningful variation. The number of harmonic layers determines the complexity of interference patterns. Wave speed controls the temporal evolution, allowing exploration of both dynamic turbulence and serene near-stasis. Frequency ratios can be adjusted to explore different harmonic relationships, from consonant intervals that feel stable and musical to dissonant ratios that create visual tension.</p>
+
+            <p>What emerges is a living algorithm—one that reveals different facets of its mathematical soul with each iteration, yet always maintains coherence and intentionality. The viewer witnesses not a static image but a computational performance, where mathematical precision gives rise to organic beauty. Each seed generates a unique instantiation of these harmonic principles, proving that order and variety are not opposites but partners in the creation of algorithmic beauty.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
+            <div class="math-box-formula">f(x,y,t) = Σ Aₙ · sin(ωₙ · r + θ + φₙ + t · v)</div>
+            <div class="math-box-description">Where each oscillator n contributes amplitude Aₙ at frequency ωₙ, and the superposition of all layers creates regions of constructive and destructive interference — the visible harmony of invisible waves.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#top">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let params = {
+            layers: 5,
+            wavespeed: 1.0,
+            frequency: 1.5,
+            particles: 4000,
+            strength: 1.5,
+            fade: 15
+        };
+
+        let particles = [];
+        let time = 0;
+        let oscillators = [];
+
+        class HarmonicOscillator {
+            constructor(frequency, phase, amplitude) {
+                this.frequency = frequency;
+                this.phase = phase;
+                this.amplitude = amplitude;
+            }
+
+            getValueAt(x, y, t) {
+                let distance = dist(x, y, width/2, height/2);
+                let angle = atan2(y - height/2, x - width/2);
+                return this.amplitude * sin(this.frequency * distance * 0.01 + angle * 2 + this.phase + t * params.wavespeed);
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.history = [];
+            }
+
+            reset() {
+                let angle = random(TWO_PI);
+                let radius = random(min(width, height) * 0.4);
+                this.x = width/2 + cos(angle) * radius;
+                this.y = height/2 + sin(angle) * radius;
+                this.vx = 0;
+                this.vy = 0;
+                this.life = random(1.0);
+            }
+
+            update() {
+                let fieldValue = 0;
+                for (let osc of oscillators) {
+                    fieldValue += osc.getValueAt(this.x, this.y, time);
+                }
+
+                let angle = fieldValue * PI;
+                let magnitude = abs(fieldValue) * params.strength * 0.5;
+                
+                this.vx = cos(angle) * magnitude;
+                this.vy = sin(angle) * magnitude;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                this.history.push({x: this.x, y: this.y});
+                if (this.history.length > 8) { // Reduced from 20 for shorter trails
+                    this.history.shift();
+                }
+
+                this.life -= 0.001;
+
+                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height || this.life <= 0) {
+                    this.reset();
+                }
+            }
+
+            display() {
+                let fieldValue = 0;
+                for (let osc of oscillators) {
+                    fieldValue += osc.getValueAt(this.x, this.y, time);
+                }
+
+                // More vibrant colors against dark background
+                let hue = map(fieldValue, -params.layers, params.layers, 160, 220);
+                let sat = map(abs(fieldValue), 0, params.layers, 60, 95);
+                let vel = sqrt(this.vx * this.vx + this.vy * this.vy);
+                let bright = map(vel, 0, 5, 50, 98);
+
+                colorMode(HSB, 360, 100, 100);
+                
+                // Subtle, shorter trails
+                if (this.history.length > 1) {
+                    noFill();
+                    for (let i = 1; i < this.history.length; i++) {
+                        let alpha = map(i, 0, this.history.length, 0, this.life * 15); // Reduced from 50
+                        stroke(hue, sat, bright, alpha);
+                        strokeWeight(0.6); // Reduced from 1.2
+                        line(this.history[i-1].x, this.history[i-1].y, 
+                             this.history[i].x, this.history[i].y);
+                    }
+                }
+
+                // Brighter particles
+                fill(hue, sat, bright, this.life * 85); // Increased from 70
+                noStroke();
+                circle(this.x, this.y, 3); // Slightly larger from 2.5
+            }
+        }
+
+        function setup() {
+            let canvas = createCanvas(800, 800);
+            canvas.parent('canvas-container');
+            
+            initializeSystem();
+            
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(currentSeed);
+            noiseSeed(currentSeed);
+
+            time = 0;
+
+            oscillators = [];
+            for (let i = 0; i < params.layers; i++) {
+                let frequency = params.frequency * (i + 1) / params.layers;
+                let phase = random(TWO_PI);
+                let amplitude = 1.0 / (i + 1);
+                oscillators.push(new HarmonicOscillator(frequency, phase, amplitude));
+            }
+
+            particles = [];
+            for (let i = 0; i < params.particles; i++) {
+                particles.push(new Particle());
+            }
+
+            background(13, 13, 15);
+            updateSeedDisplay();
+        }
+
+        function draw() {
+            // Dark background fade
+            fill(13, 13, 15, params.fade);
+            noStroke();
+            rect(0, 0, width, height);
+
+            for (let p of particles) {
+                p.update();
+                p.display();
+            }
+
+            time += 0.02;
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+            document.getElementById(name + '-value').textContent = 
+                name === 'particles' ? numVal : numVal.toFixed(1);
+            
+            if (name === 'layers' || name === 'particles' || name === 'frequency') {
+                initializeSystem();
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent = 
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initializeSystem();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initializeSystem();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initializeSystem();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            let content = header.nextElementSibling;
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

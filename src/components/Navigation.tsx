@@ -53,7 +53,24 @@ export function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {NAVIGATION_ITEMS.map((item) => {
-              const isActive = activeSection === item.href.substring(1);
+              const isExternal = 'external' in item && item.external;
+              const isActive = !isExternal && activeSection === item.href.substring(1);
+
+              if (isExternal) {
+                return (
+                  <motion.a
+                    key={item.name}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={item.href}
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                    className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium transition-colors focus:outline-none focus-visible:ring-0"
+                  >
+                    {item.name}
+                  </motion.a>
+                );
+              }
+
               return (
                 <motion.button
                   key={item.name}
@@ -114,7 +131,24 @@ export function Navigation() {
             className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700"
           >
             {NAVIGATION_ITEMS.map((item) => {
-              const isActive = activeSection === item.href.substring(1);
+              const isExternal = 'external' in item && item.external;
+              const isActive = !isExternal && activeSection === item.href.substring(1);
+
+              if (isExternal) {
+                return (
+                  <motion.a
+                    key={item.name}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    href={item.href}
+                    style={{ outline: 'none', boxShadow: 'none' }}
+                    className="block w-full text-left px-4 py-3 text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium transition-colors focus:outline-none focus-visible:ring-0"
+                  >
+                    {item.name}
+                  </motion.a>
+                );
+              }
+
               return (
                 <motion.button
                   key={item.name}

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorithmic Art — Vladimir Bichev</title>
+  <meta name="description" content="A digital exhibition of algorithmic art exploring the intersection of mathematics, nature, and computational aesthetics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #0d0d0f;
+      color: #fdfcf8;
+      font-family: 'Crimson Pro', Georgia, serif;
+      font-weight: 300;
+      line-height: 1.7;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Navigation ── */
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2.5rem;
+      background: rgba(13, 13, 15, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201, 165, 90, 0.08);
+    }
+
+    .nav-back {
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9fa8ab;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .nav-back:hover {
+      color: #c9a55a;
+    }
+
+    .nav-name {
+      font-family: 'EB Garamond', serif;
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #9fa8ab;
+    }
+
+    /* ── Header ── */
+
+    .header {
+      padding: 10rem 2rem 4rem;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #c9a55a;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-title {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 400;
+      color: #c9a55a;
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+    }
+
+    .header-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2vw, 1.4rem);
+      font-weight: 300;
+      font-style: italic;
+      color: #9fa8ab;
+      margin-bottom: 2.5rem;
+    }
+
+    .divider {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a55a, transparent);
+      margin: 0 auto 3rem;
+    }
+
+    .intro {
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: rgba(253, 252, 248, 0.65);
+      max-width: 620px;
+      margin: 0 auto 4rem;
+      line-height: 1.85;
+    }
+
+    /* ── Gallery Grid ── */
+
+    .gallery {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem 6rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+    }
+
+    /* ── Painting Card ── */
+
+    .painting {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: #151518;
+      border: 1px solid rgba(201, 165, 90, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .painting:hover {
+      transform: scale(1.02);
+      border-color: rgba(201, 165, 90, 0.4);
+      box-shadow: 0 0 30px rgba(201, 165, 90, 0.08);
+    }
+
+    .canvas {
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .placard {
+      padding: 1.25rem 1.5rem 1.5rem;
+      border-top: 1px solid rgba(201, 165, 90, 0.08);
+      position: relative;
+    }
+
+    .placard-title {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: #fdfcf8;
+      margin-bottom: 0.35rem;
+    }
+
+    .placard-desc {
+      font-family: 'Crimson Pro', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 0.9rem;
+      color: #9fa8ab;
+    }
+
+    .placard-accent {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    /* ── Per-piece CSS canvases ── */
+
+    /* 1 — Golden spiral */
+    .canvas-nautilus {
+      background:
+        radial-gradient(ellipse 40% 60% at 55% 50%, rgba(201, 165, 90, 0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 45% at 52% 48%, rgba(201, 165, 90, 0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 20% 30% at 50% 46%, rgba(201, 165, 90, 0.25) 0%, transparent 50%),
+        radial-gradient(ellipse 12% 18% at 48% 44%, rgba(201, 165, 90, 0.4) 0%, transparent 45%),
+        radial-gradient(ellipse 6% 9% at 47% 43%, rgba(201, 165, 90, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at 46% 42%, rgba(201, 165, 90, 0.6) 0%, transparent 8%),
+        linear-gradient(135deg, #1a1610 0%, #0d0d0f 50%, #1a1610 100%);
+    }
+
+    /* 2 — Harmonic Emergence */
+    .canvas-harmonic {
+      background:
+        radial-gradient(circle at 30% 40%, rgba(78, 205, 196, 0.35) 0%, transparent 40%),
+        radial-gradient(circle at 60% 55%, rgba(78, 205, 196, 0.3) 0%, transparent 35%),
+        radial-gradient(circle at 45% 30%, rgba(78, 205, 196, 0.25) 0%, transparent 45%),
+        radial-gradient(circle at 70% 35%, rgba(78, 205, 196, 0.2) 0%, transparent 30%),
+        radial-gradient(circle at 40% 65%, rgba(78, 205, 196, 0.28) 0%, transparent 38%),
+        radial-gradient(circle at 55% 70%, rgba(78, 205, 196, 0.15) 0%, transparent 50%),
+        linear-gradient(160deg, #0a1615 0%, #0d0d0f 100%);
+    }
+
+    /* 3 — Morphogenesis */
+    .canvas-morphogenesis {
+      background:
+        radial-gradient(ellipse 50% 40% at 35% 45%, rgba(212, 149, 106, 0.3) 0%, transparent 70%),
+        radial-gradient(ellipse 35% 55% at 65% 55%, rgba(212, 149, 106, 0.25) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 35% at 50% 60%, rgba(212, 149, 106, 0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 25% 40% at 40% 35%, rgba(212, 149, 106, 0.15) 0%, transparent 55%),
+        linear-gradient(180deg, #14100d 0%, #0d0d0f 100%);
+    }
+
+    /* 4 — Collective Intelligence */
+    .canvas-collective {
+      background:
+        radial-gradient(circle 2px at 20% 25%, rgba(192, 200, 208, 0.6) 0%, transparent 100%),
+        radial-gradient(circle 2px at 35% 60%, rgba(192, 200, 208, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 2px at 55% 30%, rgba(192, 200, 208, 0.55) 0%, transparent 100%),
+        radial-gradient(circle 2px at 70% 65%, rgba(192, 200, 208, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 2px at 45% 50%, rgba(192, 200, 208, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 2px at 80% 40%, rgba(192, 200, 208, 0.4) 0%, transparent 100%),
+        radial-gradient(circle 2px at 25% 75%, rgba(192, 200, 208, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 2px at 60% 80%, rgba(192, 200, 208, 0.35) 0%, transparent 100%),
+        radial-gradient(circle 2px at 15% 50%, rgba(192, 200, 208, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 2px at 85% 20%, rgba(192, 200, 208, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 2px at 50% 15%, rgba(192, 200, 208, 0.4) 0%, transparent 100%),
+        radial-gradient(circle 2px at 75% 85%, rgba(192, 200, 208, 0.35) 0%, transparent 100%),
+        radial-gradient(circle 2px at 40% 85%, rgba(192, 200, 208, 0.3) 0%, transparent 100%),
+        radial-gradient(circle 2px at 90% 55%, rgba(192, 200, 208, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 2px at 10% 35%, rgba(192, 200, 208, 0.5) 0%, transparent 100%),
+        linear-gradient(180deg, #0e0f11 0%, #0d0d0f 100%);
+    }
+
+    /* 5 — Deterministic Chaos */
+    .canvas-chaos {
+      background:
+        radial-gradient(ellipse 45% 30% at 35% 45%, rgba(139, 92, 246, 0.3) 0%, transparent 100%),
+        radial-gradient(ellipse 45% 30% at 65% 55%, rgba(139, 92, 246, 0.3) 0%, transparent 100%),
+        radial-gradient(ellipse 10% 50% at 50% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 100%),
+        radial-gradient(circle at 50% 48%, rgba(139, 92, 246, 0.5) 0%, transparent 12%),
+        linear-gradient(180deg, #0f0d14 0%, #0d0d0f 100%);
+    }
+
+    /* 6 — Recursive Growth */
+    .canvas-recursive {
+      background:
+        linear-gradient(0deg, rgba(46, 125, 82, 0.3) 0%, transparent 40%),
+        linear-gradient(15deg, transparent 48%, rgba(46, 125, 82, 0.15) 49%, rgba(46, 125, 82, 0.15) 50%, transparent 51%),
+        linear-gradient(-15deg, transparent 48%, rgba(46, 125, 82, 0.12) 49%, rgba(46, 125, 82, 0.12) 50%, transparent 51%),
+        linear-gradient(8deg, transparent 46%, rgba(46, 125, 82, 0.1) 49%, rgba(46, 125, 82, 0.1) 50%, transparent 53%),
+        linear-gradient(-8deg, transparent 46%, rgba(46, 125, 82, 0.08) 49%, rgba(46, 125, 82, 0.08) 50%, transparent 53%),
+        radial-gradient(circle at 50% 90%, rgba(46, 125, 82, 0.4) 0%, transparent 30%),
+        linear-gradient(180deg, #0d100e 0%, #0d0d0f 100%);
+    }
+
+    /* 7 — Infinite Depth */
+    .canvas-infinite {
+      background:
+        conic-gradient(from 0deg at 50% 50%,
+          rgba(224, 72, 152, 0.3) 0deg,
+          transparent 30deg,
+          rgba(224, 72, 152, 0.2) 60deg,
+          transparent 90deg,
+          rgba(224, 72, 152, 0.25) 120deg,
+          transparent 150deg,
+          rgba(224, 72, 152, 0.15) 180deg,
+          transparent 210deg,
+          rgba(224, 72, 152, 0.2) 240deg,
+          transparent 270deg,
+          rgba(224, 72, 152, 0.3) 300deg,
+          transparent 330deg,
+          rgba(224, 72, 152, 0.25) 360deg
+        ),
+        radial-gradient(circle at 50% 50%, rgba(224, 72, 152, 0.35) 0%, transparent 40%),
+        linear-gradient(180deg, #120d10 0%, #0d0d0f 100%);
+    }
+
+    /* 8 — Invisible Currents */
+    .canvas-currents {
+      background:
+        linear-gradient(182deg, transparent 20%, rgba(78, 205, 196, 0.08) 25%, transparent 30%),
+        linear-gradient(178deg, transparent 35%, rgba(78, 205, 196, 0.12) 40%, transparent 45%),
+        linear-gradient(181deg, transparent 50%, rgba(78, 205, 196, 0.1) 55%, transparent 60%),
+        linear-gradient(179deg, transparent 65%, rgba(78, 205, 196, 0.14) 70%, transparent 75%),
+        linear-gradient(183deg, transparent 10%, rgba(78, 205, 196, 0.06) 15%, transparent 20%),
+        linear-gradient(177deg, transparent 78%, rgba(78, 205, 196, 0.09) 83%, transparent 88%),
+        radial-gradient(ellipse 100% 30% at 50% 50%, rgba(78, 205, 196, 0.08) 0%, transparent 100%),
+        linear-gradient(180deg, #0d1212 0%, #0d0d0f 100%);
+    }
+
+    /* 9 — Gravitational Ballet */
+    .canvas-gravitational {
+      background:
+        radial-gradient(ellipse 70% 35% at 50% 50%, transparent 45%, rgba(232, 201, 110, 0.12) 47%, transparent 49%),
+        radial-gradient(ellipse 55% 25% at 50% 50%, transparent 45%, rgba(232, 201, 110, 0.15) 47%, transparent 49%),
+        radial-gradient(ellipse 40% 18% at 50% 50%, transparent 44%, rgba(232, 201, 110, 0.18) 47%, transparent 50%),
+        radial-gradient(ellipse 25% 12% at 50% 50%, transparent 42%, rgba(232, 201, 110, 0.22) 47%, transparent 52%),
+        radial-gradient(circle at 50% 50%, rgba(232, 201, 110, 0.5) 0%, rgba(232, 201, 110, 0.2) 3%, transparent 8%),
+        linear-gradient(180deg, #11100d 0%, #0d0d0f 100%);
+    }
+
+    /* 10 — Resonant Traces */
+    .canvas-resonant {
+      background:
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 20px,
+          rgba(201, 138, 90, 0.06) 20px,
+          rgba(201, 138, 90, 0.06) 21px
+        ),
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 20px,
+          rgba(201, 138, 90, 0.06) 20px,
+          rgba(201, 138, 90, 0.06) 21px
+        ),
+        radial-gradient(ellipse 80% 40% at 50% 50%, rgba(201, 138, 90, 0.12) 0%, transparent 70%),
+        linear-gradient(180deg, #12100d 0%, #0d0d0f 100%);
+    }
+
+    /* 11 — Territories */
+    .canvas-territories {
+      background:
+        conic-gradient(from 0deg at 25% 30%, rgba(91, 168, 217, 0.15) 0deg, transparent 60deg, rgba(91, 168, 217, 0.1) 120deg, transparent 180deg),
+        conic-gradient(from 90deg at 70% 60%, rgba(91, 168, 217, 0.12) 0deg, transparent 50deg, rgba(91, 168, 217, 0.08) 110deg, transparent 170deg),
+        conic-gradient(from 200deg at 50% 80%, rgba(91, 168, 217, 0.1) 0deg, transparent 70deg, rgba(91, 168, 217, 0.06) 140deg, transparent 200deg),
+        linear-gradient(180deg, #0d0f12 0%, #0d0d0f 100%);
+    }
+
+    /* 12 — Cellular Worlds */
+    .canvas-cellular {
+      background:
+        radial-gradient(circle 3px at 16.6% 20%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 3px at 33.3% 20%, rgba(74, 222, 128, 0.4) 0%, transparent 100%),
+        radial-gradient(circle 3px at 50% 20%, rgba(74, 222, 128, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 3px at 66.6% 20%, rgba(74, 222, 128, 0.35) 0%, transparent 100%),
+        radial-gradient(circle 3px at 83.3% 20%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 3px at 16.6% 40%, rgba(74, 222, 128, 0.35) 0%, transparent 100%),
+        radial-gradient(circle 3px at 33.3% 40%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 3px at 50% 40%, rgba(74, 222, 128, 0.3) 0%, transparent 100%),
+        radial-gradient(circle 3px at 66.6% 40%, rgba(74, 222, 128, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 3px at 83.3% 40%, rgba(74, 222, 128, 0.4) 0%, transparent 100%),
+        radial-gradient(circle 3px at 16.6% 60%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 3px at 33.3% 60%, rgba(74, 222, 128, 0.35) 0%, transparent 100%),
+        radial-gradient(circle 3px at 50% 60%, rgba(74, 222, 128, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 3px at 66.6% 60%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 3px at 83.3% 60%, rgba(74, 222, 128, 0.3) 0%, transparent 100%),
+        radial-gradient(circle 3px at 16.6% 80%, rgba(74, 222, 128, 0.4) 0%, transparent 100%),
+        radial-gradient(circle 3px at 33.3% 80%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        radial-gradient(circle 3px at 50% 80%, rgba(74, 222, 128, 0.35) 0%, transparent 100%),
+        radial-gradient(circle 3px at 66.6% 80%, rgba(74, 222, 128, 0.45) 0%, transparent 100%),
+        radial-gradient(circle 3px at 83.3% 80%, rgba(74, 222, 128, 0.5) 0%, transparent 100%),
+        linear-gradient(180deg, #0d100e 0%, #0d0d0f 100%);
+    }
+
+    /* ── Footer ── */
+
+    .footer {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 2rem 5rem;
+      text-align: center;
+    }
+
+    .footer .divider {
+      margin-bottom: 2.5rem;
+    }
+
+    .artist-statement {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(253, 252, 248, 0.5);
+      line-height: 1.9;
+      margin-bottom: 2.5rem;
+    }
+
+    .footer-credit {
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: rgba(253, 252, 248, 0.3);
+      margin-bottom: 1rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .footer-links a {
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #9fa8ab;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover {
+      color: #c9a55a;
+    }
+
+    /* ── Responsive ── */
+
+    @media (max-width: 720px) {
+      .nav {
+        padding: 0.85rem 1.25rem;
+      }
+
+      .nav-back {
+        font-size: 0.75rem;
+      }
+
+      .nav-name {
+        font-size: 0.8rem;
+        letter-spacing: 0.12em;
+      }
+
+      .header {
+        padding: 8rem 1.25rem 3rem;
+      }
+
+      .intro {
+        font-size: 0.95rem;
+        margin-bottom: 3rem;
+      }
+
+      .gallery {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 0 1.25rem 4rem;
+      }
+
+      .placard {
+        padding: 1rem 1.25rem 1.35rem;
+      }
+
+      .placard-title {
+        font-size: 1.1rem;
+      }
+
+      .footer {
+        padding: 0 1.25rem 4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/" class="nav-back">← Back to Site</a>
+    <span class="nav-name">Vladimir Bichev</span>
+  </nav>
+
+  <header class="header">
+    <p class="eyebrow">✦ Digital Exhibition ✦</p>
+    <h1 class="header-title">Algorithmic Art</h1>
+    <p class="header-subtitle">Where mathematics becomes visual poetry</p>
+    <div class="divider"></div>
+    <p class="intro">
+      Step into a gallery of computational works where algorithms draw on the
+      language of nature — spirals, emergence, chaos, and growth. Each piece is
+      a self-contained universe governed by simple rules that give rise to
+      complex, living beauty. Click any work to experience it in full.
+    </p>
+  </header>
+
+  <section class="gallery">
+
+    <a href="nautilus.html" class="painting">
+      <div class="canvas canvas-nautilus"></div>
+      <div class="placard">
+        <h2 class="placard-title">φ — The Golden Chamber</h2>
+        <p class="placard-desc">A nautilus shell sculpted by the golden ratio</p>
+        <div class="placard-accent" style="background: #c9a55a;"></div>
+      </div>
+    </a>
+
+    <a href="harmonic-emergence.html" class="painting">
+      <div class="canvas canvas-harmonic"></div>
+      <div class="placard">
+        <h2 class="placard-title">Harmonic Emergence</h2>
+        <p class="placard-desc">Overlapping wave functions creating emergent harmony</p>
+        <div class="placard-accent" style="background: #4ecdc4;"></div>
+      </div>
+    </a>
+
+    <a href="morphogenesis.html" class="painting">
+      <div class="canvas canvas-morphogenesis"></div>
+      <div class="placard">
+        <h2 class="placard-title">Morphogenesis</h2>
+        <p class="placard-desc">Organic forms arising from reaction-diffusion patterns</p>
+        <div class="placard-accent" style="background: #d4956a;"></div>
+      </div>
+    </a>
+
+    <a href="collective-intelligence.html" class="painting">
+      <div class="canvas canvas-collective"></div>
+      <div class="placard">
+        <h2 class="placard-title">Collective Intelligence</h2>
+        <p class="placard-desc">Swarm behavior emerging from simple individual rules</p>
+        <div class="placard-accent" style="background: #c0c8d0;"></div>
+      </div>
+    </a>
+
+    <a href="deterministic-chaos.html" class="painting">
+      <div class="canvas canvas-chaos"></div>
+      <div class="placard">
+        <h2 class="placard-title">Deterministic Chaos</h2>
+        <p class="placard-desc">Strange attractors tracing order within apparent randomness</p>
+        <div class="placard-accent" style="background: #8b5cf6;"></div>
+      </div>
+    </a>
+
+    <a href="recursive-growth.html" class="painting">
+      <div class="canvas canvas-recursive"></div>
+      <div class="placard">
+        <h2 class="placard-title">Recursive Growth</h2>
+        <p class="placard-desc">Fractal branching structures echoing the logic of trees</p>
+        <div class="placard-accent" style="background: #2e7d52;"></div>
+      </div>
+    </a>
+
+    <a href="infinite-depth.html" class="painting">
+      <div class="canvas canvas-infinite"></div>
+      <div class="placard">
+        <h2 class="placard-title">Infinite Depth</h2>
+        <p class="placard-desc">A Mandelbrot journey through self-similar infinities</p>
+        <div class="placard-accent" style="background: #e04898;"></div>
+      </div>
+    </a>
+
+    <a href="invisible-currents.html" class="painting">
+      <div class="canvas canvas-currents"></div>
+      <div class="placard">
+        <h2 class="placard-title">Invisible Currents</h2>
+        <p class="placard-desc">Perlin-noise flow fields revealing hidden fluid dynamics</p>
+        <div class="placard-accent" style="background: #4ecdc4;"></div>
+      </div>
+    </a>
+
+    <a href="gravitational-ballet.html" class="painting">
+      <div class="canvas canvas-gravitational"></div>
+      <div class="placard">
+        <h2 class="placard-title">Gravitational Ballet</h2>
+        <p class="placard-desc">Celestial bodies dancing under Newtonian attraction</p>
+        <div class="placard-accent" style="background: #e8c96e;"></div>
+      </div>
+    </a>
+
+    <a href="resonant-traces.html" class="painting">
+      <div class="canvas canvas-resonant"></div>
+      <div class="placard">
+        <h2 class="placard-title">Resonant Traces</h2>
+        <p class="placard-desc">Lissajous curves weaving harmonic signatures in space</p>
+        <div class="placard-accent" style="background: #c98a5a;"></div>
+      </div>
+    </a>
+
+    <a href="territories.html" class="painting">
+      <div class="canvas canvas-territories"></div>
+      <div class="placard">
+        <h2 class="placard-title">Territories</h2>
+        <p class="placard-desc">Voronoi tessellations partitioning space into domains</p>
+        <div class="placard-accent" style="background: #5ba8d9;"></div>
+      </div>
+    </a>
+
+    <a href="cellular-worlds.html" class="painting">
+      <div class="canvas canvas-cellular"></div>
+      <div class="placard">
+        <h2 class="placard-title">Cellular Worlds</h2>
+        <p class="placard-desc">Cellular automata evolving miniature living ecosystems</p>
+        <div class="placard-accent" style="background: #4ade80;"></div>
+      </div>
+    </a>
+
+  </section>
+
+  <footer class="footer">
+    <div class="divider"></div>
+    <p class="artist-statement">
+      These works explore the intersection of mathematics, nature, and
+      computational aesthetics. Each piece is a living algorithm — interactive,
+      generative, and unique with every seed variation. Built with p5.js.
+    </p>
+    <p class="footer-credit">Vladimir Bichev · 2026</p>
+    <div class="footer-links">
+      <a href="https://www.linkedin.com/in/vladimirbichev/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://github.com/vlad-ds" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+</body>
+</html>

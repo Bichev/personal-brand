@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collective Intelligence — Boids Flocking Simulation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #c0c8d0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(255, 255, 245, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        @keyframes fadeInPlacard {
+            to { opacity: 1; }
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        @keyframes fadeInControls {
+            to { opacity: 1; }
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(192, 200, 208, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(192, 200, 208, 0.1);
+            transform: scale(1.05);
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(13, 13, 15, 0.7);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .param-group {
+            margin-bottom: 20px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: #607080;
+            font-weight: 600;
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 2px;
+            background: rgba(192, 200, 208, 0.3);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: #607080;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            background: #607080;
+            cursor: pointer;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(192, 200, 208, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #607080;
+            border-color: var(--accent);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: #607080;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #333;
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: #607080;
+            font-weight: 500;
+        }
+
+        .edu-content ul {
+            margin: 8px 0 8px 16px;
+            list-style: none;
+        }
+
+        .edu-content li {
+            margin-bottom: 4px;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .edu-content li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-nav a:hover { opacity: 1; }
+
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            opacity: 0.4;
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--silver);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--silver);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: 300;
+            font-size: 18px;
+            color: var(--silver);
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 16px 24px;
+            margin-bottom: 48px;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 12px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(192, 200, 208, 0.2);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 16px;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(192, 200, 208, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="top">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Flock Size
+                    <span class="param-value" id="flocksize-value">200</span>
+                </div>
+                <input type="range" class="param-slider" id="flocksize-slider"
+                       min="50" max="500" value="200" step="10"
+                       oninput="updateParam('flocksize', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Separation
+                    <span class="param-value" id="separation-value">1.5</span>
+                </div>
+                <input type="range" class="param-slider" id="separation-slider"
+                       min="0.5" max="3.0" value="1.5" step="0.1"
+                       oninput="updateParam('separation', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Alignment
+                    <span class="param-value" id="alignment-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="alignment-slider"
+                       min="0.5" max="3.0" value="1.0" step="0.1"
+                       oninput="updateParam('alignment', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Cohesion
+                    <span class="param-value" id="cohesion-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="cohesion-slider"
+                       min="0.5" max="3.0" value="1.0" step="0.1"
+                       oninput="updateParam('cohesion', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Max Speed
+                    <span class="param-value" id="maxspeed-value">4.0</span>
+                </div>
+                <input type="range" class="param-slider" id="maxspeed-slider"
+                       min="2" max="8" value="4" step="0.5"
+                       oninput="updateParam('maxspeed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Trail Length
+                    <span class="param-value" id="trail-value">5</span>
+                </div>
+                <input type="range" class="param-slider" id="trail-slider"
+                       min="0" max="20" value="5" step="1"
+                       oninput="updateParam('trail', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine a flock of birds or a school of fish. No single bird is the leader! Each bird follows three simple rules: don't bump into your neighbors, fly the same direction as nearby birds, and try to stay close to the group. With just these three rules, the whole flock moves together beautifully!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Craig Reynolds' 1986 Boids algorithm</strong> models flocking behavior with three rules:</p>
+                    <ul>
+                        <li><strong>Separation:</strong> Avoid crowding nearby neighbors</li>
+                        <li><strong>Alignment:</strong> Steer toward the average heading of nearby neighbors</li>
+                        <li><strong>Cohesion:</strong> Steer toward the average position of nearby neighbors</li>
+                    </ul>
+                    <p>Each rule operates within a perception radius. No boid has global knowledge — only awareness of its local neighborhood.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>For each boid <em>i</em>:</p>
+                    <p><strong>velocity += separation_force + alignment_force + cohesion_force</strong></p>
+                    <p>Each force is a weighted vector sum of neighbors within perception radius <em>r</em>:</p>
+                    <ul>
+                        <li><strong>S</strong> = Σ (pos_i − pos_j) / |pos_i − pos_j|²</li>
+                        <li><strong>A</strong> = (Σ vel_j / N) − vel_i</li>
+                        <li><strong>C</strong> = (Σ pos_j / N) − pos_i</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Starling murmurations:</strong> Thousands of birds forming breathtaking aerial shapes at dusk.</p>
+                    <p><strong>Fish schools:</strong> Sardines and herring moving as a single shimmering organism.</p>
+                    <p><strong>Ant colonies:</strong> Complex nest-building and foraging without central command.</p>
+                    <p><strong>Bee swarms:</strong> Collective decision-making about new hive locations.</p>
+                    <p><strong>Wildebeest herds:</strong> Mass migration across the Serengeti guided by no single leader.</p>
+                    <p>No central coordination, yet perfectly organized.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art &amp; Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Swarm robotics:</strong> Coordinated drone formations and warehouse robots.</p>
+                    <p><strong>Crowd simulation in film:</strong> The massive battle scenes in Lord of the Rings used boids-like algorithms for thousands of digital warriors.</p>
+                    <p><strong>Traffic flow modeling:</strong> Understanding congestion as an emergent phenomenon.</p>
+                    <p><strong>Network design:</strong> Internet routing protocols inspired by swarm intelligence.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Intelligence without a leader.</strong> Complex coordinated behavior arising from simple individual rules.</p>
+                    <p>A metaphor for distributed systems, self-organization, and emergent democracy. No single agent holds the plan, yet the collective acts with breathtaking coherence.</p>
+                    <p>The boids model challenges our assumption that order requires authority — that beauty requires a designer.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Collective Intelligence</div>
+            <div class="placard-subtitle">Emergent coordination without leadership</div>
+            <div class="placard-meta">separation · alignment · cohesion · swarm</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Collective Intelligence</h1>
+        <p class="article-subtitle">Emergence Without Leadership</p>
+
+        <blockquote class="article-epigraph">
+            "The whole is greater than the sum of its parts."
+            <cite>— Aristotle</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>At dusk over the wetlands of Rome, thousands of starlings gather into murmurations — vast, shape-shifting clouds that pulse and ripple across the sky like a single living organism. There is no conductor, no choreographer, no bird issuing commands from the center. Each starling knows only the position and velocity of its nearest neighbors, and yet the flock moves with a coherence that seems almost supernatural. In 1986, computer graphics researcher Craig Reynolds proved that this breathtaking phenomenon could emerge from just three astonishingly simple rules, each operating on nothing more than local information. He called his digital creatures "boids," and in doing so, opened a window into one of nature's most profound secrets.</p>
+
+            <p>The three rules are elegant in their simplicity. Separation: each boid steers away from neighbors that get too close, maintaining a comfortable personal space — the same instinct that keeps you from standing too near a stranger in an elevator. Alignment: each boid adjusts its heading to match the average direction of its neighbors, creating the smooth, coordinated turns that make flocks seem telepathic. Cohesion: each boid steers gently toward the center of its local group, preventing the flock from dispersing into lonely individuals. No rule references the flock as a whole. No boid has a map or a plan. The global order is not designed — it emerges.</p>
+
+            <p>What the viewer sees in the simulation is this emergence made visible. Watch long enough and you will witness moments of astonishing synchrony — the entire flock banking in unison as if rehearsed. Then a perturbation ripples through, and the group splits into two swirling sub-flocks that orbit each other before merging again. Vortices form and dissolve. Dense clusters condense and then explode outward. No two moments are alike, and yet the system never descends into chaos. There is always structure, always a thread of order woven through the apparent randomness — a visual proof that simple rules, applied consistently, generate inexhaustible complexity.</p>
+
+            <p>The resonance of this model extends far beyond biology. Distributed software teams ship products without a single architect dictating every function. Market economies coordinate the labor of billions through the local decisions of individual buyers and sellers. Internet packets find their way across the globe through routing protocols that know nothing about the network's full topology. Neural networks — both biological and artificial — produce intelligence not from any single neuron's brilliance, but from the weighted connections between millions of them. The most resilient systems humanity has ever built are those without a single point of failure, where coordination emerges from the interactions rather than being imposed from above.</p>
+
+            <p>In an age of artificial intelligence and decentralized autonomous organizations, the boids model carries a philosophical weight that Reynolds may never have intended. It challenges our deep-seated intuition that order demands a leader, that beauty requires an author, that intelligence must be centralized to be effective. The murmuration has no CEO. The school of fish holds no elections. And yet their collective behavior is more adaptive, more resilient, and more beautiful than anything a single agent could orchestrate. Perhaps the most profound patterns in our world — from the spiraling of galaxies to the self-organization of cities — arise not from grand design, but from the quiet, local adherence to shared and simple principles.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE MATHEMATICAL HEART</div>
+            <div class="math-box-formula">v_i = v_i + w_s·S_i + w_a·A_i + w_c·C_i</div>
+            <div class="math-box-description">Each boid's velocity is updated by three weighted forces: Separation (S), Alignment (A), and Cohesion (C), computed from neighbors within perception radius r. No global knowledge required — pure local interaction produces global order.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#top">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let params = {
+            flocksize: 200,
+            separation: 1.5,
+            alignment: 1.0,
+            cohesion: 1.0,
+            maxspeed: 4.0,
+            trail: 5
+        };
+
+        let flock = [];
+        let trailBuffer;
+
+        const PERCEPTION = 50;
+        const MAX_FORCE = 0.3;
+
+        class Boid {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = p5.Vector.random2D().mult(random(1, params.maxspeed));
+                this.acc = createVector(0, 0);
+                this.history = [];
+            }
+
+            edges() {
+                if (this.pos.x > width) this.pos.x = 0;
+                if (this.pos.x < 0) this.pos.x = width;
+                if (this.pos.y > height) this.pos.y = 0;
+                if (this.pos.y < 0) this.pos.y = height;
+            }
+
+            flock(boids) {
+                let sepSteer = createVector(0, 0);
+                let aliSteer = createVector(0, 0);
+                let cohSteer = createVector(0, 0);
+                let sepCount = 0;
+                let aliCount = 0;
+                let cohCount = 0;
+                let neighborCount = 0;
+
+                for (let other of boids) {
+                    if (other === this) continue;
+                    let dx = this.pos.x - other.pos.x;
+                    let dy = this.pos.y - other.pos.y;
+
+                    if (dx > width / 2) dx -= width;
+                    if (dx < -width / 2) dx += width;
+                    if (dy > height / 2) dy -= height;
+                    if (dy < -height / 2) dy += height;
+
+                    let d = Math.sqrt(dx * dx + dy * dy);
+
+                    if (d < PERCEPTION) {
+                        neighborCount++;
+
+                        if (d < PERCEPTION * 0.5 && d > 0) {
+                            let diff = createVector(dx, dy);
+                            diff.div(d * d);
+                            sepSteer.add(diff);
+                            sepCount++;
+                        }
+
+                        aliSteer.add(other.vel);
+                        aliCount++;
+
+                        cohSteer.add(p5.Vector.add(this.pos, createVector(-dx, -dy)));
+                        cohCount++;
+                    }
+                }
+
+                if (sepCount > 0) {
+                    sepSteer.div(sepCount);
+                    sepSteer.setMag(params.maxspeed);
+                    sepSteer.sub(this.vel);
+                    sepSteer.limit(MAX_FORCE);
+                }
+
+                if (aliCount > 0) {
+                    aliSteer.div(aliCount);
+                    aliSteer.setMag(params.maxspeed);
+                    aliSteer.sub(this.vel);
+                    aliSteer.limit(MAX_FORCE);
+                }
+
+                if (cohCount > 0) {
+                    cohSteer.div(cohCount);
+                    cohSteer.sub(this.pos);
+                    cohSteer.setMag(params.maxspeed);
+                    cohSteer.sub(this.vel);
+                    cohSteer.limit(MAX_FORCE);
+                }
+
+                sepSteer.mult(params.separation);
+                aliSteer.mult(params.alignment);
+                cohSteer.mult(params.cohesion);
+
+                this.acc.add(sepSteer);
+                this.acc.add(aliSteer);
+                this.acc.add(cohSteer);
+
+                this.localDensity = neighborCount;
+            }
+
+            update() {
+                if (params.trail > 0) {
+                    this.history.push(this.pos.copy());
+                    if (this.history.length > params.trail) {
+                        this.history.shift();
+                    }
+                } else {
+                    this.history = [];
+                }
+
+                this.vel.add(this.acc);
+                this.vel.limit(params.maxspeed);
+                this.pos.add(this.vel);
+                this.acc.mult(0);
+
+                this.edges();
+            }
+
+            show() {
+                let densityHue = map(this.localDensity || 0, 0, 15, 200, 220);
+                let densitySat = map(this.localDensity || 0, 0, 15, 15, 40);
+                let densityBri = map(this.localDensity || 0, 0, 15, 75, 98);
+
+                colorMode(HSB, 360, 100, 100, 100);
+
+                if (this.history.length > 1) {
+                    noFill();
+                    for (let i = 1; i < this.history.length; i++) {
+                        let a = map(i, 0, this.history.length, 5, 30);
+                        let sw = map(i, 0, this.history.length, 0.3, 1.0);
+                        stroke(densityHue, densitySat * 0.6, densityBri * 0.8, a);
+                        strokeWeight(sw);
+                        line(this.history[i - 1].x, this.history[i - 1].y,
+                             this.history[i].x, this.history[i].y);
+                    }
+                }
+
+                let angle = this.vel.heading();
+                push();
+                translate(this.pos.x, this.pos.y);
+                rotate(angle);
+                noStroke();
+                fill(densityHue, densitySat, densityBri, 80);
+                let sz = 5;
+                triangle(sz, 0, -sz * 0.6, -sz * 0.4, -sz * 0.6, sz * 0.4);
+                pop();
+            }
+        }
+
+        function setup() {
+            let canvas = createCanvas(800, 800);
+            canvas.parent('canvas-container');
+            initializeSystem();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(currentSeed);
+            noiseSeed(currentSeed);
+
+            flock = [];
+            for (let i = 0; i < params.flocksize; i++) {
+                flock.push(new Boid());
+            }
+
+            background(13, 13, 15);
+            updateSeedDisplay();
+        }
+
+        function draw() {
+            background(13, 13, 15, 40);
+
+            for (let boid of flock) {
+                boid.flock(flock);
+            }
+            for (let boid of flock) {
+                boid.update();
+                boid.show();
+            }
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+
+            let displayVal;
+            if (name === 'flocksize' || name === 'trail') {
+                displayVal = Math.round(numVal);
+            } else {
+                displayVal = numVal.toFixed(1);
+            }
+            document.getElementById(name + '-value').textContent = displayVal;
+
+            if (name === 'flocksize') {
+                initializeSystem();
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initializeSystem();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initializeSystem();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initializeSystem();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            let content = header.nextElementSibling;
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

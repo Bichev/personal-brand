@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Territories — Voronoi Tessellation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #5ba8d9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(25, 25, 30, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(255, 255, 245, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        @keyframes fadeInPlacard {
+            to { opacity: 1; }
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        @keyframes fadeInControls {
+            to { opacity: 1; }
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(91, 168, 217, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(91, 168, 217, 0.1);
+            transform: scale(1.05);
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(13, 13, 15, 0.7);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .param-group {
+            margin-bottom: 20px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: #607080;
+            font-weight: 600;
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 2px;
+            background: rgba(91, 168, 217, 0.25);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: #607080;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            background: #607080;
+            cursor: pointer;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .param-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .param-toggle-state {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: #999;
+            font-weight: 600;
+            padding: 2px 8px;
+            border: 1px solid rgba(91, 168, 217, 0.2);
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .param-toggle-state.active {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .param-cycle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .param-cycle-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(91, 168, 217, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #607080;
+            border-color: var(--accent);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: #607080;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #333;
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: #607080;
+            font-weight: 500;
+        }
+
+        .edu-content ul {
+            margin: 8px 0 8px 16px;
+            list-style: none;
+        }
+
+        .edu-content li {
+            margin-bottom: 4px;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .edu-content li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-nav a:hover { opacity: 1; }
+
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            opacity: 0.4;
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: 300;
+            font-size: 18px;
+            color: var(--silver);
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 16px 24px;
+            margin-bottom: 48px;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 12px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(91, 168, 217, 0.3);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 16px;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(91, 168, 217, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="top">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Seeds
+                    <span class="param-value" id="seeds-value">20</span>
+                </div>
+                <input type="range" class="param-slider" id="seeds-slider"
+                       min="5" max="50" value="20" step="1"
+                       oninput="updateParam('seeds', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Drift Speed
+                    <span class="param-value" id="driftSpeed-value">0.5</span>
+                </div>
+                <input type="range" class="param-slider" id="driftSpeed-slider"
+                       min="0" max="3" value="0.5" step="0.1"
+                       oninput="updateParam('driftSpeed', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-cycle" onclick="cycleColorMode()">
+                    <span class="param-label" style="margin-bottom:0">Color Mode</span>
+                    <span class="param-cycle-value" id="colorMode-value">Distance</span>
+                </div>
+            </div>
+
+            <div class="param-group">
+                <div class="param-toggle" onclick="toggleShowPoints()">
+                    <span class="param-label" style="margin-bottom:0">Show Points</span>
+                    <span class="param-toggle-state active" id="showPoints-value">ON</span>
+                </div>
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Cell Borders
+                    <span class="param-value" id="cellBorders-value">1.0</span>
+                </div>
+                <input type="range" class="param-slider" id="cellBorders-slider"
+                       min="0.5" max="3" value="1" step="0.1"
+                       oninput="updateParam('cellBorders', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Imagine dropping colored drops of paint on a page — each drop spreads out until it meets another drop. Where they meet, a line forms. This divides the whole page into territories — one for each drop!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Georgy Voronoi</strong> formalized this partition of space in 1908. Given a set of seed points, the Voronoi diagram assigns every point in space to its nearest seed.</p>
+                    <p>Used extensively in:</p>
+                    <ul>
+                        <li>Computational geometry</li>
+                        <li>Geographic information systems (GIS)</li>
+                        <li>AI clustering and classification</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Each Voronoi cell is defined as:</p>
+                    <p><strong>C_i = { x : d(x, p_i) ≤ d(x, p_j) for all j ≠ i }</strong></p>
+                    <p>The Voronoi tessellation is the <strong>dual of the Delaunay triangulation</strong> — one of the most fundamental structures in computational geometry.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Voronoi patterns appear wherever growth expands from multiple centers:</p>
+                    <ul>
+                        <li><strong>Giraffe skin</strong> patterns</li>
+                        <li><strong>Dragonfly wings</strong> venation</li>
+                        <li><strong>Turtle shell</strong> plates</li>
+                        <li><strong>Mud cracks</strong> in dried earth</li>
+                        <li><strong>Soap bubbles</strong> between surfaces</li>
+                        <li><strong>Cell biology</strong> — tissue formation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art &amp; Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Architectural design:</strong> Zaha Hadid's parametric structures use Voronoi-inspired partitions for organic facades.</p>
+                    <p><strong>Stained glass:</strong> Medieval cathedral windows mirror Voronoi tessellations in their lead-lined panes.</p>
+                    <p><strong>Mosaic art:</strong> The irregular tiling of Byzantine mosaics follows natural Voronoi-like distributions.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Territory and belonging.</strong> Every point in space belongs to its nearest center — a mathematical model of influence, jurisdiction, and community.</p>
+                    <p>The Voronoi diagram answers the question: "What is closest?" Applied to cities, cell towers, and hospitals, it becomes a model of access and equity.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Territories</div>
+            <div class="placard-subtitle">Voronoi tessellation and the geometry of influence</div>
+            <div class="placard-meta">nearest neighbor · seed points · dual graph</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Territories</h1>
+        <p class="article-subtitle">The Geometry of Nearest Neighbors</p>
+
+        <blockquote class="article-epigraph">
+            "Space is not empty. It is full — full of a structure that we could not otherwise see."
+            <cite>— Adapted</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Georgy Voronoi formalized in 1908 what nature had been doing for billions of years — partitioning space based on proximity. Given a set of seed points, the Voronoi diagram assigns every point in space to its nearest seed, creating a tessellation of territories. The result is a map of influence: every location belongs to whichever center is closest, and the borders between territories fall exactly where allegiance shifts from one seed to another.</p>
+
+            <p>The algorithm is elemental in its clarity. For each point in the plane, measure the distance to every seed. The closest seed claims that point. Where two seeds are equidistant, a border forms. The result: a perfect partition where every territory is a convex polygon. No gaps, no overlaps — space is exhaustively divided by nothing more than the geometry of proximity.</p>
+
+            <p>What the viewer sees is organic, cell-like territories that shift and reform as seed points drift through Brownian motion. The borders are always perfectly balanced — equidistant between neighbors. As seeds move, territories grow, shrink, split, and merge in a ceaseless negotiation of space. A seed drifting toward a neighbor squeezes that neighbor's territory; one moving into open space expands its domain. The tessellation breathes.</p>
+
+            <p>Voronoi patterns saturate the natural and engineered world. Giraffe skin patterns, dragonfly wing venation, turtle shell plates — all are Voronoi tessellations generated by growth expanding from distributed centers. In AI and data science, Voronoi diagrams underpin k-nearest-neighbor classification, spatial clustering, and geographic service area optimization. Every cell tower's coverage area, every hospital's catchment zone, every pizza delivery boundary is, at its mathematical core, a Voronoi cell.</p>
+
+            <p>There is philosophy woven into the geometry. Territory as proximity. Influence as distance. Every Voronoi cell is a region of belonging — the mathematical answer to "what is closest?" In a world of competing centers, the Voronoi diagram offers perfect fairness: every point is assigned to the center that can serve it best, measured by the simplest and most universal metric we know. It is a model of access and equity, drawn by mathematics alone.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE VORONOI CELL</div>
+            <div class="math-box-formula">C_i = { x : d(x, p_i) ≤ d(x, p_j)  ∀ j ≠ i }</div>
+            <div class="math-box-description">Each cell C_i contains all points closer to seed p_i than to any other seed. The resulting tessellation is the dual of the Delaunay triangulation — one of the most fundamental structures in computational geometry.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#top">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let params = {
+            seeds: 20,
+            driftSpeed: 0.5,
+            colorMode: 1,
+            showPoints: true,
+            cellBorders: 1.0
+        };
+
+        const COLOR_MODES = ['Solid', 'Distance', 'Gradient'];
+        const RES = 2;
+        const BW = 400;
+        const BH = 400;
+
+        let voronoiSeeds = [];
+        let seedColors = [];
+        let voronoiBuffer;
+
+        function hsbToRgb(h, s, b) {
+            h = ((h % 360) + 360) % 360 / 360;
+            s = s / 100;
+            b = b / 100;
+            let r, g, bl;
+            let i = Math.floor(h * 6);
+            let f = h * 6 - i;
+            let p = b * (1 - s);
+            let q = b * (1 - f * s);
+            let t = b * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = b; g = t; bl = p; break;
+                case 1: r = q; g = b; bl = p; break;
+                case 2: r = p; g = b; bl = t; break;
+                case 3: r = p; g = q; bl = b; break;
+                case 4: r = t; g = p; bl = b; break;
+                case 5: r = b; g = p; bl = q; break;
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(bl * 255)];
+        }
+
+        function setup() {
+            pixelDensity(1);
+            let canvas = createCanvas(800, 800);
+            canvas.parent('canvas-container');
+            voronoiBuffer = createGraphics(BW, BH);
+            voronoiBuffer.pixelDensity(1);
+            initializeSystem();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(currentSeed);
+            noiseSeed(currentSeed);
+
+            voronoiSeeds = [];
+            seedColors = [];
+            for (let i = 0; i < params.seeds; i++) {
+                voronoiSeeds.push({
+                    x: random(40, 760),
+                    y: random(40, 760),
+                    vx: 0,
+                    vy: 0
+                });
+                let h = 195 + (i / params.seeds) * 55;
+                let s = 35 + (i * 7 + currentSeed * 3) % 35;
+                let b = 50 + (i * 13 + currentSeed * 5) % 40;
+                seedColors.push({ h: h, s: s, b: b });
+            }
+
+            updateSeedDisplay();
+        }
+
+        function draw() {
+            if (params.driftSpeed > 0) {
+                for (let i = 0; i < voronoiSeeds.length; i++) {
+                    let s = voronoiSeeds[i];
+                    s.vx += (Math.random() - 0.5) * 0.3 * params.driftSpeed;
+                    s.vy += (Math.random() - 0.5) * 0.3 * params.driftSpeed;
+                    s.vx *= 0.94;
+                    s.vy *= 0.94;
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    if (s.x < 5) { s.x = 5; s.vx = Math.abs(s.vx) * 0.5; }
+                    if (s.x > 795) { s.x = 795; s.vx = -Math.abs(s.vx) * 0.5; }
+                    if (s.y < 5) { s.y = 5; s.vy = Math.abs(s.vy) * 0.5; }
+                    if (s.y > 795) { s.y = 795; s.vy = -Math.abs(s.vy) * 0.5; }
+                }
+            }
+
+            renderVoronoi();
+            image(voronoiBuffer, 0, 0, 800, 800);
+
+            if (params.showPoints) {
+                noStroke();
+                for (let i = 0; i < voronoiSeeds.length; i++) {
+                    let s = voronoiSeeds[i];
+                    fill(255, 255, 255, 60);
+                    ellipse(s.x, s.y, 12, 12);
+                    fill(255, 255, 255, 200);
+                    ellipse(s.x, s.y, 5, 5);
+                }
+            }
+        }
+
+        function renderVoronoi() {
+            voronoiBuffer.loadPixels();
+            let maxDist = 800 / Math.sqrt(params.seeds) * 0.7;
+            let borderThreshold = params.cellBorders * 5;
+            let numSeeds = voronoiSeeds.length;
+            let pxData = voronoiBuffer.pixels;
+
+            for (let y = 0; y < BH; y++) {
+                let py = y * RES + 1;
+                for (let x = 0; x < BW; x++) {
+                    let px = x * RES + 1;
+
+                    let minD1 = 1e9, minD2 = 1e9;
+                    let nearest = 0, secondNearest = 0;
+
+                    for (let i = 0; i < numSeeds; i++) {
+                        let dx = px - voronoiSeeds[i].x;
+                        let dy = py - voronoiSeeds[i].y;
+                        let d = dx * dx + dy * dy;
+                        if (d < minD1) {
+                            minD2 = minD1;
+                            secondNearest = nearest;
+                            minD1 = d;
+                            nearest = i;
+                        } else if (d < minD2) {
+                            minD2 = d;
+                            secondNearest = i;
+                        }
+                    }
+
+                    let d1 = Math.sqrt(minD1);
+                    let d2 = Math.sqrt(minD2);
+
+                    let c1 = seedColors[nearest];
+                    let r, g, b;
+
+                    if (params.colorMode === 0) {
+                        let rgb = hsbToRgb(c1.h, c1.s, c1.b);
+                        r = rgb[0]; g = rgb[1]; b = rgb[2];
+                    } else if (params.colorMode === 1) {
+                        let t = Math.min(d1 / maxDist, 1);
+                        let bri = c1.b * (1 - 0.65 * t);
+                        let sat = c1.s * (1 - 0.2 * t);
+                        let rgb = hsbToRgb(c1.h, sat, bri);
+                        r = rgb[0]; g = rgb[1]; b = rgb[2];
+                    } else {
+                        let c2 = seedColors[secondNearest];
+                        let ratio = d1 / (d1 + d2);
+                        let h = c1.h + (c2.h - c1.h) * ratio;
+                        let s = c1.s + (c2.s - c1.s) * ratio;
+                        let br = c1.b + (c2.b - c1.b) * ratio;
+                        let rgb = hsbToRgb(h, s, br);
+                        r = rgb[0]; g = rgb[1]; b = rgb[2];
+                    }
+
+                    let borderDiff = d2 - d1;
+                    if (borderDiff < borderThreshold) {
+                        let t = borderDiff / borderThreshold;
+                        t = t * t;
+                        r = Math.round(r * t + 13 * (1 - t));
+                        g = Math.round(g * t + 13 * (1 - t));
+                        b = Math.round(b * t + 15 * (1 - t));
+                    }
+
+                    let idx = (y * BW + x) * 4;
+                    pxData[idx] = r;
+                    pxData[idx + 1] = g;
+                    pxData[idx + 2] = b;
+                    pxData[idx + 3] = 255;
+                }
+            }
+            voronoiBuffer.updatePixels();
+        }
+
+        function updateParam(name, value) {
+            let numVal = parseFloat(value);
+            params[name] = numVal;
+
+            let displayVal;
+            if (name === 'seeds') {
+                displayVal = Math.round(numVal);
+            } else {
+                displayVal = numVal.toFixed(1);
+            }
+            document.getElementById(name + '-value').textContent = displayVal;
+
+            if (name === 'seeds') {
+                initializeSystem();
+            }
+        }
+
+        function cycleColorMode() {
+            params.colorMode = (params.colorMode + 1) % 3;
+            document.getElementById('colorMode-value').textContent = COLOR_MODES[params.colorMode];
+        }
+
+        function toggleShowPoints() {
+            params.showPoints = !params.showPoints;
+            let el = document.getElementById('showPoints-value');
+            el.textContent = params.showPoints ? 'ON' : 'OFF';
+            el.classList.toggle('active', params.showPoints);
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            initializeSystem();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            initializeSystem();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            initializeSystem();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            let content = header.nextElementSibling;
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

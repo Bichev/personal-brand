@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursive Growth — L-System Fractal Trees</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:wght@400;500&family=Crimson+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --exhibition-black: #0d0d0f;
+            --museum-white: #fdfcf8;
+            --gold: #c9a55a;
+            --silver: #9fa8ab;
+            --accent: #2e7d52;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+            overflow-x: hidden;
+        }
+
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+        .back-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-nav a:hover { opacity: 1; }
+        .back-nav .site-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--silver);
+            opacity: 0.3;
+        }
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(46, 125, 82, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(25, 25, 35, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .spotlight {
+            position: absolute;
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(46, 125, 82, 0.025) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #canvas-container {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 30px 80px rgba(0, 0, 0, 0.9));
+        }
+
+        .seed-display {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: rgba(46, 125, 82, 0.5);
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+        }
+
+        .seed-number {
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            gap: 16px;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInControls 1.5s 2s forwards;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(46, 125, 82, 0.3);
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--accent);
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            background: rgba(46, 125, 82, 0.1);
+            transform: scale(1.05);
+        }
+
+        .parameters-panel {
+            position: absolute;
+            left: 40px;
+            top: 100px;
+            width: 240px;
+            opacity: 0;
+            animation: fadeIn 1.5s 2.5s forwards;
+            z-index: 10;
+        }
+
+        .param-group {
+            margin-bottom: 24px;
+        }
+
+        .param-label {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-value {
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+            color: var(--silver);
+        }
+
+        .param-slider {
+            width: 100%;
+            height: 1px;
+            background: rgba(46, 125, 82, 0.2);
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+        }
+
+        .param-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .param-slider::-moz-range-thumb {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            border-radius: 0;
+        }
+
+        .axiom-selector {
+            width: 100%;
+            background: rgba(13, 13, 15, 0.7);
+            border: 1px solid rgba(46, 125, 82, 0.3);
+            color: var(--museum-white);
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 6px 8px;
+            cursor: pointer;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%232e7d52'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+
+        .axiom-selector option {
+            background: var(--exhibition-black);
+            color: var(--museum-white);
+        }
+
+        .education-panel {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            width: 280px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            opacity: 0;
+            animation: fadeIn 1.5s 3s forwards;
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        .education-panel::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .education-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .education-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+        }
+
+        .edu-section {
+            margin-bottom: 12px;
+        }
+
+        .edu-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(46, 125, 82, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: #4caf75;
+            border-color: rgba(46, 125, 82, 0.3);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .edu-header.active .edu-icon {
+            transform: rotate(180deg);
+        }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 0 8px;
+        }
+
+        .edu-content.active {
+            max-height: 1000px;
+            padding: 12px 8px;
+        }
+
+        .edu-content p {
+            margin-bottom: 8px;
+        }
+
+        .edu-content strong {
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .placard {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            animation: fadeInPlacard 2s 1s forwards;
+        }
+
+        .placard-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 24px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .placard-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--silver);
+            font-style: italic;
+        }
+
+        .placard-meta {
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            font-weight: 200;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 12px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            z-index: 5;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-family: 'Crimson Pro', serif;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: rgba(46, 125, 82, 0.4);
+            text-align: center;
+        }
+
+        .scroll-arrow {
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeInPlacard { to { opacity: 1; } }
+        @keyframes fadeInControls { to { opacity: 1; } }
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* Room 2 — Article */
+        .article-section {
+            background: var(--exhibition-black);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--exhibition-black);
+            padding: 0 20px;
+            color: var(--accent);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        .article-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
+            font-weight: 400;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--silver);
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--accent);
+            padding: 12px 24px;
+            margin: 0 0 40px 0;
+            font-family: 'Crimson Pro', serif;
+            font-style: italic;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--silver);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 8px;
+            font-style: normal;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: rgba(159, 168, 171, 0.6);
+        }
+
+        .article-body p {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 300;
+            line-height: 1.9;
+            color: rgba(253, 252, 248, 0.75);
+            margin-bottom: 28px;
+        }
+
+        .math-box {
+            border: 1px solid rgba(46, 125, 82, 0.3);
+            padding: 24px;
+            margin: 40px 0;
+        }
+
+        .math-box-header {
+            font-family: 'Crimson Pro', serif;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .math-box-formula {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--museum-white);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .math-box-description {
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.7;
+            color: var(--silver);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(46, 125, 82, 0.15);
+        }
+
+        .article-nav a {
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            text-decoration: none;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .article-nav a:hover {
+            opacity: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .parameters-panel {
+                display: none;
+            }
+            .education-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 860px) {
+            #canvas-container canvas {
+                width: 90vw !important;
+                height: 90vw !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="back-nav">
+        <a href="/ai-art/">← BACK TO GALLERY</a>
+        <span class="site-name">VLADIMIR BICHEV · ALGORITHMIC ART</span>
+    </div>
+
+    <div class="exhibition-space" id="exhibit">
+        <div class="spotlight"></div>
+
+        <div class="seed-display">
+            VARIATION <span class="seed-number" id="seed-display">001</span>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="previousVariation()" title="Previous">←</button>
+            <button class="control-btn" onclick="nextVariation()" title="Next">→</button>
+            <button class="control-btn" onclick="randomVariation()" title="Random">⟳</button>
+        </div>
+
+        <div class="parameters-panel">
+            <div class="param-group">
+                <div class="param-label">
+                    Branch Angle
+                    <span class="param-value" id="angle-value">25°</span>
+                </div>
+                <input type="range" class="param-slider" id="angle-slider"
+                       min="15" max="45" value="25" step="1"
+                       oninput="updateParam('angle', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Length Ratio
+                    <span class="param-value" id="ratio-value">0.67</span>
+                </div>
+                <input type="range" class="param-slider" id="ratio-slider"
+                       min="0.5" max="0.8" value="0.67" step="0.01"
+                       oninput="updateParam('ratio', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Iterations
+                    <span class="param-value" id="iterations-value">6</span>
+                </div>
+                <input type="range" class="param-slider" id="iterations-slider"
+                       min="3" max="8" value="6" step="1"
+                       oninput="updateParam('iterations', this.value)">
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Axiom Preset
+                    <span class="param-value" id="axiom-value"></span>
+                </div>
+                <select class="axiom-selector" id="axiom-selector" onchange="updateParam('axiom', this.value)">
+                    <option value="tree">Tree</option>
+                    <option value="fern">Fern</option>
+                    <option value="bush">Bush</option>
+                    <option value="seaweed">Seaweed</option>
+                </select>
+            </div>
+
+            <div class="param-group">
+                <div class="param-label">
+                    Wind
+                    <span class="param-value" id="wind-value">0.5</span>
+                </div>
+                <input type="range" class="param-slider" id="wind-slider"
+                       min="0" max="2" value="0.5" step="0.1"
+                       oninput="updateParam('wind', this.value)">
+            </div>
+        </div>
+
+        <div class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>For 7-Year-Olds</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Trees branch like rivers branch — but backwards! A river starts as one big stream, then splits into smaller streams, which split into even smaller ones. A tree does the same thing but growing upward. The trunk splits into branches, branches split into smaller branches, and those split into twigs. It's the same splitting pattern, over and over, getting smaller each time!</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Science</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Aristid Lindenmayer (1968)</strong> invented L-systems to model plant growth. The idea is string rewriting: start with a simple word and apply rules to replace each letter with a longer string.</p>
+                    <p>Example: <strong>F → FF</strong>, <strong>X → F[+X][-X]</strong>. After several generations, the short axiom "X" becomes a long instruction string that draws an entire tree.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Mathematics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Turtle graphics</strong> interprets the string: F = move forward, + = turn right, − = turn left, [ = save position, ] = restore position.</p>
+                    <p>This is a <strong>recursive grammar</strong> — the rules refer back to themselves. Each iteration doubles the length of the instruction string, producing exponential complexity from minimal rules.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Nature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The branching pattern of <strong>oak trees</strong>, unfurling <strong>fern fronds</strong>, networks of <strong>blood vessels</strong>, forking <strong>lightning bolts</strong>, <strong>river deltas</strong> spreading across plains, and the <strong>bronchial tubes</strong> inside your lungs — all follow the same recursive logic of divide and repeat.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>In Art & Culture</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Fractals appear in <strong>Gothic cathedral</strong> tracery and <strong>Islamic geometric</strong> tiling, where self-similar patterns fill space at every scale. <strong>Jackson Pollock's</strong> drip paintings contain fractal dimension measurements matching natural landscapes. Architecture from Gaudi to contemporary parametric design draws on recursive branching.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Philosophy</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p><strong>Self-similarity</strong> — the part resembles the whole. This principle extends beyond geometry into recursive thinking itself: we understand complex problems by breaking them into simpler versions of themselves. Growth without a blueprint — just rules and repetition, producing infinite variety from finite means.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <div class="loading">RENDERING...</div>
+        </div>
+
+        <div class="placard">
+            <div class="placard-title">Recursive Growth</div>
+            <div class="placard-subtitle">L-system branching patterns</div>
+            <div class="placard-meta">Lindenmayer · turtle graphics · self-similarity</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span>Scroll to read the full article</span>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Room 2: Article -->
+    <div class="article-section">
+        <div class="ornamental-divider"><span>◆</span></div>
+
+        <h1 class="article-title">Recursive Growth</h1>
+        <p class="article-subtitle">The Grammar of Branching</p>
+
+        <blockquote class="article-epigraph">
+            "Nature uses only the longest threads to weave her patterns, so each small piece of her fabric reveals the organization of the entire tapestry."
+            <cite>— Richard Feynman</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>In 1968, Hungarian biologist Aristid Lindenmayer had an insight that would bridge botany and computer science: the growth of plants could be described as a formal grammar. A simple string of symbols, rewritten according to a handful of rules, could produce the infinite variety of branching forms found in nature. He called them L-systems — a notation so compact that a single line of text could encode an entire forest.</p>
+
+            <p>The mechanism is elegant in its simplicity. Begin with an axiom — a short string like "X." Define production rules: F means draw a line forward, + means turn right, − means turn left, [ means save the current position and angle, ] means restore them. The rule X → F[−X][+X] says: draw forward, then branch left and right, each sub-branch following the same instruction. Apply the rules recursively, and a single character unfolds into a complex branching structure.</p>
+
+            <p>What the viewer sees is a tree growing from a single point at the base, branching fractally into ever-finer structure with each iteration. The trunk divides into limbs, limbs into branches, branches into twigs — each generation doubling the complexity while maintaining self-similarity. The same pattern appears at every scale, from the overall silhouette down to the smallest twig. Wind ripples through the canopy as a sine wave, bending every branch by a breath of randomness that makes the geometry feel alive.</p>
+
+            <p>This recursive branching is not an abstraction — it is the literal architecture of the living world. The veins of an oak leaf mirror the shape of the oak itself. Fern fronds unfurl in spirals whose sub-fronds repeat the same spiral. Blood vessels branch from arteries to arterioles to capillaries following the same divide-and-narrow rule. River deltas, lightning bolts, and the bronchial passages of the human lung all share this geometry because they all solve the same problem: distribute resources efficiently through space by recursive subdivision.</p>
+
+            <p>The philosophical resonance runs deeper still. Recursive thinking is a fundamental pattern of intelligence — we solve complex problems by breaking them into simpler versions of themselves. An L-system tree has no blueprint, no master plan that specifies where each branch should go. It has only local rules applied universally, and from that minimal specification, structure emerges. This is growth without design: not chaos, but a self-organizing order that arises from the repeated application of simple principles. It suggests that complexity need not be designed — it can be grown.</p>
+        </div>
+
+        <div class="math-box">
+            <div class="math-box-header">THE FORMAL GRAMMAR</div>
+            <div class="math-box-formula">
+                F → FF<br>
+                X → F[−X][+X]
+            </div>
+            <div class="math-box-description">A formal grammar where F draws a line, brackets save and restore position, and +/− rotate the turtle. Each generation applies these rules recursively, producing exponential complexity from minimal information. From a single character, six iterations yield thousands of drawing instructions — a tree encoded in a sentence.</div>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ai-art/">← Back to Gallery</a>
+        </nav>
+    </div>
+
+    <script>
+        let currentSeed = Math.floor(Math.random() * 999) + 1;
+        let lSystemStr = '';
+        let needsRegenerate = true;
+        let needsRescale = true;
+        let windTime = 0;
+        let renderScale = 1;
+        let renderOffsetX = 0;
+
+        const PRESETS = {
+            tree: {
+                axiom: 'X',
+                rules: { 'X': 'F[+X][-X]' }
+            },
+            fern: {
+                axiom: 'X',
+                rules: { 'X': 'F[-X]F[+X]F' }
+            },
+            bush: {
+                axiom: 'X',
+                rules: { 'X': 'F[+X][-X]F[-X][+X]' }
+            },
+            seaweed: {
+                axiom: 'X',
+                rules: { 'X': 'FF[-X][+X]' }
+            }
+        };
+
+        let params = {
+            angle: 25,
+            ratio: 0.67,
+            iterations: 6,
+            axiom: 'tree',
+            wind: 0.5
+        };
+
+        function seededRandom(seed) {
+            let s = seed;
+            return function() {
+                s = (s * 16807 + 0) % 2147483647;
+                return (s - 1) / 2147483646;
+            };
+        }
+
+        function generateLSystem() {
+            let preset = PRESETS[params.axiom];
+            let str = preset.axiom;
+            let maxLen = 250000;
+
+            for (let i = 0; i < params.iterations; i++) {
+                let next = '';
+                for (let j = 0; j < str.length; j++) {
+                    let ch = str[j];
+                    next += preset.rules[ch] || ch;
+                    if (next.length > maxLen) break;
+                }
+                str = next;
+                if (str.length > maxLen) break;
+            }
+            lSystemStr = str;
+            needsRegenerate = false;
+            needsRescale = true;
+        }
+
+        function recalculateScale() {
+            let str = lSystemStr;
+            let x = 0, y = 0, a = -Math.PI / 2;
+            let stack = [];
+            let depth = 0;
+            let ba = params.angle * Math.PI / 180;
+
+            let minX = 0, maxX = 0, minY = 0, maxY = 0;
+
+            for (let i = 0; i < str.length; i++) {
+                let ch = str[i];
+                if (ch === 'F') {
+                    let segLen = Math.pow(params.ratio, depth);
+                    x += Math.cos(a) * segLen;
+                    y += Math.sin(a) * segLen;
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                } else if (ch === '+') {
+                    a += ba;
+                } else if (ch === '-') {
+                    a -= ba;
+                } else if (ch === '[') {
+                    stack.push({ x, y, a, depth });
+                    depth++;
+                } else if (ch === ']') {
+                    let s = stack.pop();
+                    if (s) { x = s.x; y = s.y; a = s.a; depth = s.depth; }
+                }
+            }
+
+            let treeW = (maxX - minX) || 1;
+            let treeH = (maxY - minY) || 1;
+
+            let scaleW = (width * 0.72) / treeW;
+            let scaleH = (height * 0.82) / treeH;
+            renderScale = Math.min(scaleW, scaleH);
+            renderOffsetX = -(minX + maxX) / 2 * renderScale;
+            needsRescale = false;
+        }
+
+        function setup() {
+            let canvas = createCanvas(800, 800);
+            canvas.parent('canvas-container');
+            generateLSystem();
+            recalculateScale();
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function draw() {
+            background(13, 13, 15);
+            windTime += 0.012;
+            if (needsRegenerate) { generateLSystem(); }
+            if (needsRescale) { recalculateScale(); }
+            renderTree();
+        }
+
+        function renderTree() {
+            let rng = seededRandom(currentSeed);
+            let baseAngle = params.angle;
+            let str = lSystemStr;
+            let maxDepth = estimateMaxDepth(str);
+
+            push();
+            translate(width / 2 + renderOffsetX, height - 30);
+
+            let depthStack = [];
+            let currentDepth = 0;
+
+            for (let i = 0; i < str.length; i++) {
+                let ch = str[i];
+                let depthRatio = maxDepth > 0 ? currentDepth / maxDepth : 0;
+                let segLen = renderScale * Math.pow(params.ratio, currentDepth);
+
+                let windOffset = params.wind * Math.sin(windTime * 2.0 + currentDepth * 0.5) * depthRatio * 2.5;
+                let seedJitter = (rng() - 0.5) * 4 * depthRatio;
+
+                if (ch === 'F') {
+                    let trunkR = 101, trunkG = 67, trunkB = 33;
+                    let tipR = 46, tipG = 135, tipB = 82;
+
+                    let hueShift = (rng() - 0.5) * 25;
+                    let r = lerp(trunkR, tipR + hueShift, depthRatio);
+                    let g = lerp(trunkG, tipG + hueShift * 0.5, depthRatio);
+                    let b = lerp(trunkB, tipB - hueShift * 0.3, depthRatio);
+
+                    let sw = Math.max(0.4, (1 - depthRatio * 0.85) * 5.5 + 0.4);
+                    stroke(r, g, b, 180 + depthRatio * 75);
+                    strokeWeight(sw);
+                    line(0, 0, 0, -segLen);
+                    translate(0, -segLen);
+
+                    if (depthRatio > 0.7 && rng() > 0.35) {
+                        drawLeaf(rng);
+                    }
+                } else if (ch === '+') {
+                    rotate(radians(baseAngle + windOffset + seedJitter));
+                } else if (ch === '-') {
+                    rotate(radians(-baseAngle + windOffset + seedJitter));
+                } else if (ch === '[') {
+                    push();
+                    depthStack.push(currentDepth);
+                    currentDepth++;
+                } else if (ch === ']') {
+                    pop();
+                    currentDepth = depthStack.length > 0 ? depthStack.pop() : 0;
+                }
+            }
+            pop();
+        }
+
+        function drawLeaf(rng) {
+            let leafSize = 2 + rng() * 5;
+            let lr = 25 + rng() * 50;
+            let lg = 110 + rng() * 90;
+            let lb = 30 + rng() * 40;
+            let la = 100 + rng() * 120;
+
+            noStroke();
+            fill(lr, lg, lb, la);
+
+            push();
+            rotate(radians((rng() - 0.5) * 70));
+            ellipse(0, 0, leafSize * 0.5, leafSize);
+            pop();
+        }
+
+        function estimateMaxDepth(str) {
+            let d = 0, maxD = 0;
+            for (let i = 0; i < str.length; i++) {
+                if (str[i] === '[') { d++; if (d > maxD) maxD = d; }
+                else if (str[i] === ']') d--;
+            }
+            return maxD;
+        }
+
+        function updateParam(name, value) {
+            if (name === 'angle') {
+                params.angle = parseInt(value);
+                document.getElementById('angle-value').textContent = value + '°';
+                needsRescale = true;
+            } else if (name === 'ratio') {
+                params.ratio = parseFloat(value);
+                document.getElementById('ratio-value').textContent = parseFloat(value).toFixed(2);
+                needsRescale = true;
+            } else if (name === 'iterations') {
+                params.iterations = parseInt(value);
+                document.getElementById('iterations-value').textContent = value;
+                needsRegenerate = true;
+            } else if (name === 'axiom') {
+                params.axiom = value;
+                needsRegenerate = true;
+            } else if (name === 'wind') {
+                params.wind = parseFloat(value);
+                document.getElementById('wind-value').textContent = parseFloat(value).toFixed(1);
+            }
+        }
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-display').textContent =
+                String(currentSeed).padStart(3, '0');
+        }
+
+        function previousVariation() {
+            currentSeed = Math.max(1, currentSeed - 1);
+            updateSeedDisplay();
+        }
+
+        function nextVariation() {
+            currentSeed = currentSeed + 1;
+            updateSeedDisplay();
+        }
+
+        function randomVariation() {
+            currentSeed = Math.floor(Math.random() * 999) + 1;
+            updateSeedDisplay();
+        }
+
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
