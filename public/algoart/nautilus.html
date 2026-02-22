@@ -395,19 +395,30 @@
         /* Scroll indicator */
         .scroll-indicator {
             position: absolute;
-            bottom: 15px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
-            font-family: 'Crimson Pro', serif;
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            color: rgba(201, 165, 90, 0.4);
             text-align: center;
+            animation: pulseGlow 2.5s ease-in-out infinite;
         }
-
+        .scroll-indicator span {
+            display: block;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
         .scroll-arrow {
+            font-size: 22px;
+            display: block;
             animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
         @keyframes bounceArrow {
@@ -548,6 +559,29 @@
 
         .article-nav a:hover {
             opacity: 1;
+        }
+    
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .parameters-panel { left: 20px; top: 80px; width: 180px; }
+            .education-panel { right: 20px; top: 80px; width: 200px; }
+            .controls { right: 20px; top: 35px; }
+            .seed-display { top: 35px; left: 20px; }
+        }
+        @media (max-width: 768px) {
+            .parameters-panel { display: none; }
+            .education-panel { display: none; }
+            .controls { right: 15px; top: 12px; }
+            .controls .control-btn { width: 32px; height: 32px; font-size: 14px; }
+            .seed-display { top: 12px; left: 15px; font-size: 9px; }
+            .seed-number { font-size: 14px; }
+            .back-nav { padding: 8px 15px; }
+            .back-nav a { font-size: 9px; letter-spacing: 1px; }
+            .back-nav .site-name { display: none; }
+            .placard { bottom: 50px; padding: 12px 20px; }
+            .placard-title { font-size: 14px; letter-spacing: 3px; }
+            .placard-subtitle { font-size: 10px; }
+            .placard-meta { font-size: 8px; }
         }
     </style>
 </head>
