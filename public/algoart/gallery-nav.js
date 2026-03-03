@@ -34,6 +34,31 @@
   // ── Inject styles ──
 
   var css = [
+    '/* Top nav prev/next */',
+    '.gallery-nav-top {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 14px;',
+    '  pointer-events: auto;',
+    '}',
+    '.gallery-nav-top__btn {',
+    '  font-family: "EB Garamond", serif;',
+    '  font-size: 20px;',
+    '  line-height: 1;',
+    '  color: #c9a55a;',
+    '  text-decoration: none;',
+    '  opacity: 0.4;',
+    '  transition: opacity 0.3s;',
+    '  padding: 2px 4px;',
+    '  pointer-events: auto;',
+    '}',
+    '.gallery-nav-top__btn:hover { opacity: 1; }',
+    '@media (max-width: 768px) {',
+    '  .gallery-nav-top { gap: 8px; }',
+    '  .gallery-nav-top__btn { font-size: 16px; }',
+    '}',
+    '',
+    '/* Side arrows — hidden on wide screens where panels overlap */',
     '.gallery-nav-side {',
     '  position: fixed;',
     '  top: 50%;',
@@ -55,11 +80,20 @@
     '}',
     '.gallery-nav-side--prev { left: 4px; border-radius: 3px; }',
     '.gallery-nav-side--next { right: 4px; border-radius: 3px; }',
-    '@media (hover: hover) and (min-width: 769px) {',
+    '@media (min-width: 769px) and (max-width: 1200px) {',
     '  .gallery-nav-side { opacity: 0.2; }',
+    '  .gallery-nav-side:hover {',
+    '    opacity: 1;',
+    '    background: rgba(13, 13, 15, 0.85);',
+    '    border-color: rgba(201, 165, 90, 0.35);',
+    '  }',
+    '}',
+    '@media (min-width: 1201px) {',
+    '  .gallery-nav-side { display: none; }',
     '}',
     '@media (max-width: 768px) {',
     '  .gallery-nav-side { opacity: 0.3; width: 26px; height: 52px; }',
+    '  .gallery-nav-side:hover { opacity: 1; }',
     '}',
     '.gallery-nav-side:hover {',
     '  opacity: 1;',
@@ -108,7 +142,35 @@
   style.textContent = css;
   document.head.appendChild(style);
 
-  // ── Side navigation arrows ──
+  // ── Top nav prev/next buttons ──
+
+  var backNav = document.querySelector('.back-nav');
+  if (backNav) {
+    var backLink = backNav.querySelector('a');
+    if (backLink) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'gallery-nav-top';
+
+      var prevBtn = document.createElement('a');
+      prevBtn.href = prevHref;
+      prevBtn.className = 'gallery-nav-top__btn';
+      prevBtn.textContent = '\u2039';
+      prevBtn.title = prev.title;
+
+      var nextBtn = document.createElement('a');
+      nextBtn.href = nextHref;
+      nextBtn.className = 'gallery-nav-top__btn';
+      nextBtn.textContent = '\u203A';
+      nextBtn.title = next.title;
+
+      backLink.parentNode.insertBefore(wrapper, backLink);
+      wrapper.appendChild(prevBtn);
+      wrapper.appendChild(backLink);
+      wrapper.appendChild(nextBtn);
+    }
+  }
+
+  // ── Side navigation arrows (visible only when panels are hidden) ──
 
   function createSideNav(dir, item, href) {
     var a = document.createElement('a');
