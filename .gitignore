@@ -36,6 +36,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+# old/archived blog content
+/blog_old
+
+# IDE / tooling
+.cursor/
+.playwright-mcp/
+
+# root-level screenshots (dev/test artifacts)
+/*.png
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
