@@ -20,19 +20,19 @@ export function Button({
   className,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseStyles = 'inline-flex items-center justify-center rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0a0a12]';
   
   const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
-    secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
-    outline: 'border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 dark:border-gray-600 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:text-white focus:ring-gray-500',
-    ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 focus:ring-gray-500',
+    primary: 'bg-[#c9a84c] hover:bg-[#d4b65e] text-[#0a0a12] focus:ring-[#c9a84c]',
+    secondary: 'bg-[#1a1a28] hover:bg-[#252536] text-[#e8e6e3] dark:bg-[#1a1a28] dark:hover:bg-[#252536] focus:ring-[#c9a84c]',
+    outline: 'border border-[#c9a84c]/40 hover:border-[#c9a84c] text-[#c9a84c] hover:bg-[#c9a84c]/10 focus:ring-[#c9a84c]',
+    ghost: 'text-[#8a8780] hover:text-[#c9a84c] hover:bg-white/5 focus:ring-[#c9a84c]',
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'px-4 py-1.5 text-sm',
+    md: 'px-5 py-2.5 text-sm',
+    lg: 'px-7 py-3 text-base',
   };
 
   const buttonClass = cn(
@@ -49,8 +49,8 @@ export function Button({
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
         className={buttonClass}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
       >
         {children}
       </motion.a>
@@ -60,8 +60,8 @@ export function Button({
   return (
     <motion.button
       className={buttonClass}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
       onClick={props.onClick}
       disabled={props.disabled}
       type={props.type}
@@ -69,4 +69,4 @@ export function Button({
       {children}
     </motion.button>
   );
-} 
+}

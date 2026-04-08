@@ -26,14 +26,18 @@ export function Card({
   return (
     <motion.div
       className={cn(
-        'bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm',
+        'bg-white dark:bg-[#13131f] rounded-xl border border-gray-200/60 dark:border-white/[0.06] shadow-sm dark:shadow-none',
         paddingClasses[padding],
         className
       )}
-      whileHover={hover ? { y: -5, boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' } : {}}
-      transition={{ duration: 0.2 }}
+      whileHover={hover ? {
+        y: -3,
+        borderColor: 'rgba(201, 168, 76, 0.25)',
+        transition: { duration: 0.25 }
+      } : {}}
+      transition={{ duration: 0.25 }}
     >
       {children}
     </motion.div>
   );
-} 
+}

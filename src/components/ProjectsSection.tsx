@@ -33,32 +33,26 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
   const featuredPersonalProjects = PERSONAL_PROJECTS.filter(project => project.featured);
   const otherPersonalProjects = PERSONAL_PROJECTS.filter(project => !project.featured);
 
-  const getEnterpriseIcon = (iconName: string, isFeatured: boolean = false) => {
+  const getIcon = (iconName: string, isFeatured: boolean = false) => {
     const icon = iconMap[iconName as keyof typeof iconMap];
     if (isFeatured) {
       return <div className="text-white">{icon}</div>;
     }
-    return <div className="text-blue-600 dark:text-blue-400 flex-shrink-0">{icon}</div>;
+    return <div className="text-[#b8941f] dark:text-[#c9a84c] flex-shrink-0">{icon}</div>;
   };
 
-  const getPersonalIcon = (iconName: string, isFeatured: boolean = false) => {
+  const getSmallIcon = (iconName: string) => {
     const iconKey = iconName || 'FaRocket';
     const icon = iconMap[iconKey as keyof typeof iconMap];
-
-    if (isFeatured) {
-      // For featured cards, the icon is large and white, overlaying an image or gradient
-      return <div className="text-white">{icon}</div>;
-    }
-    // For non-featured cards, the icon is smaller and has the green brand color
     const smallIcon = {
       ...icon,
       props: { ...icon.props, className: 'text-lg mt-1' }
     };
-    return <div className="text-green-600 dark:text-green-400 flex-shrink-0">{smallIcon}</div>;
-  }
+    return <div className="text-[#b8941f] dark:text-[#c9a84c] flex-shrink-0">{smallIcon}</div>;
+  };
 
   return (
-    <section id={id} className={`py-10 bg-gray-50 dark:bg-gray-800 ${className}`}>
+    <section id={id} className={`py-20 bg-gray-50/50 dark:bg-[#0e0e18] ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -67,10 +61,11 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="font-serif text-4xl sm:text-5xl font-light text-gray-900 dark:text-white mb-4">
             Portfolio
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <div className="w-12 h-px bg-[#c9a84c]/40 mx-auto mb-6" />
+          <p className="text-gray-500 dark:text-[#8a8780] max-w-2xl mx-auto">
             From enterprise-scale AI transformations to innovative personal projects, 
             showcasing solutions that demonstrate the power of emerging technologies.
           </p>
@@ -85,13 +80,13 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <FaBuilding className="text-blue-600 dark:text-blue-400 text-2xl" />
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <FaBuilding className="text-[#c9a84c] text-xl" />
+              <h3 className="font-serif text-2xl sm:text-3xl font-normal text-gray-900 dark:text-white">
                 Enterprise Solutions
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-gray-500 dark:text-[#6b6860] text-sm max-w-xl mx-auto">
               Large-scale transformations and AI implementations for Fortune 500 companies
             </p>
           </motion.div>
@@ -106,31 +101,28 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 viewport={{ once: true }}
               >
                 <Card padding="none" className="overflow-hidden group">
-                  {/* Project Image */}
-                  <div className={`relative h-48 bg-gradient-to-r ${project.color || 'from-gray-500 to-gray-600'}`}>
-                    <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                  <div className={`relative h-48 bg-gradient-to-r ${project.color || 'from-gray-700 to-gray-800'}`}>
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                       <div className="text-white text-center">
-                        {getEnterpriseIcon(project.icon!, true)}
+                        {getIcon(project.icon!, true)}
                         <h3 className="text-xl font-bold">{project.title}</h3>
                       </div>
                     </div>
                   </div>
 
-                  {/* Project Content */}
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       {project.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    <p className="text-sm text-gray-600 dark:text-[#8a8780] mb-4">
                       {project.description}
                     </p>
 
-                    {/* Technologies */}
-                    <div className="flex flex-wrap gap-2 mb-6">
+                    <div className="flex flex-wrap gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {project.technologies.map((tech: string) => (
                         <span
                           key={tech}
-                          className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm"
+                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
                         >
                           {tech}
                         </span>
@@ -142,7 +134,6 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
             ))}
           </div>
 
-          {/* Other Enterprise Projects */}
           {otherEnterpriseProjects.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {otherEnterpriseProjects.map((project: Project, index: number) => (
@@ -154,25 +145,24 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                   viewport={{ once: true }}
                   className="h-full"
                 >
-                  <Card className="h-full flex flex-col">
+                  <Card className="h-full flex flex-col group">
                     <div className="flex-grow">
                       <div className="flex items-start gap-3 mb-3">
-                        {getEnterpriseIcon(project.icon!)}
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {getSmallIcon(project.icon!)}
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                           {project.title}
                         </h4>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                      <p className="text-sm text-gray-500 dark:text-[#8a8780] mb-4">
                         {project.description}
                       </p>
                     </div>
                     
-                    {/* Technologies */}
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="flex flex-wrap gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {project.technologies.map((tech: string) => (
                         <span
                           key={tech}
-                          className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-xs"
+                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
                         >
                           {tech}
                         </span>
@@ -194,13 +184,13 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <FaRocket className="text-green-600 dark:text-green-400 text-2xl" />
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <FaRocket className="text-[#c9a84c] text-xl" />
+              <h3 className="font-serif text-2xl sm:text-3xl font-normal text-gray-900 dark:text-white">
                 Personal Innovations
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-gray-500 dark:text-[#6b6860] text-sm max-w-xl mx-auto">
               Side projects and AI experiments that showcase creativity and technical expertise
             </p>
           </motion.div>
@@ -215,7 +205,6 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 viewport={{ once: true }}
               >
                 <Card padding="none" className="overflow-hidden group">
-                  {/* Project Image */}
                   <div className="relative h-48">
                     {project.image ? (
                       <>
@@ -226,63 +215,51 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                           className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
                         />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-4 text-center transition-colors group-hover:bg-black/50">
-                           <div className="text-white text-center">
-                            {getPersonalIcon(project.icon!, true)}
+                          <div className="text-white text-center">
+                            {getIcon(project.icon!, true)}
                             <h3 className="text-xl font-bold">{project.title}</h3>
                           </div>
                         </div>
                       </>
                     ) : (
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#1a1a28] to-[#252536] flex items-center justify-center">
                         <div className="text-white text-center">
-                          {getPersonalIcon(project.icon!, true)}
+                          {getIcon(project.icon!, true)}
                           <h3 className="text-xl font-bold">{project.title}</h3>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Project Content */}
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       {project.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    <p className="text-sm text-gray-600 dark:text-[#8a8780] mb-4">
                       {project.description}
                     </p>
 
-                    {/* Technologies */}
-                    <div className="flex flex-wrap gap-2 mb-6">
+                    <div className="flex flex-wrap gap-1.5 mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {project.technologies.map((tech: string) => (
                         <span
                           key={tech}
-                          className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm"
+                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
                         >
                           {tech}
                         </span>
                       ))}
                     </div>
 
-                    {/* Links */}
                     <div className="flex gap-3">
                       {project.githubUrl && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          href={project.githubUrl}
-                          external
-                        >
-                          <FaGithub className="mr-2" size={16} />
+                        <Button variant="outline" size="sm" href={project.githubUrl} external>
+                          <FaGithub className="mr-2" size={14} />
                           Code
                         </Button>
                       )}
                       {project.liveUrl && (
-                        <Button
-                          size="sm"
-                          href={project.liveUrl}
-                          external
-                        >
-                          <FaExternalLinkAlt className="mr-2" size={14} />
+                        <Button size="sm" href={project.liveUrl} external>
+                          <FaExternalLinkAlt className="mr-2" size={12} />
                           Live Demo
                         </Button>
                       )}
@@ -293,7 +270,6 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
             ))}
           </div>
 
-          {/* Other Personal Projects */}
           {otherPersonalProjects.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {otherPersonalProjects.map((project: Project, index: number) => (
@@ -305,51 +281,39 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                   viewport={{ once: true }}
                   className="h-full"
                 >
-                  <Card className="h-full flex flex-col">
+                  <Card className="h-full flex flex-col group">
                     <div className="flex-grow">
                       <div className="flex items-start gap-3 mb-3">
-                        {getPersonalIcon(project.icon!)}
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {getSmallIcon(project.icon!)}
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                           {project.title}
                         </h4>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                      <p className="text-sm text-gray-500 dark:text-[#8a8780] mb-4">
                         {project.description}
                       </p>
                     </div>
                     
                     <div>
-                      {/* Technologies */}
-                      <div className="flex flex-wrap gap-1 mb-4">
+                      <div className="flex flex-wrap gap-1 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         {project.technologies.map((tech: string) => (
                           <span
                             key={tech}
-                            className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded text-xs"
+                            className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
                           >
                             {tech}
                           </span>
                         ))}
                       </div>
 
-                      {/* Links */}
                       <div className="flex gap-2">
                         {project.githubUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            href={project.githubUrl}
-                            external
-                          >
+                          <Button variant="ghost" size="sm" href={project.githubUrl} external>
                             <FaGithub size={16} />
                           </Button>
                         )}
                         {project.liveUrl && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            href={project.liveUrl}
-                            external
-                          >
+                          <Button variant="ghost" size="sm" href={project.liveUrl} external>
                             <FaExternalLinkAlt size={14} />
                           </Button>
                         )}
@@ -364,4 +328,4 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
       </div>
     </section>
   );
-} 
+}

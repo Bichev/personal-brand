@@ -20,7 +20,7 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
   const isExpanded = visibleCount > PAGE_SIZE;
 
   return (
-    <section id={id} className={`py-10 bg-white dark:bg-gray-900 ${className}`}>
+    <section id={id} className={`py-20 bg-white dark:bg-[#0a0a12] ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -29,9 +29,10 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="font-serif text-4xl sm:text-5xl font-light text-gray-900 dark:text-white mb-4">
             Latest Insights
           </h2>
+          <div className="w-12 h-px bg-[#c9a84c]/40 mx-auto" />
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
@@ -48,31 +49,31 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
                   transition={{ duration: 0.4, delay: index >= visibleCount - PAGE_SIZE ? (index % PAGE_SIZE) * 0.08 : 0 }}
                   className="h-full"
                 >
-                  <Card className={`h-full flex flex-col ${post.featured ? 'ring-1 ring-blue-200 dark:ring-blue-800' : ''}`}>
+                  <Card className={`h-full flex flex-col group ${post.featured ? 'ring-1 ring-[#c9a84c]/20' : ''}`}>
                     <div className="flex-grow">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <FaClock className="mr-2" size={14} />
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center text-xs text-gray-400 dark:text-[#6b6860] font-mono">
+                          <FaClock className="mr-1.5" size={10} />
                           {formatDate(post.date)} &bull; {post.readTime}
                         </div>
                         {isLocal && (
-                          <span className="bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                          <span className="bg-[#c9a84c]/10 text-[#c9a84c] px-2 py-0.5 rounded text-[10px] font-mono font-medium tracking-wider uppercase">
                             Article
                           </span>
                         )}
                       </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 leading-snug">
                         {post.title}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      <p className="text-sm text-gray-500 dark:text-[#8a8780] mb-4 leading-relaxed">
                         {post.excerpt}
                       </p>
 
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="flex flex-wrap gap-1.5 mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         {post.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs"
+                            className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
                           >
                             {tag}
                           </span>
@@ -83,7 +84,7 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
                     <a 
                       href={href} 
                       {...(isLocal ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-                      className="flex items-center text-blue-600 dark:text-blue-400 font-medium text-sm cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                      className="flex items-center text-[#b8941f] dark:text-[#c9a84c] font-medium text-sm cursor-pointer hover:text-[#d4b65e] transition-colors"
                     >
                       <span>{isLocal ? 'Read Article' : 'Read More'}</span>
                       {isLocal ? (
@@ -103,7 +104,7 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
           <div className="text-center mb-12">
             <button
               onClick={() => setVisibleCount(prev => hasMore ? prev + PAGE_SIZE : PAGE_SIZE)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-[#8a8780] hover:border-[#c9a84c]/40 hover:text-[#c9a84c] transition-colors text-sm font-medium"
             >
               {hasMore ? (
                 <>Show More ({allPosts.length - visibleCount} remaining) <FaChevronDown size={12} /></>
@@ -121,21 +122,20 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
           viewport={{ once: true }}
           className="text-center"
         >
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-            <h3 className="text-2xl font-bold mb-4">
+          <div className="rounded-2xl p-8 border border-white/[0.06] bg-gray-50 dark:bg-[#13131f]">
+            <h3 className="font-serif text-2xl font-light text-gray-900 dark:text-white mb-3">
               Want to stay updated?
             </h3>
-            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+            <p className="text-gray-500 dark:text-[#8a8780] mb-6 max-w-2xl mx-auto text-sm">
               Connect with me on LinkedIn for exclusive content from Fortune 500 engagements.
             </p>
             <Button
               variant="outline"
-              size="lg"
+              size="md"
               href="https://www.linkedin.com/in/vladimir-bichev-383b1525/"
               external
-              className="border-white text-white hover:bg-white hover:text-blue-600"
             >
-              <FaExternalLinkAlt className="mr-2" size={16} />
+              <FaExternalLinkAlt className="mr-2" size={14} />
               Follow on LinkedIn
             </Button>
           </div>

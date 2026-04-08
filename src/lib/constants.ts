@@ -12,21 +12,15 @@ export const SITE_CONFIG = {
 
 export const PERSONAL_INFO = {
   name: 'Vladimir Bichev',
-  tagline: 'Technical Program Manager & AI Engineering Leader',
-  shortBio: 'Technical Program Manager and AI Engineering Leader with 15+ years of experience driving digital transformation at scale. Currently at EPAM Systems, delivering cutting-edge solutions for Fortune 500 companies.',
-  longBio: `My journey in technology has been focused on one core principle: <strong>building solutions that create meaningful business impact.</strong>
+  tagline: 'AI Engineering Leader & Builder',
+  shortBio: 'I build AI systems that enterprises actually deploy — from agentic workflows and knowledge graphs to voice AI and real-time ML at scale.',
+  longBio: `I've spent 15+ years building software that ships at scale — and the last several focused on bringing AI from prototype to production for Fortune 500 companies.
 
-Over 10 years at EPAM Systems, I've had the privilege of growing from an individual contributor to a Technical Program Manager, scaling teams from 10 to 150+ engineers and driving over $15M in revenue growth. What excites me most is working with Fortune 500 clients across diverse industries - from streaming platforms and travel companies to financial services and publishing houses.
+I lead engineering teams, design system architectures, and get things into production. Streaming platforms processing millions of ad auctions daily, travel companies serving 300K+ users across 240+ locations, publishing enterprises migrating 4B+ documents — these are the kinds of problems I solve.
 
-<strong>Current Focus:</strong> Leading AI-powered transformations for major travel and media companies, where I'm building systems that serve millions of users daily through personalized recommendations and intelligent content delivery.
+Currently, I'm deep in agentic AI: autonomous agents, MCP integrations, knowledge graphs, and voice AI systems. I build things that work in the real world, not just in demos.
 
-<strong>Career Milestones:</strong> I've led digital transformation processing 4B+ documents daily, drove AI forecasting system architecture for streaming platforms serving 5M+ devices, built blockchain solutions for major financial institutions, and developed generative AI agents that went from concept to production in months. Along the way, I've earned recognition including the EPAM CEO Showcase Award and have shared insights at Europe and USA tech conferences in AI, Blockchain, and Data Architecture.
-
-<strong>Continuous Learning:</strong> I believe in staying ahead of the curve through education - from Harvard Business School and Wharton to hands-on certifications like AWS Solution Architect.
-
-<strong>Beyond Work:</strong> I channel my passion for innovation into personal AI projects - some have even been acquired by private investors, proving that good ideas can come from anywhere.
-
-What drives me is the intersection of cutting-edge technology and practical business impact. Every line of code, every architectural decision, every team I build - it's all aimed at creating solutions that make a real difference in how people work and live.`,
+Harvard Business School. Wharton. AWS Certified Solution Architect. EPAM CEO Award. Conference speaker across Europe and the US. But what matters most is what ships.`,
   email: 'vl.bichev@gmail.com',
   location: 'Jacksonville, FL',
   resumeUrl: '/Vladimir_Bichev_CV.pdf',

@@ -10,60 +10,53 @@ import { scrollToSection } from '@/lib/utils';
 export function HeroSection() {
   const getSocialIcon = (iconName: string) => {
     switch (iconName) {
-      case 'FaLinkedin':
-        return <FaLinkedin size={24} />;
-      case 'FaGithub':
-        return <FaGithub size={24} />;
-      case 'FaTwitter':
-        return <FaTwitter size={24} />;
-      case 'FaEnvelope':
-        return <FaEnvelope size={24} />;
-      default:
-        return null;
+      case 'FaLinkedin': return <FaLinkedin size={22} />;
+      case 'FaGithub': return <FaGithub size={22} />;
+      case 'FaTwitter': return <FaTwitter size={22} />;
+      case 'FaEnvelope': return <FaEnvelope size={22} />;
+      default: return null;
     }
   };
 
   return (
-    <section id="hero" className="min-h-screen flex items-center justify-center relative bg-gradient-to-br from-blue-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+    <section id="hero" className="min-h-screen flex items-center justify-center relative bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-[#0a0a12] dark:via-[#0a0a12] dark:to-[#0a0a12]">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center_top,_rgba(201,168,76,0.06)_0%,_transparent_60%)] pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 relative z-10">
         <div className="text-center">
-          {/* Profile Photo */}
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <div className="relative w-36 h-36 sm:w-48 sm:h-48 mx-auto mb-8">
+            <div className="relative w-36 h-36 sm:w-44 sm:h-44 mx-auto mb-8">
               <Image
                 src={PERSONAL_INFO.photoUrl}
                 alt={PERSONAL_INFO.name}
                 fill
-                className="rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
+                className="rounded-full object-cover ring-2 ring-[#c9a84c]/30 ring-offset-4 ring-offset-white dark:ring-offset-[#0a0a12] shadow-lg"
                 priority
               />
             </div>
           </motion.div>
 
-          {/* Name and Tagline */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-8"
           >
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-light tracking-tight text-gray-900 dark:text-white mb-5">
               {PERSONAL_INFO.name}
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-[#8a8780] mb-5 tracking-wide">
               {PERSONAL_INFO.tagline}
             </p>
-            <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-base text-gray-500 dark:text-[#6b6860] max-w-2xl mx-auto leading-relaxed">
               {PERSONAL_INFO.shortBio}
             </p>
           </motion.div>
 
-          {/* Call-to-Action Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -89,7 +82,6 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Social Links */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -103,7 +95,7 @@ export function HeroSection() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                  className="text-gray-400 dark:text-[#6b6860] hover:text-[#b8941f] dark:hover:text-[#c9a84c] transition-colors"
                   whileHover={{ y: -3, scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, y: 20 }}
@@ -116,7 +108,6 @@ export function HeroSection() {
             </div>
           </motion.div>
 
-          {/* Scroll Down Indicator */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -125,15 +116,15 @@ export function HeroSection() {
           >
             <motion.button
               onClick={() => scrollToSection('about')}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ repeat: Infinity, duration: 2 }}
+              className="text-gray-300 dark:text-[#6b6860] hover:text-[#c9a84c] transition-colors"
+              animate={{ y: [0, 8, 0] }}
+              transition={{ repeat: Infinity, duration: 2.5 }}
             >
-              <FaArrowDown size={24} />
+              <FaArrowDown size={20} />
             </motion.button>
           </motion.div>
         </div>
       </div>
     </section>
   );
-} 
+}

@@ -8,14 +8,14 @@ import { SectionProps } from '@/types';
 import { Card } from './Card';
 
 const iconMap = {
-  FaFish: <FaFish className="w-8 h-8" />,
-  FaRunning: <FaRunning className="w-8 h-8" />,
-  FaBreadSlice: <FaBreadSlice className="w-8 h-8" />,
+  FaFish: <FaFish className="w-7 h-7" />,
+  FaRunning: <FaRunning className="w-7 h-7" />,
+  FaBreadSlice: <FaBreadSlice className="w-7 h-7" />,
 };
 
 export function InterestsSection({ className, id = 'interests' }: SectionProps) {
   return (
-    <section id={id} className={`py-10 bg-gray-50 dark:bg-gray-800 ${className}`}>
+    <section id={id} className={`py-20 bg-gray-50/50 dark:bg-[#0e0e18] ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -24,10 +24,11 @@ export function InterestsSection({ className, id = 'interests' }: SectionProps) 
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="font-serif text-4xl sm:text-5xl font-light text-gray-900 dark:text-white mb-4">
             Beyond the Keyboard
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <div className="w-12 h-px bg-[#c9a84c]/40 mx-auto mb-6" />
+          <p className="text-gray-500 dark:text-[#8a8780] max-w-2xl mx-auto">
             A few of the passions that keep me balanced, creative, and inspired.
           </p>
         </motion.div>
@@ -50,14 +51,14 @@ export function InterestsSection({ className, id = 'interests' }: SectionProps) 
                     className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
                   />
                   <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center p-4 text-center transition-colors group-hover:bg-black/50">
-                    <div className="text-white mb-3">
+                    <div className="text-white/80 mb-3">
                       {iconMap[interest.icon as keyof typeof iconMap]}
                     </div>
-                    <h3 className="text-xl font-bold text-white">{interest.title}</h3>
+                    <h3 className="text-xl font-semibold text-white">{interest.title}</h3>
                   </div>
                 </div>
-                <div className="p-6 bg-white dark:bg-gray-900 flex-grow">
-                  <p className="text-gray-600 dark:text-gray-300">
+                <div className="p-6 bg-white dark:bg-[#13131f] flex-grow">
+                  <p className="text-sm text-gray-500 dark:text-[#8a8780] leading-relaxed">
                     {interest.description}
                   </p>
                 </div>
@@ -68,4 +69,4 @@ export function InterestsSection({ className, id = 'interests' }: SectionProps) 
       </div>
     </section>
   );
-} 
+}
