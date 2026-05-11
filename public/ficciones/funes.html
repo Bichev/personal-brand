@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funes el memorioso — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Funes the Memorious — a canvas that never forgets, accumulating an unreadable density of perfect memory.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ── HUD (instants counter) — faint brass corner readout ── */
+        .hud {
+            position: absolute;
+            top: 88px;
+            right: 32px;
+            z-index: 8;
+            text-align: right;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            pointer-events: none;
+            line-height: 1.8;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+        }
+
+        .hud-line {
+            display: block;
+            white-space: nowrap;
+        }
+
+        .hud-instants {
+            opacity: 0.92;
+        }
+
+        .hud-event {
+            color: var(--brass-bright);
+            opacity: 0.78;
+            margin-top: 2px;
+            letter-spacing: 1.8px;
+            min-height: 14px;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+            .hud { right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .hud {
+                top: auto;
+                bottom: 132px;
+                right: 16px;
+                left: 16px;
+                text-align: right;
+                font-size: 9px;
+                letter-spacing: 2px;
+            }
+            .hud-event { letter-spacing: 1.5px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">✦</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="name a memory — it will be filed forever…"
+                maxlength="80"
+                aria-label="Name a memory to file it forever"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">FILING THE INSTANTS…</div>
+        </div>
+
+        <!-- HUD — instants remembered counter -->
+        <div class="hud" id="hud" aria-hidden="true">
+            <div class="hud-line hud-instants" id="hud-instants">INSTANTS REMEMBERED: 0</div>
+            <div class="hud-line hud-event" id="hud-event">&nbsp;</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Memory Without Forgetting</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>After his fall from a horse in 1884, the young Ireneo Funes loses <strong>nothing</strong> of what he perceives. He recalls the precise shape of every cloud at every moment, the angle of every leaf, the inflection of voices heard once at three years' distance.</p>
+                    <p>He can reconstruct an entire day in the time it takes to live it — and then reconstruct the reconstruction. <em>Memory, in him, is the inability to lose.</em></p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Inability to Abstract</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Borges' quiet horror: Funes <strong>cannot generalize</strong>. The dog seen at 3:14 from the side is not, for him, the same animal as the dog seen at 3:15 from the front.</p>
+                    <p>He cannot form the concept "dog". To think is to <em>forget differences</em> — and Funes forgets none. He perceives brilliantly; he cannot think.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Combinatorial Memory</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Funes invents a private numerical system in which <strong>every integer has its own name</strong>. <em>The Train</em> means seven thousand and fourteen; <em>Napoleon</em>, five hundred and two; <em>The Sulphur</em>, nine hundred.</p>
+                    <p>The system is useless — and, in some painful sense, the only honest one. Each number is itself, never a member of a sequence.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Borges on Categorization</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story is an attack on a metaphysical assumption: that <strong>knowledge is the storage of detail</strong>. For Borges, to know is to <em>throw away</em> — to see that this leaf and that leaf are "leaves", that 1884 and 1885 are "years".</p>
+                    <p>Without abstraction, the world has no shape. With it, the world has only shapes.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Cost of Total Recall</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>What if a language model remembered every token of every conversation, perfectly, forever — without ever generalizing? It would be Funes, not Einstein. <strong>Intelligence is compression.</strong></p>
+                    <p>A perfect record of the world is <em>indistinguishable from the world</em>; and the world, encountered without abstraction, is unbearable. Funes died of pulmonary congestion at twenty-one.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">✦  Funes el memorioso  ✦</div>
+            <div class="placard-title">Funes the Memorious</div>
+            <div class="placard-meta">Jorge Luis Borges · 1942 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) — for Funes, opened only by oracle invocation -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">✦  A Memory Has Been Filed</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">№</span><span class="value" id="cat-no">—</span></div>
+                <div class="row"><span class="label">Position</span><span class="value" id="cat-position">—</span></div>
+                <div class="row"><span class="label">Time</span><span class="value" id="cat-time">—</span></div>
+                <div class="row found"><span class="label">Of</span><span class="value" id="cat-of">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>✦</span></div>
+
+        <p class="article-eyebrow">✦  Artificios · 07  ✦</p>
+        <h1 class="article-title">The Memory Without Forgetting</h1>
+        <p class="article-subtitle">On the boy who could not abstract</p>
+
+        <blockquote class="article-epigraph">
+            "Pensar es olvidar diferencias, es generalizar, abstraer. En el abarrotado
+            mundo de Funes no había sino detalles, casi inmediatos."
+            <cite>— Jorge Luis Borges, Funes el memorioso (1942)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>After a fall from his horse in 1884, Ireneo Funes — a quiet rural Uruguayan boy of nineteen — woke into perfect memory. Where the rest of us forget almost everything, he forgot nothing: not a leaf of a vine seen at dusk, not the precise shape of a southern cloud at 4:47 on a Wednesday in February, not the inflection of a voice he had heard once, in passing, three years before. He could reconstruct an entire day in the time it took to live it, and then reconstruct the reconstruction. Borges, narrating as a young Buenos Aires student, leaves the story before Funes — cripple and prodigy — dies of pulmonary congestion at twenty-one.</p>
+
+            <p>What Borges insists on, and what we mistake for wonder, is this: Funes is not a genius. He is the precise opposite. To think is to forget differences — to see that <em>this leaf and that leaf</em> are both "leaves", that the dog seen at 3:14 from the side and the dog seen at 3:15 from the front are the same dog. Funes cannot. He invents a numerical system in which each integer has its own private name: seven thousand and fourteen might be called <em>The Train</em>; five hundred and two, <em>Napoleon</em>. The system is useless — and, in some painful sense, the only honest one. He perceives, and therefore he is blind.</p>
+
+            <p>This canvas literalizes the impossibility. Each instant the cursor exists, a single bright mote is recorded — a leaf, a sensation, an instant of being. Nothing is ever forgotten; the surface never clears. Move quickly and the trail thins; pause and the cluster thickens; sit still and ambient noise still leaks fresh motes nearby, the way Funes lay paralyzed and watched the dust of the air. Click anywhere and you mark an event — a small brass star with a timestamp the work refuses to let go. Invoke a phrase and a named memory is filed. The piece does not crash. It simply, eventually, becomes unreadable — which is, in Borges' geometry, exactly the same thing as becoming totally readable.</p>
+
+            <p>The story is sometimes shelved as oddity — the boy who remembered everything — but it is, like most of Borges, a quiet attack on a metaphysical mistake: that more information is intelligence. It is not. A language model that perfectly remembered every token of every conversation, every pixel of every image, every keystroke of every user — without ever generalizing, compressing, or forgetting — would be Funes, not Einstein. <em>Intelligence is the gift of throwing away</em>: of recognizing that this leaf and that leaf are "leaves", that this user and that user are "users", that these instants are "a Wednesday". Memory, when total, is indistinguishable from the world; and the world, encountered without abstraction, is unbearable. Funes died young. The model would simply run out of disk.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">✦  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"Su percepción y su memoria eran infalibles. …Funes no sólo recordaba cada hoja de cada árbol de cada monte, sino cada una de las veces que la había percibido o imaginado."</p>
+            <p class="literary-heart-quote-en">"His perception and memory were infallible. …Funes remembered not only every leaf on every tree of every wood, but each one of the times he had perceived or imagined it."</p>
+            <p class="literary-heart-formula">|memories| → ∞ · canvas without erase</p>
+            <p class="literary-heart-description">An accumulator without a clear: every instant the cursor exists is recorded as a single bright mote on a canvas that never resets. Each click marks an event with a brass star; each invocation files a named memory at a deterministic address. The piece does not forget. The image, asymptotically, fills.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG (same FNV-1a + Mulberry32 as Babel) ──
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── Funes' procedural memory banks ──
+        // The phrase deterministically locates a memory; the description is
+        // generated from a seed derived by hashString(phrase).
+        const FUNES_SUBJECTS = [
+            'A leaf',
+            'The underside of a leaf',
+            'A cloud',
+            'The voice of a man',
+            'The breath of a horse',
+            'The colour of the bark',
+            'The smell of mate',
+            'The texture of the wool',
+            'The wrinkle of a face',
+            'A silence',
+            'The taste of the bread',
+            'The angle of the lamplight',
+            'The weight of a single drop',
+            'The precise inflection of a syllable',
+            'The shadow of a hand',
+            'The veins of a single fig leaf',
+            'A blade of grass',
+            'The dust of the colt'
+        ];
+        const FUNES_PLACES = [
+            'in the south orchard',
+            'in the eucalyptus grove',
+            'over the Río Negro',
+            'at the gate of the patio',
+            'beneath the third arch',
+            'beside the irrigation channel',
+            'next to the white horse',
+            'in the kitchen window',
+            'on the wall of the corridor',
+            'in the cigarette smoke',
+            'in the third stanza of an old song',
+            'against the whitewash of the Pereyra house',
+            'in the courtyard at dusk',
+            'on the bread of the third of August',
+            'between the fence and the river'
+        ];
+        const FUNES_DETAILS = [
+            'third branch from the left',
+            'the side facing west',
+            'just before the bell',
+            'the moment after the rain stopped',
+            'two seconds before the rooster',
+            'as the light turned amber',
+            'a degree colder than the air',
+            'with three drops of water clinging to it',
+            'with twenty-seven veins, exactly',
+            'with one corner curled inward',
+            'the leftmost of a pair',
+            'where the shadow met the stone',
+            'the underside slightly darker than the top',
+            'half-shadowed by the eaves',
+            'in the second half of a long breath'
+        ];
+        const FUNES_OCCASIONS = [
+            'after the rain',
+            'before the rain',
+            'on the morning of the eclipse',
+            'on a Wednesday in February at 4:47',
+            'in the second hour after midnight',
+            'just after the bell of eleven',
+            'at dusk on the day of the storm',
+            'three days after the fall',
+            'on the seventh of June, 1884',
+            'in the year before the fall',
+            'while the train passed and did not stop'
+        ];
+
+        function describeMemoryFor(phrase) {
+            const seed = hashString(phrase.toLowerCase());
+            const r = rng(seed);
+            const subject = FUNES_SUBJECTS[Math.floor(r() * FUNES_SUBJECTS.length)];
+            const place = FUNES_PLACES[Math.floor(r() * FUNES_PLACES.length)];
+            const detail = FUNES_DETAILS[Math.floor(r() * FUNES_DETAILS.length)];
+            const occasion = FUNES_OCCASIONS[Math.floor(r() * FUNES_OCCASIONS.length)];
+            return `${subject} ${place}, ${detail}, ${occasion}.`;
+        }
+
+        // The long Funes-style excerpt — two halves bracketing the user's phrase
+        // (the phrase serves as the "private name" Funes gave the memory).
+        function funesExcerptParts(phrase) {
+            const seed = hashString(phrase.toLowerCase()) ^ 0x9e3779b9;
+            const r = rng(seed);
+            const subject = FUNES_SUBJECTS[Math.floor(r() * FUNES_SUBJECTS.length)].toLowerCase();
+            const place = FUNES_PLACES[Math.floor(r() * FUNES_PLACES.length)];
+            const occasion = FUNES_OCCASIONS[Math.floor(r() * FUNES_OCCASIONS.length)];
+            const detail1 = FUNES_DETAILS[Math.floor(r() * FUNES_DETAILS.length)];
+            const detail2 = FUNES_DETAILS[Math.floor(r() * FUNES_DETAILS.length)];
+            return {
+                before: `He remembered ${subject} ${place} ${occasion}, ${detail1}, ${detail2}, and the precise weight of its silence. He had — for his private catalogue — called it `,
+                after: '. He remembered also each one of the times he had perceived or imagined it, and the differences between them, which were not differences but, for him, separate objects entirely.'
+            };
+        }
+
+        function formatTime(d) {
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            const ss = String(d.getSeconds()).padStart(2, '0');
+            return `${hh}:${mm}:${ss}`;
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ── DOM references ──
+        const overlay = document.getElementById('book-overlay');
+        const elTitle = document.getElementById('book-title');
+        const elCatNo = document.getElementById('cat-no');
+        const elCatPosition = document.getElementById('cat-position');
+        const elCatTime = document.getElementById('cat-time');
+        const elCatOf = document.getElementById('cat-of');
+        const elExcerpt = document.getElementById('book-excerpt');
+        const hudInstants = document.getElementById('hud-instants');
+        const hudEvent = document.getElementById('hud-event');
+
+        // ── p5.js sketch state ──
+        // The memory layer is a p5.Graphics that is NEVER cleared. The main
+        // canvas only blits it each frame plus ephemeral overlays (event labels,
+        // hover tooltips) on top.
+        let cnv;
+        let memoryLayer;
+        let instantsRemembered = 0;
+        let instantsAtLastEvent = 0;
+        let lastEventTimeStr = '';
+        let lastEventGap = 0;
+        let namedMemories = [];   // { x, y, phrase, id, time }
+        let eventLabels = [];     // { x, y, text, born, dur }
+        let lastMouseX = null, lastMouseY = null;
+        let hudDirty = true;
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            const pd = Math.min(2, window.devicePixelRatio || 1);
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(pd);
+
+            memoryLayer = createGraphics(window.innerWidth, window.innerHeight);
+            memoryLayer.pixelDensity(pd);
+            memoryLayer.noStroke();
+            memoryLayer.background(12, 10, 8);
+
+            textFont('IBM Plex Mono');
+            noStroke();
+            updateHUD(true);
+        }
+
+        // Canvas does NOT clear on resize — we copy the old layer onto the new one.
+        function windowResized() {
+            const oldLayer = memoryLayer;
+            const pd = Math.min(2, window.devicePixelRatio || 1);
+            resizeCanvas(window.innerWidth, window.innerHeight);
+            pixelDensity(pd);
+            memoryLayer = createGraphics(window.innerWidth, window.innerHeight);
+            memoryLayer.pixelDensity(pd);
+            memoryLayer.background(12, 10, 8);
+            memoryLayer.noStroke();
+            memoryLayer.image(oldLayer, 0, 0);
+            oldLayer.remove();
+        }
+
+        function draw() {
+            depositMotes();
+            image(memoryLayer, 0, 0);
+            bakeAndDrawEventLabels();
+            drawNamedTooltipIfHovered();
+            if (hudDirty) {
+                updateHUD();
+                hudDirty = false;
+            }
+        }
+
+        // ── Mote deposition — the heart of the piece ──
+        // Every frame, the cursor leaves bright parchment motes on the canvas.
+        // Velocity affects density (slower → denser cluster); ambient noise
+        // drops a few motes per second even when the cursor is still.
+        function depositMotes() {
+            if (overlay.classList.contains('open')) return;
+
+            const x = mouseX, y = mouseY;
+            const inside = x >= 0 && x <= width && y >= 0 && y <= height;
+
+            let vel = 0;
+            if (lastMouseX !== null && inside) {
+                vel = Math.hypot(x - lastMouseX, y - lastMouseY);
+            }
+
+            if (inside) {
+                let count;
+                if (vel < 1.2)       count = 4 + Math.floor(Math.random() * 3);
+                else if (vel < 6)    count = 2 + Math.floor(Math.random() * 2);
+                else if (vel < 20)   count = 1;
+                else                 count = (Math.random() < 0.4) ? 1 : 0;
+
+                const spread = vel < 1.2 ? 5 : (vel < 8 ? 3 : 1.5);
+                for (let i = 0; i < count; i++) {
+                    depositMote(
+                        x + (Math.random() - 0.5) * spread,
+                        y + (Math.random() - 0.5) * spread
+                    );
+                }
+            }
+
+            // Ambient memory leakage — even paralyzed, Funes remembers the dust.
+            if (Math.random() < 0.05) {
+                const cx = inside ? x : (lastMouseX !== null ? lastMouseX : width / 2);
+                const cy = inside ? y : (lastMouseY !== null ? lastMouseY : height / 2);
+                depositMote(
+                    cx + (Math.random() - 0.5) * 60,
+                    cy + (Math.random() - 0.5) * 60,
+                    true
+                );
+            }
+
+            if (inside) {
+                lastMouseX = x;
+                lastMouseY = y;
+            }
+        }
+
+        function depositMote(x, y, ambient) {
+            const size = 1 + Math.random() * 2;        // 1–3 px disc
+            // Parchment with slight noise variation
+            const jitter = 22;
+            const r = constrain(236 + (Math.random() - 0.5) * jitter, 200, 255);
+            const g = constrain(220 + (Math.random() - 0.5) * jitter, 180, 235);
+            const b = constrain(188 + (Math.random() - 0.5) * jitter, 150, 200);
+            const alpha = ambient ? 40 + Math.random() * 30 : 80 + Math.random() * 90;
+            memoryLayer.noStroke();
+            memoryLayer.fill(r, g, b, alpha);
+            memoryLayer.circle(x, y, size);
+            instantsRemembered++;
+            hudDirty = true;
+        }
+
+        // ── Drill — click marks a permanent brass star + floating timestamp ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav') ||
+                      t.closest('.scroll-indicator') || t.closest('.hud'))) return;
+            drillEvent(mouseX, mouseY);
+        }
+
+        function drillEvent(x, y) {
+            drawEventStar(memoryLayer, x, y);
+
+            const now = new Date();
+            const ts = formatTime(now);
+            eventLabels.push({
+                x, y, text: ts,
+                born: millis(),
+                dur: 3600
+            });
+
+            lastEventTimeStr = ts;
+            lastEventGap = instantsRemembered - instantsAtLastEvent;
+            instantsAtLastEvent = instantsRemembered;
+            hudDirty = true;
+        }
+
+        function drawEventStar(g, x, y) {
+            g.push();
+            g.noStroke();
+            // Soft outer glow
+            for (let r = 22; r > 0; r -= 4) {
+                g.fill(212, 163, 102, 14);
+                g.circle(x, y, r);
+            }
+            // 4-pointed brass star
+            g.fill(232, 180, 120, 230);
+            g.beginShape();
+            for (let i = 0; i < 8; i++) {
+                const a = -Math.PI / 2 + (i * Math.PI / 4);
+                const radius = (i % 2 === 0) ? 9 : 3.2;
+                g.vertex(x + radius * Math.cos(a), y + radius * Math.sin(a));
+            }
+            g.endShape(CLOSE);
+            // Bright core
+            g.fill(255, 230, 180, 255);
+            g.circle(x, y, 3);
+            g.pop();
+        }
+
+        function drawNamedMemoryMote(g, x, y) {
+            g.push();
+            g.noStroke();
+            // Brass halo
+            for (let r = 18; r > 0; r -= 3) {
+                g.fill(212, 163, 102, 18);
+                g.circle(x, y, r);
+            }
+            // Bright core
+            g.fill(232, 200, 140, 240);
+            g.circle(x, y, 6);
+            g.fill(255, 230, 180, 255);
+            g.circle(x, y - 0.6, 2.6);
+            g.pop();
+        }
+
+        // Floating timestamp labels — float outward, fade, then bake to permanence.
+        function bakeAndDrawEventLabels() {
+            for (let i = eventLabels.length - 1; i >= 0; i--) {
+                const lbl = eventLabels[i];
+                const age = millis() - lbl.born;
+                const t = age / lbl.dur;
+                if (t >= 1) {
+                    // Bake a faint etched permanence onto the memory layer
+                    memoryLayer.push();
+                    memoryLayer.noStroke();
+                    memoryLayer.fill(198, 150, 84, 75);
+                    memoryLayer.textFont('IBM Plex Mono');
+                    memoryLayer.textSize(9);
+                    memoryLayer.textAlign(LEFT, CENTER);
+                    memoryLayer.text(lbl.text, lbl.x + 14, lbl.y - 24);
+                    memoryLayer.pop();
+                    eventLabels.splice(i, 1);
+                    continue;
+                }
+                const ease = t * t;
+                const dx = 14 + ease * 22;
+                const dy = -ease * 28;
+                const alpha = (1 - t) * 230;
+                push();
+                noStroke();
+                textFont('IBM Plex Mono');
+                textSize(10);
+                textAlign(LEFT, CENTER);
+                const tw = textWidth(lbl.text);
+                rectMode(CORNER);
+                fill(12, 10, 8, alpha * 0.6);
+                rect(lbl.x + dx - 5, lbl.y + dy - 7, tw + 10, 14, 1);
+                stroke(198, 150, 84, alpha * 0.4);
+                strokeWeight(0.5);
+                noFill();
+                rect(lbl.x + dx - 5, lbl.y + dy - 7, tw + 10, 14, 1);
+                noStroke();
+                fill(232, 180, 120, alpha);
+                text(lbl.text, lbl.x + dx, lbl.y + dy);
+                pop();
+            }
+        }
+
+        // ── Hover: named memories show their phrase as a tooltip ──
+        function findHoveredNamedMemory() {
+            if (overlay.classList.contains('open')) return null;
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return null;
+            let best = null;
+            let bestD = 14;
+            for (let i = namedMemories.length - 1; i >= 0; i--) {
+                const m = namedMemories[i];
+                const d = Math.hypot(mouseX - m.x, mouseY - m.y);
+                if (d < bestD) { bestD = d; best = m; }
+            }
+            return best;
+        }
+
+        function drawNamedTooltipIfHovered() {
+            const m = findHoveredNamedMemory();
+            if (!m) return;
+            push();
+            noStroke();
+            textFont('IBM Plex Mono');
+
+            const idText = `№ ${m.id.toLocaleString()} · ${formatTime(m.time)}`;
+            textSize(9);
+            const idW = textWidth(idText);
+
+            textSize(11);
+            const maxPhraseW = 360;
+            let display = m.phrase;
+            while (textWidth(display) > maxPhraseW && display.length > 1) {
+                display = display.slice(0, -1);
+            }
+            if (display !== m.phrase) display = display + '…';
+            const phraseW = textWidth(display);
+
+            const w = Math.max(idW, phraseW);
+            const padX = 12, padY = 9;
+            const boxW = w + padX * 2;
+            const boxH = padY * 2 + 26;
+
+            let x = m.x + 14;
+            let y = m.y - boxH - 6;
+            if (x + boxW > width - 8) x = m.x - boxW - 14;
+            if (x < 8) x = 8;
+            if (y < 8) y = m.y + 14;
+
+            rectMode(CORNER);
+            fill(12, 10, 8, 225);
+            rect(x, y, boxW, boxH, 1);
+            stroke(198, 150, 84, 130);
+            strokeWeight(0.6);
+            noFill();
+            rect(x, y, boxW, boxH, 1);
+            noStroke();
+
+            fill(198, 150, 84, 230);
+            textSize(9);
+            textAlign(LEFT, TOP);
+            text(idText, x + padX, y + padY - 1);
+
+            fill(232, 220, 188, 240);
+            textSize(11);
+            text(display, x + padX, y + padY + 13);
+            pop();
+        }
+
+        function updateHUD(force) {
+            hudInstants.textContent = `INSTANTS REMEMBERED: ${instantsRemembered.toLocaleString()}`;
+            if (lastEventTimeStr) {
+                hudEvent.textContent = `EVENT MARKED: ${lastEventTimeStr} · ${lastEventGap.toLocaleString()} INSTANTS SINCE LAST EVENT`;
+            } else if (force) {
+                hudEvent.innerHTML = '&nbsp;';
+            }
+        }
+
+        // ── Touch handling for mobile ──
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav') ||
+                      t.closest('.scroll-indicator') || t.closest('.hud'))) return;
+            return false;
+        }
+        function touchMoved() { return false; }
+        function touchEnded() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav') ||
+                      t.closest('.scroll-indicator') || t.closest('.hud'))) return;
+            if (mouseX >= 0 && mouseY >= 0 && mouseX <= width && mouseY <= height) {
+                drillEvent(mouseX, mouseY);
+            }
+            return false;
+        }
+
+        // ── Overlay close ──
+        function closeOverlay() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeOverlay();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeOverlay();
+            }
+        });
+
+        // ── Oracle (Invoke) — name a memory and it is filed forever ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+
+            // Determine a position for the named-memory mote
+            let x = mouseX, y = mouseY;
+            if (isNaN(x) || x < 0 || x > width || isNaN(y) || y < 0 || y > height) {
+                x = lastMouseX !== null ? lastMouseX : width / 2;
+                y = lastMouseY !== null ? lastMouseY : height / 2;
+            }
+
+            instantsRemembered++; // the act of naming is itself an instant
+            const id = instantsRemembered;
+            drawNamedMemoryMote(memoryLayer, x, y);
+
+            const now = new Date();
+            namedMemories.push({ x, y, phrase, id, time: now });
+
+            openMemoryOverlay(phrase, x, y, id, now);
+
+            oracleInput.value = '';
+            oracleInput.blur();
+            hudDirty = true;
+        });
+
+        function openMemoryOverlay(phrase, x, y, id, time) {
+            elTitle.textContent = phrase;
+            elCatNo.textContent = id.toLocaleString();
+            elCatPosition.textContent = `(${Math.round(x)}, ${Math.round(y)})`;
+            elCatTime.textContent = formatTime(time);
+            elCatOf.textContent = describeMemoryFor(phrase);
+
+            const parts = funesExcerptParts(phrase);
+            const html =
+                '<span class="ellipsis">…</span>' +
+                escapeHtml(parts.before) +
+                '<mark>' + escapeHtml(phrase) + '</mark>' +
+                escapeHtml(parts.after) +
+                '<span class="ellipsis">…</span>';
+            elExcerpt.innerHTML = html;
+
+            overlay.classList.add('invoked');
+            overlay.classList.add('open');
+        }
+    </script>
+</body>
+</html>

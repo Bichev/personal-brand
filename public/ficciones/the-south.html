@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Sur — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' El Sur — two endings superimposed on a single canvas, crossfading on the velocity of the cursor. Move fast and the hospital rises; sit still and the pampas comes for you.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+
+        /* ─────────────────────────────────────────
+           El Sur · piece-specific additions
+           (interleaved fragments + boundary inscriptions)
+           ───────────────────────────────────────── */
+
+        .book-excerpt .scene-h,
+        .book-excerpt .scene-p {
+            display: block;
+            margin: 10px 0;
+            padding-left: 14px;
+            border-left: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .book-excerpt .scene-h {
+            color: var(--indigo-bright);
+            border-left-color: rgba(122, 144, 192, 0.45);
+        }
+        .book-excerpt .scene-p {
+            color: var(--brass-bright);
+            border-left-color: rgba(224, 180, 120, 0.45);
+        }
+        .book-excerpt .scene-h::before {
+            content: 'H · ';
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--indigo);
+            opacity: 0.75;
+            margin-right: 6px;
+        }
+        .book-excerpt .scene-p::before {
+            content: 'P · ';
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            opacity: 0.75;
+            margin-right: 6px;
+        }
+        .book-excerpt .invoke-gloss {
+            color: var(--parchment);
+            font-style: italic;
+            display: block;
+        }
+        .book-excerpt .invoke-phrase {
+            display: block;
+            text-align: center;
+            margin: 4px 0 22px;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 17px;
+        }
+        .book-excerpt .invoke-phrase .half-h { color: var(--indigo-bright); }
+        .book-excerpt .invoke-phrase .half-p { color: var(--brass-bright); }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">✦</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="leave a memory at the boundary…"
+                maxlength="80"
+                aria-label="Leave a memory at the boundary between the two layers"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">RENDERING TWO ROOMS…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Two Endings</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story can be read two ways. In one, Dahlmann <strong>survives the hospital</strong>, takes the train south, and dies on the pampas with a borrowed knife in his hand. In the other, he <strong>never leaves the operating table</strong>; the entire southern journey is a delirium under anaesthesia.</p>
+                    <p>Borges signed the ambiguity into the character himself: Dahlmann has a German paternal grandfather and an Argentine maternal one — the two halves of <em>Borges' own ancestry</em>, irreconcilable, each claiming a different death.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Honorable Death</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Argentine literature long honored <em>la muerte digna</em> — the death of a man on his feet, with a weapon in hand, in the open. The hospital death, by contrast, was the death of waste, of bureaucracy, of the body managed by strangers.</p>
+                    <p>Dahlmann's choice — if it is a choice — is between two deaths separated by everything except <strong>the fact that they kill him</strong>.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Cursor Stillness as Will</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>This piece treats your cursor as Dahlmann's <strong>will to live</strong>. Move it — fight, grasp, refuse — and the hospital rises around you. Stop it — surrender, accept, let go — and the pampas comes.</p>
+                    <p>The metaphor is cruel and exact: in this story, <em>will keeps you in the bed</em>; rest takes you south. At equilibrium — both layers at half-opacity — the boundary between the two rooms is briefly accessible, and only then will the story let you click.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Pampas Mythology</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The pampas in Borges is not a place but a memory of a place. By the 1950s the gauchos he wrote about had been gone for two generations.</p>
+                    <p>The country store, the knife, the long horizon, the silent old gaucho — these are <strong>mythic furniture</strong>, drawn from Hernández's <em>Martín Fierro</em> more than from any visit Borges made. Dahlmann goes to a south that exists, properly, only in libraries.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Borges' Most Beloved Story</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>In the prologue to the 1956 edition of <em>Ficciones</em>, Borges wrote: <strong>"Of this story, perhaps my best, it is enough to say that one can read it as a direct narrative of novelistic events, and also in another way."</strong></p>
+                    <p>He died in Geneva in 1986, in a clean room. The story he loved most ends, depending on the reader, on a knife or on a needle.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">✦  El Sur  ✦</div>
+            <div class="placard-title">The South</div>
+            <div class="placard-meta">Jorge Luis Borges · 1953 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">✦  A fragment from both rooms</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Coord</span><span class="value" id="cat-hex">—</span></div>
+                <div class="row"><span class="label">Click</span><span class="value" id="cat-gallery">—</span></div>
+                <div class="row"><span class="label">Balance</span><span class="value" id="cat-shelf">—</span></div>
+                <div class="row"><span class="label">Order</span><span class="value" id="cat-book">—</span></div>
+                <div class="row found"><span class="label">Found at</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>✦</span></div>
+
+        <p class="article-eyebrow">✦  Ficciones · 02  ✦</p>
+        <h1 class="article-title">The Two Endings of Juan Dahlmann</h1>
+        <p class="article-subtitle">On a story that holds both its endings open</p>
+
+        <blockquote class="article-epigraph">
+            "A Dahlmann le pareció que esa Iliada de los pobres era el mismo poema que él,
+            esa tarde, soñaba."
+            <cite>— Jorge Luis Borges, El Sur (1953)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Juan Dahlmann, a librarian in Buenos Aires, scrapes his head on a doorframe and is hospitalized with septicemia. After painful weeks, he sets out by train south, to convalesce at his family's pampas ranch — a long-imagined journey to the country of his maternal grandfather. There, in a country store, three drunk farmhands provoke him into a knife fight he cannot win. The story leaves it open whether the duel actually happens, or whether Dahlmann is dying on the operating table in Buenos Aires and only dreaming the dignified death he would have preferred. To read "El Sur" is to occupy two rooms at once.</p>
+
+            <p>This piece literalizes that double occupancy as a velocity-driven crossfade. The more your cursor moves, the more the hospital rises around you — a cold grid of ceiling tiles, a faint IV line, the clinical hum of survival as effort. The more your cursor stops, the more the pampas rises — a brass horizon at dusk, a single dark figure standing on it, stars beginning to appear above. Move fast, and you stay; sit still, and you go south. The interaction is the moral. The harder you struggle to remain in your body, the more hospital you draw around yourself; the more you let go, the more the pampas reaches for you. There is no third option in the canvas — and yet, at exactly the equilibrium between the two layers, both rooms hover at half-opacity, and only there will the story let you click.</p>
+
+            <p>Borges rarely lets the reader off this easily. Most of his fictions force a single cosmology: the library is total, the labyrinth is finite, the betrayal is inevitable. "El Sur" alone offers a structural compromise — two endings, both rendered with full dignity, both equally his. The story does not ask which ending is real; it asks which one you will let stand. To hold both endings simultaneously is the rare grace this story offers — the same grace that mathematics extends when it lets two solutions coexist, the same grace that physics extends when it lets a particle remain in superposition until something insists on a measurement. The algorithm here makes that grace tactile: equilibrium is a place you can reach with a hand.</p>
+
+            <p>Borges said "El Sur" was perhaps his best story — the one he loved most. He died in Geneva in 1986, far from Buenos Aires, far from the pampas, in a clean room. The story he loved was the one in which a man chooses, from the operating table, the death he would have preferred. The crossfade in front of you is not metaphor; it is the algorithm of his own dying. He gave us the math. He let us hold both endings. He chose, when his turn came, the hospital — but the pampas had been waiting for him on the other side of every still moment, every relinquishment, every breath he did not fight to take. Move your cursor. The two endings are still here.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">✦  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"A Dahlmann le pareció que esa Iliada de los pobres era el mismo poema que él, esa tarde, soñaba."</p>
+            <p class="literary-heart-quote-en">"It seemed to Dahlmann that this Iliad of the poor was the same poem that he, that afternoon, was dreaming."</p>
+            <p class="literary-heart-formula">opacity(A) + opacity(B) = 1</p>
+            <p class="literary-heart-description">Two scenes share one canvas; their opacities sum to one; the cursor's velocity decides which dominates. At velocity zero — sustained stillness — the pampas (B) reaches its full strength. At sustained motion, the hospital (A) does. Equilibrium — both layers at exactly one half — is the only moment the story will let you click, and the only place a typed memory can be inscribed along the boundary between the two.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch — El Sur
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG (same approach as la-biblioteca-de-babel) ──
+        // FNV-1a 32-bit
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function hashCoords(q, r) {
+            const a = (q << 1) ^ (q >> 31);
+            const b = (r << 1) ^ (r >> 31);
+            let h = 0x811c9dc5 >>> 0;
+            h ^= a & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= b & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+        // Mulberry32 RNG seeded by uint32
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── The two rooms ──
+        // Hospital sentences — Buenos Aires, the operating table
+        const HOSPITAL_FRAGMENTS = [
+            "the nurse adjusted the IV without speaking",
+            "the fluorescent tubes hummed beyond the ceiling tiles",
+            "a green line climbed and descended on the small screen",
+            "the doctor wrote something he did not say aloud",
+            "his head was bandaged in a way he could not see",
+            "the morphine arrived without ceremony",
+            "someone wheeled a cart through the corridor",
+            "the window held only the brick of the next wing",
+            "his lips were dry and the glass was just out of reach",
+            "the operating lamp was being prepared above him",
+            "an instrument tray was placed quietly beside him",
+            "the second hand of the wall clock advanced once",
+            "the linen smelled of soap and a long absence",
+            "outside the door two voices conferred in a register he could not parse",
+            "the anesthetist counted backward from ten",
+            "the page of the book of Las mil y una noches lay closed on the table"
+        ];
+
+        // Pampas sentences — the south, the country store, the duel
+        const PAMPAS_FRAGMENTS = [
+            "the wind crossed the long grass without effort",
+            "a single ombú broke the horizon",
+            "dust rose where no horse had passed",
+            "the country store smelled of yerba and tallow",
+            "three farmhands turned slowly toward him",
+            "the proprietor pretended to look elsewhere",
+            "an old gaucho on the floor watched without interest",
+            "the knife was thrown across the room and he caught it",
+            "the door opened onto the open plain",
+            "the sun was the colour of brass at the edge of the world",
+            "a thrush settled on the fence post and was gone",
+            "his grandfather had ridden this same ground a century ago",
+            "the train had left him at a station whose name he had forgotten",
+            "the cat in the window watched him as if it had been waiting",
+            "he stepped outside into the long late afternoon",
+            "the smell of the south was the smell of a remembered library"
+        ];
+
+        // ── Sketch state ──
+        let cnv;
+        let prevMX = -1, prevMY = -1;
+        let lastMoveAt = -10000;
+        let smoothedV = 0;
+        let hospitalState = 0.18;             // begin biased toward the pampas (no movement yet)
+        let currentHospitalAlpha = 0.18;
+        let invokedMemory = null;             // {text, time, seed}
+        let lastClickFeedback = null;         // {x, y, time, registered}
+        let stars = [];                       // pre-generated star positions for the pampas sky
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            noStroke();
+            // Pre-compute deterministic stars for the pampas sky
+            const starRng = rng(0xBEEF);
+            for (let i = 0; i < 90; i++) {
+                stars.push({
+                    xN: starRng(),
+                    yN: starRng() * 0.9,
+                    sz: 0.6 + starRng() * 1.1,
+                    twPhase: starRng() * Math.PI * 2,
+                    twSpeed: 0.0006 + starRng() * 0.0018
+                });
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+        }
+
+        // ── Drift · cursor velocity drives the crossfade ──
+        // Movement integrates into smoothedV; sustained stillness
+        // accumulates over ~1.2s and tilts the balance toward the pampas.
+        function updateInputState() {
+            if (prevMX < 0) { prevMX = mouseX; prevMY = mouseY; return; }
+            const dx = mouseX - prevMX;
+            const dy = mouseY - prevMY;
+            const v = Math.hypot(dx, dy);
+            if (v > 0.6) lastMoveAt = millis();
+            smoothedV = smoothedV * 0.82 + v * 0.18;
+            prevMX = mouseX;
+            prevMY = mouseY;
+        }
+
+        function updateBalance() {
+            const sinceMove = millis() - lastMoveAt;
+            // Stillness rises 0 → 1 over ~1.2s of no motion.
+            const stillness = constrain(sinceMove / 1200, 0, 1);
+            // Velocity normalized; ~12 px/frame saturates the hospital.
+            const velNorm = constrain(smoothedV / 12, 0, 1);
+            // Combine: rest pulls toward 0 (pampas), motion pushes toward 1 (hospital).
+            let target = velNorm * 0.55 + (1 - stillness) * 0.45;
+            // Smooth toward the target.
+            hospitalState += (target - hospitalState) * 0.07;
+            // Ambient noise — slight oscillation even at perfect stillness.
+            const ambient = (noise(millis() * 0.0004, 7.7) - 0.5) * 0.20;
+            currentHospitalAlpha = constrain(hospitalState + ambient, 0.04, 0.96);
+        }
+
+        function isAtEquilibrium() {
+            return Math.abs(currentHospitalAlpha - 0.5) < 0.13;
+        }
+
+        function draw() {
+            background(12, 10, 8);
+
+            const overlayOpen = overlay.classList.contains('open');
+            if (!overlayOpen) {
+                updateInputState();
+                updateBalance();
+            }
+
+            const hAlpha = currentHospitalAlpha;
+            const pAlpha = 1 - hAlpha;
+
+            drawPampas(pAlpha);
+            drawHospital(hAlpha);
+            drawECG();
+            drawInvokedMemory();
+
+            if (!overlayOpen) {
+                drawClickFeedback();
+                drawCursorIndicator();
+                drawBalanceMeter();
+            }
+        }
+
+        // ── Layer B · the pampas ──
+        // Horizon at dusk, dark figure on it, stars beginning to appear.
+        function drawPampas(alpha) {
+            if (alpha < 0.02) return;
+            const horizonY = height * 0.55;
+            push();
+            // Sky gradient (deep indigo high → fading to brass near horizon)
+            for (let y = 0; y < horizonY; y++) {
+                const t = y / horizonY;
+                const tp = Math.pow(t, 1.6);
+                const r = lerp(20, 198, tp);
+                const g = lerp(20, 130, tp);
+                const b = lerp(45, 78, tp);
+                stroke(r, g, b, 200 * alpha);
+                line(0, y, width, y);
+            }
+            // Brass-vermillion horizon glow band (~middle of the canvas)
+            const bandH = Math.min(120, height * 0.18);
+            for (let y = 0; y < bandH; y++) {
+                const t = y / bandH;
+                const r = lerp(224, 197, t);
+                const g = lerp(180, 74, t);
+                const b = lerp(120, 48, t);
+                const k = 1 - Math.abs(2 * t - 1);
+                stroke(r, g, b, k * 230 * alpha);
+                line(0, horizonY - bandH / 2 + y, width, horizonY - bandH / 2 + y);
+            }
+            // Ground (dark below horizon)
+            noStroke();
+            fill(14, 12, 10, 230 * alpha);
+            rect(0, horizonY + bandH / 2, width, height - (horizonY + bandH / 2));
+            // Faint long grass strokes near the bottom
+            stroke(60, 50, 35, 130 * alpha);
+            strokeWeight(0.5);
+            const grassRng = rng(0xCAFE);
+            for (let i = 0; i < 64; i++) {
+                const gx = grassRng() * width;
+                const gy = height - grassRng() * height * 0.20;
+                const gh = 6 + grassRng() * 16;
+                const lean = (grassRng() - 0.5) * 5;
+                line(gx, gy, gx + lean, gy - gh);
+            }
+            // Stars (twinkling) in the upper half of the sky only
+            noStroke();
+            const t = millis();
+            for (const s of stars) {
+                const sy = s.yN * horizonY * 0.85;
+                const tw = 0.45 + 0.55 * Math.sin(t * s.twSpeed + s.twPhase);
+                fill(236, 220, 188, 200 * alpha * tw);
+                ellipse(s.xN * width, sy, s.sz, s.sz);
+            }
+            // Single dark figure standing on the horizon (Dahlmann's would-be self)
+            fill(8, 6, 4, 245 * alpha);
+            const fx = width * 0.62;
+            const fy = horizonY;
+            // Body
+            rect(fx - 2.5, fy - 28, 5, 28);
+            // Head
+            ellipse(fx, fy - 32, 7, 7);
+            // Faint shadow on the ground
+            fill(8, 6, 4, 110 * alpha);
+            ellipse(fx, fy + 3, 16, 3);
+            pop();
+        }
+
+        // ── Layer A · the hospital ──
+        // Cold rectangular grid of ceiling tiles (indigo + parchment-faint),
+        // a faint IV drip line, subtle clinical glow.
+        function drawHospital(alpha) {
+            if (alpha < 0.02) return;
+            push();
+            noStroke();
+            // Cold indigo wash
+            fill(48, 60, 88, 55 * alpha);
+            rect(0, 0, width, height);
+            // Subtle clinical glow at the top (operating lamp suggestion)
+            const glowY = height * 0.18;
+            const glowR = Math.min(width, height) * 0.5;
+            for (let g = 0; g < 6; g++) {
+                const r = glowR * (0.4 + g * 0.12);
+                fill(180, 196, 220, 9 * alpha);
+                ellipse(width / 2, glowY, r * 2, r * 0.6);
+            }
+            // Ceiling-tile grid — thin indigo lines
+            const tileW = 92;
+            const tileH = 64;
+            const cols = Math.ceil(width / tileW) + 1;
+            const rows = Math.ceil(height / tileH) + 1;
+            stroke(58, 78, 122, 115 * alpha);
+            strokeWeight(0.5);
+            for (let i = 0; i <= cols; i++) line(i * tileW, 0, i * tileW, height);
+            for (let j = 0; j <= rows; j++) line(0, j * tileH, width, j * tileH);
+            // Tile centre pinpricks (parchment-faint)
+            noStroke();
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    fill(236, 220, 188, 24 * alpha);
+                    ellipse(i * tileW + tileW / 2, j * tileH + tileH / 2, 1.6, 1.6);
+                }
+            }
+            // Horizontal IV-drip line (parchment-faint)
+            const ivY = Math.round(height * 0.34) + 0.5;
+            stroke(236, 220, 188, 100 * alpha);
+            strokeWeight(0.7);
+            line(0, ivY, width, ivY);
+            // The drip itself — a slow indigo drop traversing the line
+            const dripX = (millis() / 7) % (width + 40) - 20;
+            noStroke();
+            fill(122, 144, 192, 235 * alpha);
+            ellipse(dripX, ivY, 4, 4);
+            fill(122, 144, 192, 90 * alpha);
+            ellipse(dripX - 7, ivY, 3, 3);
+            fill(122, 144, 192, 45 * alpha);
+            ellipse(dripX - 14, ivY, 2, 2);
+            // Faint instrument-tray side rails (vertical thin lines on left & right)
+            stroke(58, 78, 122, 75 * alpha);
+            strokeWeight(0.5);
+            line(width * 0.92, height * 0.55, width * 0.92, height * 0.85);
+            line(width * 0.08, height * 0.55, width * 0.08, height * 0.85);
+            pop();
+        }
+
+        // ── ECG line · always present, pulses across both layers ──
+        function drawECG() {
+            push();
+            noFill();
+            strokeWeight(1);
+            const baseY = height * 0.78;
+            const bpm = 70;
+            const period = 60000 / bpm;
+            const cycleLen = 260;
+            const offset = (millis() / period) * cycleLen;
+            // Color gently tracks the balance — indigo when hospital dominant,
+            // a softer brassy-indigo when pampas dominant.
+            const cR = lerp(58, 122, currentHospitalAlpha);
+            const cG = lerp(78, 144, currentHospitalAlpha);
+            const cB = lerp(122, 192, currentHospitalAlpha);
+            stroke(cR, cG, cB, 115);
+            beginShape();
+            for (let x = 0; x <= width; x += 1) {
+                const phase = (((x + offset) % cycleLen) + cycleLen) % cycleLen / cycleLen;
+                let y = baseY;
+                if (phase > 0.05 && phase < 0.18) {
+                    // P wave
+                    y -= 4 * Math.sin((phase - 0.05) / 0.13 * Math.PI);
+                } else if (phase > 0.42 && phase < 0.58) {
+                    // QRS complex (sharp spike)
+                    const lp = (phase - 0.42) / 0.16;
+                    if (lp < 0.18) y += 4 * (lp / 0.18);
+                    else if (lp < 0.46) y -= 36 * ((lp - 0.18) / 0.28);
+                    else if (lp < 0.74) y -= 36 - 50 * ((lp - 0.46) / 0.28);
+                    else y = baseY - 14 * (1 - (lp - 0.74) / 0.26);
+                } else if (phase > 0.66 && phase < 0.82) {
+                    // T wave
+                    y -= 6 * Math.sin((phase - 0.66) / 0.16 * Math.PI);
+                }
+                vertex(x, y);
+            }
+            endShape();
+            pop();
+        }
+
+        // ── Cursor indicator · brightens at equilibrium ──
+        function drawCursorIndicator() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            push();
+            noFill();
+            if (isAtEquilibrium()) {
+                const pulse = 0.85 + 0.15 * Math.sin(millis() * 0.005);
+                stroke(212, 163, 102, 220 * pulse);
+                strokeWeight(1.4);
+                ellipse(mouseX, mouseY, 24, 24);
+                stroke(212, 163, 102, 95 * pulse);
+                strokeWeight(0.6);
+                ellipse(mouseX, mouseY, 38, 38);
+            } else {
+                const dist = Math.abs(currentHospitalAlpha - 0.5);
+                const dim = constrain(1 - dist * 2.4, 0, 1);
+                stroke(232, 216, 183, 50 + 80 * dim);
+                strokeWeight(0.6);
+                ellipse(mouseX, mouseY, 14 + 6 * dim, 14 + 6 * dim);
+            }
+            pop();
+        }
+
+        // ── Balance meter · subtle indicator of current crossfade ──
+        function drawBalanceMeter() {
+            push();
+            const bw = 140;
+            const bh = 4;
+            const bx = 32;
+            const by = height - 64;
+            // Backdrop card
+            noStroke();
+            fill(12, 10, 8, 200);
+            rect(bx - 14, by - 30, bw + 28, 64, 1);
+            stroke(184, 136, 74, 70);
+            strokeWeight(0.6);
+            noFill();
+            rect(bx - 14, by - 30, bw + 28, 64, 1);
+            // Labels
+            noStroke();
+            textFont('IBM Plex Mono');
+            textSize(8.5);
+            textAlign(LEFT, CENTER);
+            fill(122, 144, 192, 215);
+            text('HOSPITAL', bx, by - 14);
+            textAlign(RIGHT, CENTER);
+            fill(212, 163, 102, 215);
+            text('PAMPAS', bx + bw, by - 14);
+            // Bar background (faint full-width)
+            noStroke();
+            fill(58, 78, 122, 80);
+            rect(bx, by, bw, bh, 0.5);
+            // Hospital fill from the left
+            fill(58, 78, 122, 200);
+            rect(bx, by, bw * currentHospitalAlpha, bh, 0.5);
+            // Pampas fill from the right
+            fill(212, 163, 102, 200);
+            rect(bx + bw * currentHospitalAlpha, by, bw * (1 - currentHospitalAlpha), bh, 0.5);
+            // Marker at the seam
+            const mx = bx + bw * currentHospitalAlpha;
+            fill(236, 220, 188, isAtEquilibrium() ? 245 : 150);
+            rect(mx - 1, by - 4, 2, bh + 8);
+            // Status legend
+            textAlign(CENTER, CENTER);
+            textSize(8);
+            if (isAtEquilibrium()) {
+                fill(212, 163, 102, 235);
+                text('EQUILIBRIUM · CLICK TO READ', bx + bw / 2, by + 18);
+            } else {
+                fill(232, 216, 183, 110);
+                text('seek equilibrium', bx + bw / 2, by + 18);
+            }
+            pop();
+        }
+
+        // ── Invoked memory · written along the boundary, half indigo / half brass ──
+        function drawInvokedMemory() {
+            if (!invokedMemory) return;
+            const age = millis() - invokedMemory.time;
+            let alpha = 1;
+            if (age < 600) alpha = age / 600;
+            else if (age > 8000) alpha = constrain(1 - (age - 8000) / 2200, 0, 1);
+            if (alpha <= 0) { invokedMemory = null; return; }
+            push();
+            textFont('Cormorant Garamond');
+            textStyle(ITALIC);
+            const baseSize = constrain(width * 0.022, 18, 30);
+            textSize(baseSize);
+            textAlign(CENTER, CENTER);
+            const txt = invokedMemory.text;
+            const split = Math.ceil(txt.length / 2);
+            const left = txt.slice(0, split);
+            const right = txt.slice(split);
+            const leftW = textWidth(left);
+            const rightW = textWidth(right);
+            const totalW = leftW + rightW;
+            const startX = width / 2 - totalW / 2;
+            const y = height * 0.55;
+            // Soft underline glow showing the boundary the phrase straddles
+            noStroke();
+            fill(236, 220, 188, 35 * alpha);
+            rect(startX - 30, y + baseSize * 0.62, totalW + 60, 0.6);
+            // Hospital half (indigo)
+            fill(122, 144, 192, 240 * alpha);
+            text(left, startX + leftW / 2, y);
+            // Pampas half (brass)
+            fill(224, 180, 120, 240 * alpha);
+            text(right, startX + leftW + rightW / 2, y);
+            pop();
+        }
+
+        // ── Click feedback ripple ──
+        function drawClickFeedback() {
+            if (!lastClickFeedback) return;
+            const age = millis() - lastClickFeedback.time;
+            if (age > 800) { lastClickFeedback = null; return; }
+            const t = age / 800;
+            const r = 10 + t * 60;
+            const a = 1 - t;
+            push();
+            noFill();
+            if (lastClickFeedback.registered) {
+                stroke(212, 163, 102, 220 * a);
+            } else {
+                stroke(197, 74, 48, 200 * a);
+            }
+            strokeWeight(1.2);
+            ellipse(lastClickFeedback.x, lastClickFeedback.y, r * 2, r * 2);
+            pop();
+        }
+
+        // ── Drill · clicks register only at equilibrium ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (
+                t.closest('.oracle') ||
+                t.closest('.education-panel') ||
+                t.closest('.book-overlay') ||
+                t.closest('.back-nav') ||
+                t.closest('.scroll-indicator')
+            )) return;
+            if (overlay.classList.contains('open')) return;
+            const eq = isAtEquilibrium();
+            lastClickFeedback = { x: mouseX, y: mouseY, time: millis(), registered: eq };
+            if (!eq) return;
+            openFragmentFor(mouseX, mouseY);
+        }
+
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (
+                t.closest('.oracle') ||
+                t.closest('.education-panel') ||
+                t.closest('.book-overlay') ||
+                t.closest('.back-nav') ||
+                t.closest('.scroll-indicator')
+            )) return;
+            if (overlay.classList.contains('open')) return;
+            const eq = isAtEquilibrium();
+            lastClickFeedback = { x: mouseX, y: mouseY, time: millis(), registered: eq };
+            if (!eq) return false;
+            openFragmentFor(mouseX, mouseY);
+            return false;
+        }
+
+        // ── Catalog helper ──
+        // Quantize click position so neighboring clicks return the same fragment.
+        function catalogFromXY(x, y) {
+            const qx = Math.round(x / 24);
+            const qy = Math.round(y / 24);
+            const seed = hashCoords(qx, qy);
+            const hexId = seed.toString(16).padStart(8, '0').toUpperCase();
+            return {
+                seed,
+                hex: `${hexId.slice(0,4)}-${hexId.slice(4)}`,
+                coord: `(${qx}, ${qy})`
+            };
+        }
+
+        // ── Build a deterministic interleaved fragment ──
+        // Four lines, alternating Hospital and Pampas.
+        function buildInterleavedFragment(seed) {
+            const r = rng(seed);
+            const startsH = r() < 0.5;
+            const lines = [];
+            for (let i = 0; i < 4; i++) {
+                const isH = startsH ? (i % 2 === 0) : (i % 2 === 1);
+                const list = isH ? HOSPITAL_FRAGMENTS : PAMPAS_FRAGMENTS;
+                const idx = Math.floor(r() * list.length);
+                lines.push({ scene: isH ? 'H' : 'P', text: list[idx] });
+            }
+            return lines;
+        }
+
+        // ── Procedural Borgesian gloss for an invoked memory ──
+        function buildBorgesianGloss(seed, phrase) {
+            const r = rng(seed);
+            const intros = [
+                'In the catalogue of all possible ends',
+                'In the small library of his last hour',
+                'On the index of remembered and unremembered things',
+                'In the brief inventory between the two rooms',
+                'Among the unassigned pages of the south'
+            ];
+            const middles = [
+                'this memory occupies coordinate',
+                'this phrase has been waiting under coordinate',
+                'this sentence is filed at coordinate',
+                'this fragment is bound to coordinate',
+                'this utterance was already shelved at coordinate'
+            ];
+            const closings = [
+                '. It belongs neither to the hospital nor to the pampas — both rooms claim it, and neither will release it.',
+                ". It is true beneath the operating lamp and equally true beneath the southern stars; like Dahlmann's death, it has two addresses and only one body.",
+                '. Spoken under fluorescent light or under the open sky, it would be the same sentence — and yet, in each, it would mean something the other could not.',
+                '. Borges would have called this a point of irreconcilable belonging: a memory whose two homes are jealous of each other, and equally entitled.',
+                '. The librarian would file it twice. The gaucho would say it once and turn away. Both would be right.'
+            ];
+            const intro = intros[Math.floor(r() * intros.length)];
+            const middle = middles[Math.floor(r() * middles.length)];
+            const closing = closings[Math.floor(r() * closings.length)];
+            const coord = (seed >>> 16).toString(16).toUpperCase().padStart(4, '0');
+            return `${intro}, ${middle} ${coord}${closing}`;
+        }
+
+        // ── Overlay management ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCatHex = document.getElementById('cat-hex');
+        const elCatGallery = document.getElementById('cat-gallery');
+        const elCatShelf = document.getElementById('cat-shelf');
+        const elCatBook = document.getElementById('cat-book');
+        const elCatFound = document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function openFragmentFor(x, y) {
+            const cat = catalogFromXY(x, y);
+            const lines = buildInterleavedFragment(cat.seed);
+
+            elTitle.textContent = 'A fragment from both rooms';
+            elCatHex.textContent = cat.hex;
+            elCatGallery.textContent = cat.coord;
+            elCatShelf.textContent =
+                `Hospital ${currentHospitalAlpha.toFixed(2)} · Pampas ${(1 - currentHospitalAlpha).toFixed(2)}`;
+            elCatBook.textContent = lines[0].scene === 'H' ? 'Begins in the hospital' : 'Begins on the pampas';
+
+            const html = lines.map(l => {
+                const cls = l.scene === 'H' ? 'scene-h' : 'scene-p';
+                return `<span class="${cls}">${escapeHtml(l.text)}.</span>`;
+            }).join('');
+            elExcerpt.innerHTML = html;
+            elEyebrow.innerHTML = '✦  A fragment from both rooms';
+            overlay.classList.remove('invoked');
+            overlay.classList.add('open');
+        }
+
+        function openInvocationFor(phrase) {
+            const seed = hashString(phrase.toLowerCase());
+            const gloss = buildBorgesianGloss(seed, phrase);
+            const hexId = seed.toString(16).padStart(8, '0').toUpperCase();
+
+            elTitle.textContent = 'A memory belonging to neither and both';
+            elCatHex.textContent = `${hexId.slice(0,4)}-${hexId.slice(4)}`;
+            elCatGallery.textContent = 'Boundary · between layers';
+            elCatShelf.textContent = 'Hospital indigo · Pampas brass';
+            elCatBook.textContent = `${phrase.length} characters · split at ${Math.ceil(phrase.length / 2)}`;
+            elCatFound.textContent = 'Inscribed on the seam';
+
+            // Render the user's phrase in two halves (matching the canvas inscription),
+            // then the procedurally generated gloss.
+            const split = Math.ceil(phrase.length / 2);
+            const left = escapeHtml(phrase.slice(0, split));
+            const right = escapeHtml(phrase.slice(split));
+            elExcerpt.innerHTML =
+                `<span class="invoke-phrase">` +
+                    `<span class="half-h">${left}</span><span class="half-p">${right}</span>` +
+                `</span>` +
+                `<span class="invoke-gloss">${escapeHtml(gloss)}</span>`;
+
+            elEyebrow.innerHTML = '✦  A memory belonging to neither and both';
+            overlay.classList.add('invoked');
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Invoke · the oracle bar ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+            // First inscribe the phrase along the boundary on the canvas,
+            // then a moment later open the overlay with the Borgesian gloss.
+            invokedMemory = {
+                text: phrase,
+                time: millis(),
+                seed: hashString(phrase.toLowerCase())
+            };
+            if (overlay.classList.contains('open')) closeBook();
+            setTimeout(() => openInvocationFor(phrase), 1100);
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>

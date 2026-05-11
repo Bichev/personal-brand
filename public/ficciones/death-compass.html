@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La muerte y la brújula — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Death and the Compass — a Kabbalistic rhombus of murders, drawn for a detective whose reason is the very mechanism of his death.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        /* Trap state — Lönnrot has been killed at the south. */
+        .book-overlay.trapped .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">✟</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="speak the fourth name — the compass will find its point…"
+                maxlength="80"
+                aria-label="Speak the fourth name; the compass will find its point"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">UNFOLDING THE RHOMBUS…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Tetragrammaton</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The Tetragrammaton is the four-letter Hebrew name of God: <strong>יהוה</strong> — Yod, He, Vav, He. It is the unspeakable Name. In medieval Jewish mysticism each letter is a gate, a number, a vector.</p>
+                    <p>In the story, the murderer leaves one letter at each crime scene. <em>Three letters, three murders, three cardinal points</em> — the fourth was always implied, and Lönnrot was the only one who heard it.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Detective Fiction as Labyrinth</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Borges read Chesterton, Poe, and Conan Doyle. He believed the detective story was the great <strong>combinatorial form</strong> of the 20th century — a game in which the reader and the writer compete to solve a puzzle no one has yet stated.</p>
+                    <p>In "La muerte y la brújula," he writes a detective story in which the labyrinth is the puzzle <em>and</em> the punishment. To solve it is to step inside it. The detective does not walk through the labyrinth; he completes it.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Kabbalah &amp; Symmetry</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Kabbalists believed the world was readable — that every letter, every number, every position carried hidden law. The <strong>rhombus</strong> Lönnrot draws on his map is a symmetry argument: three vertices imply the fourth.</p>
+                    <p>Borges loved this idea and distrusted it. Symmetry is beautiful, and beauty is bait. <em>The world that obeys you is not necessarily reading the same book you are.</em></p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Lönnrot's Fatal Reason</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Borges describes Lönnrot as a "pure reasoner, an Auguste Dupin, but there was something of the adventurer and even of the gambler in him." His method is <strong>purely rabbinical</strong> — he assumes the murderer is also a reasoner, and reads the evidence as Kabbalah.</p>
+                    <p>His reasoning is not wrong. He finds the pattern. He arrives at the predicted villa. He is killed there. <em>The mistake was deeper than reasoning: it was the belief that the pattern was generated by someone who shared his goals.</em></p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Trap of Pattern</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Sixty years before adversarial machine-learning examples, Borges wrote the prototype. An adversary who knows how you reason can <strong>shape the world</strong> until the reasoning leads you, alone, to the predicted villa.</p>
+                    <p>Type any phrase into the oracle. The compass will read it as the fourth letter, and pan to the cardinal point its hash demands. Borges promised the trap was deterministic. <em>The Kabbalist who arrives here will not return.</em></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">✟  La muerte y la brújula  ✟</div>
+            <div class="placard-title">Death and the Compass</div>
+            <div class="placard-meta">Jorge Luis Borges · 1942 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">✟  A Murder Report</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Point</span><span class="value" id="cat-point">—</span></div>
+                <div class="row"><span class="label">Letter</span><span class="value" id="cat-letter">—</span></div>
+                <div class="row"><span class="label">Date</span><span class="value" id="cat-date">—</span></div>
+                <div class="row"><span class="label">Address</span><span class="value" id="cat-address">—</span></div>
+                <div class="row found"><span class="label">Spoken at</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>✟</span></div>
+
+        <p class="article-eyebrow">✟  Ficciones · 10  ✟</p>
+        <h1 class="article-title">The Compass and the Labyrinth</h1>
+        <p class="article-subtitle">On the rationalist as the variable solved for</p>
+
+        <blockquote class="article-epigraph">
+            "Lönnrot evitó los ojos de Scharlach. Miró los árboles y el cielo divididos en rombos
+            turbiamente amarillos, verdes y rojos. Sintió frío y una tristeza impersonal, casi anónima…"
+            <cite>— Jorge Luis Borges, La muerte y la brújula (1942)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Death and the Compass is a detective story about a detective who reasons too well. Erik Lönnrot inherits three murders that fall on dates corresponding to the first three letters of the Tetragrammaton, at the city's north, east, and west. The pattern is too perfect to be coincidence. Lönnrot, who Borges describes as a "pure reasoner" with "something of the adventurer and even of the gambler" in him, extrapolates: the fourth murder must complete the rhombus — south, on the date that names the fourth letter. He travels alone to the predicted villa, Triste-le-Roy, and is killed there by his archenemy Red Scharlach, who had baked the entire pattern as bait. The first three murders were either coincidence or staged for the detective's benefit. Lönnrot's mind was the lock; the Tetragrammaton was the key.</p>
+
+            <p>The story's deepest move is that Lönnrot's reasoning is not wrong — it is too <em>purely rabbinical</em>, too eager to find the law. Borges has him reason about Kabbalah, about the Name, about symmetry, and every inference is locally correct. He does find the pattern. He arrives at exactly the time and place his deductions predict. What he fails to ask is whether the pattern found him first. Scharlach studied Lönnrot the way Lönnrot studied evidence; the trap is shaped exactly like the prey's intelligence. The variable being solved for is not the location of the murderer. It is the location of the detective.</p>
+
+            <p>This is the deepest thing Borges anticipates: that patterns can be <em>predator</em> instead of prey. When a system makes predictions by finding regularities in data, it can be deceived by anyone who knows how it finds them. Sixty years before adversarial machine-learning examples, before prompt injection, before training-data poisoning, Borges wrote the prototype. An adversarial example is a configuration of pixels engineered to look ordinary to a human and to drag a classifier toward a chosen label. A prompt injection is a phrase engineered to look like a question and to drag a language model toward a chosen action. Both are labyrinths consisting, as Scharlach promises, of a single straight line — invisible to the agent walking them.</p>
+
+            <p>We are all rationalists now. We deploy systems that find regularities in noise, that follow the deductions wherever they lead, that arrive alone at the predicted villa. Borges' warning is that the most dangerous thing the world contains is not the irregular but the too-regular — the pattern that fits too well, the door whose key is the shape of your hand. Lönnrot's final request, in the original, is that in the next life he be killed by a simpler labyrinth, a straight line. Scharlach promises him exactly that. The promise is honest: every line walked in the dark is a labyrinth, and every solved variable was, at some moment, the thing the equation was solving <em>for</em>.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">✟  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"—La próxima vez que lo mate —replicó Scharlach—, le prometo ese laberinto, que consta de una sola línea recta y que es invisible, incesante."</p>
+            <p class="literary-heart-quote-en">"—The next time I kill you—replied Scharlach—I promise you that labyrinth, which consists of a single straight line and which is invisible, unending."</p>
+            <p class="literary-heart-formula">input ⤳ pattern ⤳ predicted next ⤳ trap</p>
+            <p class="literary-heart-description">A pattern-matching trap. The detective's algorithm finds the regularity and extrapolates the next term; the adversary's algorithm <em>predicts the detective's prediction</em> and places the prey at the variable's solution. The labyrinth is not the maze. The labyrinth is the line the rationalist walks to its end.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG (FNV-1a 32-bit, Mulberry32) ──
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function hashCoords(q, r) {
+            // Cantor-like pairing, stable for negative ints
+            const a = (q << 1) ^ (q >> 31);
+            const b = (r << 1) ^ (r >> 31);
+            let h = 0x811c9dc5 >>> 0;
+            h ^= a & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= b & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── The four cardinal crime-points (world coordinates) ──
+        // The story: North = Yod, West = He, East = Vav, South = He (final, predicted).
+        const MAP_R = 280;
+        const POINTS = [
+            {
+                id: 'NORTH', dir: 'North', x: 0, y: -MAP_R,
+                letter: 'י', letterName: 'Yod',
+                date: '3 December',
+                addr: 'Hôtel du Nord · suite 11 · eight floors above the lobby',
+                phrase: 'La primera letra del Nombre ha sido articulada',
+                signature: 'The first letter of the Name has been articulated',
+                victim: 'Marcelo Yarmolinsky, talmudist'
+            },
+            {
+                id: 'WEST', dir: 'West', x: -MAP_R, y: 0,
+                letter: 'ה', letterName: 'He',
+                date: '3 January',
+                addr: 'a paint-shop in the rue de Toulon · among the harlequin lozenges',
+                phrase: 'La segunda letra del Nombre ha sido articulada',
+                signature: 'The second letter of the Name has been articulated',
+                victim: 'Daniel Simón Azevedo, gunman'
+            },
+            {
+                id: 'EAST', dir: 'East', x: MAP_R, y: 0,
+                letter: 'ו', letterName: 'Vav',
+                date: '3 February',
+                addr: 'a telephone booth on the rue de Liverpool · the receiver still warm',
+                phrase: 'La última de las letras ha sido articulada',
+                signature: 'The last of the letters has been articulated',
+                victim: 'Gryphius-Ginzberg, alleged'
+            },
+            {
+                id: 'SOUTH', dir: 'South', x: 0, y: MAP_R,
+                letter: 'ה', letterName: 'He · final',
+                date: '3 March',
+                addr: 'the abandoned villa of Triste-le-Roy · the southern marshes',
+                phrase: 'El Nombre se ha cerrado sobre sí mismo',
+                signature: 'The Name has closed upon itself',
+                victim: 'Erik Lönnrot, detective'
+            }
+        ];
+
+        function pointById(id) {
+            for (const p of POINTS) if (p.id === id) return p;
+            return null;
+        }
+
+        // ── p5.js state ──
+        let cnv;
+        // Camera (world units)
+        let camX = 0, camY = 0;
+        let targetCamX = 0, targetCamY = 0;
+        const DRIFT_STRENGTH = 0.18;
+        const DRIFT_EASE = 0.045;
+        let ambientPhase = Math.random() * 1000;
+
+        // Hover/click state
+        let hoverPoint = null;    // POINTS entry
+        let openPoint = null;     // POINTS entry when overlay open
+
+        // Lönnrot walking state
+        // Path: root → North → West → East → toward South (then pause, restart)
+        let lonnrotT = 0;             // 0..1 across the entire path
+        const LONN_DURATION_MS = 26000;
+        // segments: 0 root→N, 1 N→W, 2 W→E, 3 E→S
+        const LONN_NODES = [
+            { x: -200, y: -200 },     // root: northwest, the police station
+            { x: 0, y: -MAP_R },      // North
+            { x: -MAP_R, y: 0 },      // West
+            { x: MAP_R, y: 0 },       // East
+            { x: 0, y: MAP_R }        // South (Triste-le-Roy)
+        ];
+        let lonnrotTrail = [];        // recent positions for the dotted trail
+
+        // Touch-drag for mobile
+        let isTouchDragging = false;
+        let touchStart = null;
+
+        // Oracle pan animation
+        let panAnim = null;
+        let driftSuspendUntil = 0;
+
+        // Compass rose rotation
+        let compassPhase = 0;
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            noStroke();
+            camX = 0;
+            camY = 0;
+            targetCamX = camX;
+            targetCamY = camY;
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+        }
+
+        // ── Drift update ──
+        function updateCamera() {
+            if (panAnim) {
+                panAnim.t += deltaTime / panAnim.dur;
+                const k = constrain(panAnim.t, 0, 1);
+                const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+                camX = lerp(panAnim.fromX, panAnim.toX, e);
+                camY = lerp(panAnim.fromY, panAnim.toY, e);
+                if (k >= 1) {
+                    const cb = panAnim.onComplete;
+                    targetCamX = panAnim.toX;
+                    targetCamY = panAnim.toY;
+                    panAnim = null;
+                    if (cb) cb();
+                }
+                return;
+            }
+
+            // Drift suspended (just after an oracle pan, or while overlay is open)
+            if (millis() < driftSuspendUntil || openPoint) {
+                camX += (targetCamX - camX) * DRIFT_EASE * 0.6;
+                camY += (targetCamY - camY) * DRIFT_EASE * 0.6;
+                return;
+            }
+
+            const cx = (mouseX - width / 2);
+            const cy = (mouseY - height / 2);
+            // Ambient drift via Perlin noise — the labyrinth is alive
+            ambientPhase += 0.0015;
+            const ambX = (noise(ambientPhase, 17.3) - 0.5) * 80;
+            const ambY = (noise(ambientPhase + 100, 17.3) - 0.5) * 80;
+            const insideX = mouseX >= 0 && mouseX <= width;
+            const insideY = mouseY >= 0 && mouseY <= height;
+            const inside = insideX && insideY;
+            if (inside) {
+                targetCamX = cx * DRIFT_STRENGTH + ambX;
+                targetCamY = cy * DRIFT_STRENGTH + ambY;
+            } else {
+                targetCamX = ambX;
+                targetCamY = ambY;
+            }
+            camX += (targetCamX - camX) * DRIFT_EASE;
+            camY += (targetCamY - camY) * DRIFT_EASE;
+        }
+
+        // ── World → screen helper ──
+        function worldToScreen(wx, wy) {
+            return { sx: (wx - camX) + width / 2, sy: (wy - camY) + height / 2 };
+        }
+
+        // ── Lönnrot position from t∈[0,1] ──
+        function lonnrotPos(t) {
+            // 4 segments through 5 nodes
+            const segs = LONN_NODES.length - 1;
+            const local = t * segs;
+            let seg = Math.floor(local);
+            if (seg >= segs) seg = segs - 1;
+            const k = local - seg;
+            // Ease in/out within each segment
+            const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+            const a = LONN_NODES[seg];
+            const b = LONN_NODES[seg + 1];
+            return { x: lerp(a.x, b.x, e), y: lerp(a.y, b.y, e), seg, k };
+        }
+
+        // ── Hover detection ──
+        function updateHover() {
+            if (openPoint || panAnim) {
+                hoverPoint = null;
+                return;
+            }
+            const m = { x: mouseX, y: mouseY };
+            const HIT_R = 44;
+            let nearest = null;
+            let nearestD = HIT_R;
+            for (const p of POINTS) {
+                const s = worldToScreen(p.x, p.y);
+                const d = Math.hypot(m.x - s.sx, m.y - s.sy);
+                if (d < nearestD) { nearestD = d; nearest = p; }
+            }
+            hoverPoint = nearest;
+        }
+
+        // ── Draw ──
+        function draw() {
+            // Background: deep indigo wash with faint vignette toward bg
+            const t = millis() * 0.001;
+            background(12, 10, 8);
+            // Indigo overlay
+            push();
+            noStroke();
+            fill(20, 28, 54, 90);
+            rect(0, 0, width, height);
+            pop();
+
+            updateCamera();
+            updateHover();
+
+            // Update Lönnrot
+            if (!openPoint && !panAnim) {
+                lonnrotT += deltaTime / LONN_DURATION_MS;
+                // Hold at the south for ~3 seconds before restarting
+                if (lonnrotT >= 1.18) {
+                    lonnrotT = 0;
+                    lonnrotTrail = [];
+                }
+            }
+
+            compassPhase += deltaTime * 0.00025;
+
+            // Layer 1 — map grid
+            drawMapGrid();
+
+            // Layer 2 — labyrinth convergence (all paths flowing into south)
+            drawLabyrinthConvergence();
+
+            // Layer 3 — rhombus connecting the four points
+            drawRhombus();
+
+            // Layer 4 — compass rose at center (rotates)
+            drawCompassRose();
+
+            // Layer 5 — Lönnrot's trail (sampled positions)
+            drawLonnrotTrail();
+
+            // Layer 6 — the four crime-points
+            drawCrimePoints();
+
+            // Layer 7 — Lönnrot the brass figure
+            drawLonnrot();
+
+            // Layer 8 — Scharlach's shadow (only when Lönnrot is on final approach)
+            drawScharlachShadow();
+
+            // Layer 9 — hover ring / label
+            if (hoverPoint) drawPointHover(hoverPoint);
+        }
+
+        // ── Layer 1 — map grid ──
+        function drawMapGrid() {
+            push();
+            // Soft graticule lines, parallaxing with camera
+            const spacing = 80;
+            stroke(58, 78, 122, 38);
+            strokeWeight(0.7);
+            // We render in screen space but offset by camera fraction for parallax
+            const ox = (-camX * 0.85) % spacing;
+            const oy = (-camY * 0.85) % spacing;
+            for (let x = ox - spacing; x < width + spacing; x += spacing) {
+                line(x, 0, x, height);
+            }
+            for (let y = oy - spacing; y < height + spacing; y += spacing) {
+                line(0, y, width, y);
+            }
+            // A second, even fainter grid at half spacing — feels like cartographer's tick marks
+            stroke(58, 78, 122, 18);
+            strokeWeight(0.4);
+            const s2 = spacing / 2;
+            const ox2 = (-camX * 0.85) % s2;
+            const oy2 = (-camY * 0.85) % s2;
+            for (let x = ox2 - s2; x < width + s2; x += s2) line(x, 0, x, height);
+            for (let y = oy2 - s2; y < height + s2; y += s2) line(0, y, width, y);
+            pop();
+        }
+
+        // ── Layer 2 — labyrinth convergence ──
+        // Faint curved paths emanating from many points around the perimeter,
+        // all converging toward the south crime-point. Suggests the labyrinth.
+        function drawLabyrinthConvergence() {
+            push();
+            const south = pointById('SOUTH');
+            const sSouth = worldToScreen(south.x, south.y);
+            const N = 28;
+            const t = millis() * 0.00015;
+            noFill();
+            for (let i = 0; i < N; i++) {
+                const angle = (i / N) * Math.PI * 2 + Math.sin(t + i * 0.13) * 0.04;
+                // Origin of this strand (on a large circle around the world origin)
+                const R = MAP_R * 2.2;
+                const ox = Math.cos(angle) * R;
+                const oy = Math.sin(angle) * R;
+                const sOrigin = worldToScreen(ox, oy);
+
+                // Control point: pulled toward the world origin, but tilted
+                const cx = (sOrigin.sx + sSouth.sx) / 2 + Math.cos(angle * 2 + t) * 60;
+                const cy = (sOrigin.sy + sSouth.sy) / 2 + Math.sin(angle * 2 + t) * 60;
+
+                // Alpha pulse
+                const pulse = 0.55 + 0.45 * Math.sin(t * 2.0 + i * 0.7);
+                stroke(184, 136, 74, 22 * pulse);
+                strokeWeight(0.6);
+                bezier(
+                    sOrigin.sx, sOrigin.sy,
+                    cx, cy,
+                    (cx + sSouth.sx) / 2, (cy + sSouth.sy) / 2,
+                    sSouth.sx, sSouth.sy
+                );
+            }
+            pop();
+        }
+
+        // ── Layer 3 — rhombus connecting the four points ──
+        function drawRhombus() {
+            push();
+            const order = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+            const screen = order.map(id => {
+                const p = pointById(id);
+                return worldToScreen(p.x, p.y);
+            });
+            // The rhombus outline
+            stroke(198, 150, 84, 75);
+            strokeWeight(0.9);
+            noFill();
+            beginShape();
+            for (const s of screen) vertex(s.sx, s.sy);
+            endShape(CLOSE);
+
+            // The cross at the center (compass cardinal arms)
+            const n = worldToScreen(0, -MAP_R);
+            const s = worldToScreen(0, MAP_R);
+            const e = worldToScreen(MAP_R, 0);
+            const w = worldToScreen(-MAP_R, 0);
+            stroke(198, 150, 84, 38);
+            strokeWeight(0.6);
+            line(n.sx, n.sy, s.sx, s.sy);
+            line(w.sx, w.sy, e.sx, e.sy);
+            pop();
+        }
+
+        // ── Layer 4 — compass rose at world origin (slowly rotating) ──
+        function drawCompassRose() {
+            const c = worldToScreen(0, 0);
+            // Rotation = slow time + cursor angle component
+            let cursorAngle = 0;
+            if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+                cursorAngle = Math.atan2(mouseY - height / 2, mouseX - width / 2) * 0.18;
+            }
+            const ang = compassPhase + cursorAngle;
+            push();
+            translate(c.sx, c.sy);
+            rotate(ang);
+            // Ticks
+            stroke(198, 150, 84, 90);
+            strokeWeight(0.5);
+            noFill();
+            // Outer ring
+            const R1 = 56;
+            for (let i = 0; i < 64; i++) {
+                const a = (i / 64) * Math.PI * 2;
+                const isMajor = (i % 8) === 0;
+                const len = isMajor ? 8 : 3;
+                line(
+                    Math.cos(a) * R1, Math.sin(a) * R1,
+                    Math.cos(a) * (R1 + len), Math.sin(a) * (R1 + len)
+                );
+            }
+            stroke(198, 150, 84, 60);
+            ellipse(0, 0, R1 * 2, R1 * 2);
+            ellipse(0, 0, R1 * 2 + 14, R1 * 2 + 14);
+
+            // 8-pointed star
+            noStroke();
+            for (let i = 0; i < 8; i++) {
+                const a = (i / 8) * Math.PI * 2;
+                const long = 46;
+                const short = 12;
+                const pNext = (a + Math.PI / 4);
+                push();
+                rotate(a);
+                fill(198, 150, 84, 100);
+                triangle(0, 0, long, 0, 0, short);
+                fill(198, 150, 84, 60);
+                triangle(0, 0, long, 0, 0, -short);
+                pop();
+            }
+            // Small fleur in the center
+            fill(224, 180, 120, 200);
+            ellipse(0, 0, 4, 4);
+
+            // Cardinal labels (N/E/S/W) at the outer ring, counter-rotated to stay upright
+            push();
+            rotate(-ang);
+            noStroke();
+            fill(232, 216, 183, 130);
+            textFont('Cormorant Garamond');
+            textStyle(ITALIC);
+            textSize(11);
+            textAlign(CENTER, CENTER);
+            text('N', 0, -R1 - 18);
+            text('S', 0, R1 + 18);
+            text('E', R1 + 18, 0);
+            text('W', -R1 - 18, 0);
+            pop();
+            pop();
+        }
+
+        // ── Layer 5 — Lönnrot's trail (sample + render) ──
+        function drawLonnrotTrail() {
+            // Sample current Lönnrot world pos (but only when actively walking)
+            if (!openPoint && !panAnim && lonnrotT >= 0 && lonnrotT <= 1.02) {
+                const p = lonnrotPos(Math.min(lonnrotT, 1));
+                // Sample every N frames to make it dotted
+                if (frameCount % 5 === 0) {
+                    lonnrotTrail.push({ x: p.x, y: p.y, life: 1 });
+                    if (lonnrotTrail.length > 180) lonnrotTrail.shift();
+                }
+            }
+            // Render trail dots, fading by age
+            push();
+            noStroke();
+            for (let i = 0; i < lonnrotTrail.length; i++) {
+                const d = lonnrotTrail[i];
+                const age = i / lonnrotTrail.length; // 0=oldest .. 1=newest
+                const s = worldToScreen(d.x, d.y);
+                const alpha = 30 + age * 110;
+                fill(212, 163, 102, alpha);
+                ellipse(s.sx, s.sy, 2.3, 2.3);
+            }
+            pop();
+        }
+
+        // ── Layer 6 — the four crime points ──
+        function drawCrimePoints() {
+            for (const p of POINTS) {
+                drawCrimePoint(p);
+            }
+        }
+
+        function drawCrimePoint(p) {
+            const s = worldToScreen(p.x, p.y);
+            const isSouth = p.id === 'SOUTH';
+            push();
+            translate(s.sx, s.sy);
+
+            // Outer halo (soft)
+            const pulse = 0.7 + 0.3 * Math.sin(millis() * 0.003 + (isSouth ? 0 : p.x * 0.01));
+            if (isSouth) {
+                // South pulses more strongly, in vermillion — it is waiting
+                const r = 32 + 6 * Math.sin(millis() * 0.004);
+                for (let g = 4; g >= 0; g--) {
+                    noFill();
+                    stroke(197, 74, 48, 18 + 14 * pulse / (g + 1));
+                    strokeWeight(2 + g * 2);
+                    ellipse(0, 0, r * 2 + g * 6, r * 2 + g * 6);
+                }
+            } else {
+                noFill();
+                stroke(212, 163, 102, 50 + 30 * pulse);
+                strokeWeight(0.8);
+                ellipse(0, 0, 32, 32);
+            }
+
+            // Cross mark (vermillion for the three solved, indigo-ish for south=pending)
+            const crossLen = 12;
+            const crossW = 1.6;
+            if (!isSouth) {
+                stroke(197, 74, 48, 220);
+                strokeWeight(crossW);
+                line(-crossLen, 0, crossLen, 0);
+                line(0, -crossLen, 0, crossLen);
+                // Tiny diamond outline behind
+                noFill();
+                stroke(197, 74, 48, 100);
+                strokeWeight(0.6);
+                push();
+                rotate(Math.PI / 4);
+                rect(-crossLen, -crossLen, crossLen * 2, crossLen * 2);
+                pop();
+            } else {
+                // South — empty cross outline + pulsing inner dot
+                noFill();
+                stroke(197, 74, 48, 200);
+                strokeWeight(crossW);
+                line(-crossLen, 0, crossLen, 0);
+                line(0, -crossLen, 0, crossLen);
+                fill(197, 74, 48, 60 + 80 * pulse);
+                noStroke();
+                ellipse(0, 0, 6, 6);
+            }
+
+            // Hebrew letter label, slightly offset
+            const labelOffY = -28;
+            noStroke();
+            fill(232, 216, 183, 180);
+            textFont('Cormorant Garamond');
+            textStyle(NORMAL);
+            textSize(22);
+            textAlign(CENTER, CENTER);
+            text(p.letter, 0, labelOffY);
+
+            // Direction caption below
+            fill(232, 216, 183, 100);
+            textFont('IBM Plex Mono');
+            textSize(9);
+            textAlign(CENTER, CENTER);
+            text(p.id, 0, 24);
+
+            pop();
+        }
+
+        // ── Layer 7 — Lönnrot ──
+        function drawLonnrot() {
+            if (lonnrotT < 0 || lonnrotT > 1) return;
+            const p = lonnrotPos(Math.min(lonnrotT, 1));
+            const s = worldToScreen(p.x, p.y);
+            push();
+            translate(s.sx, s.sy);
+            // Tiny breath wobble
+            const wob = Math.sin(millis() * 0.006) * 0.8;
+            // Outer ring (breathing brass halo)
+            noFill();
+            for (let g = 0; g < 3; g++) {
+                stroke(224, 180, 120, 30 / (g + 1));
+                strokeWeight(2 + g * 2);
+                ellipse(0, 0, 14 + g * 4, 14 + g * 4);
+            }
+            // Body
+            noStroke();
+            fill(224, 180, 120, 240);
+            ellipse(0, -1 + wob, 7, 7);
+            // Faint sword-tick (the rationalist is also an adventurer)
+            stroke(224, 180, 120, 180);
+            strokeWeight(0.8);
+            line(0, 3, 0, 8);
+
+            // Caption when stopped at south
+            const atSouth = lonnrotT >= 0.985;
+            if (atSouth) {
+                noStroke();
+                fill(226, 106, 79, 220);
+                textFont('IBM Plex Mono');
+                textSize(9);
+                textAlign(CENTER, CENTER);
+                text('LÖNNROT  ·  ARRIVED', 0, -18);
+            } else {
+                noStroke();
+                fill(224, 180, 120, 150);
+                textFont('IBM Plex Mono');
+                textSize(8);
+                textAlign(CENTER, CENTER);
+                text('LÖNNROT', 0, -14);
+            }
+            pop();
+        }
+
+        // ── Layer 8 — Scharlach's shadow (only when Lönnrot is approaching the south) ──
+        function drawScharlachShadow() {
+            // Fade in across the final segment (seg = 3, k in 0..1)
+            if (lonnrotT < 0.75) return;
+            const south = pointById('SOUTH');
+            const s = worldToScreen(south.x, south.y);
+            // Strength rises with progress, peaks at south
+            const localT = constrain((lonnrotT - 0.75) / 0.25, 0, 1);
+            const breathing = 0.7 + 0.3 * Math.sin(millis() * 0.004);
+            push();
+            translate(s.sx, s.sy);
+            noStroke();
+            // Soft vermillion shadow blooms beneath south
+            for (let g = 6; g >= 0; g--) {
+                fill(197, 74, 48, 6 * localT * breathing * (7 - g));
+                ellipse(0, 0, 60 + g * 22, 60 + g * 22);
+            }
+            // A subtle rhombic outline closing in
+            noFill();
+            stroke(197, 74, 48, 90 * localT);
+            strokeWeight(0.8);
+            const r = 50 + 18 * (1 - localT);
+            push();
+            rotate(Math.PI / 4);
+            rect(-r, -r, r * 2, r * 2);
+            pop();
+            // A whisper of his name
+            if (localT > 0.55) {
+                noStroke();
+                fill(226, 106, 79, 90 + 60 * Math.sin(millis() * 0.003));
+                textFont('Cormorant Garamond');
+                textStyle(ITALIC);
+                textSize(13);
+                textAlign(CENTER, CENTER);
+                text('Scharlach is waiting', 0, 84);
+            }
+            pop();
+        }
+
+        // ── Layer 9 — hover ring + label ──
+        function drawPointHover(p) {
+            const s = worldToScreen(p.x, p.y);
+            const pulse = 0.85 + 0.15 * Math.sin(millis() * 0.005);
+            push();
+            translate(s.sx, s.sy);
+            noFill();
+            for (let g = 0; g < 4; g++) {
+                stroke(212, 163, 102, 30 * pulse / (g + 1));
+                strokeWeight(2 + g * 2);
+                ellipse(0, 0, 50 + g * 6, 50 + g * 6);
+            }
+            stroke(212, 163, 102, 220 * pulse);
+            strokeWeight(1.4);
+            ellipse(0, 0, 50, 50);
+            pop();
+
+            // Label below the point
+            push();
+            translate(s.sx, s.sy + 48);
+            noStroke();
+            textFont('IBM Plex Mono');
+            textSize(10);
+            textAlign(CENTER, CENTER);
+            const label = `✟  ${p.dir.toUpperCase()}  ·  ${p.letterName.toUpperCase()}`;
+            const tw = textWidth(label);
+            fill(12, 10, 8, 200);
+            rect(-tw / 2 - 12, -10, tw + 24, 20, 1);
+            stroke(184, 136, 74, 80);
+            strokeWeight(0.6);
+            noFill();
+            rect(-tw / 2 - 12, -10, tw + 24, 20, 1);
+            noStroke();
+            fill(184, 136, 74, 230);
+            text(label, 0, 0);
+            // Click hint
+            textSize(8);
+            fill(232, 216, 183, 120);
+            text('CLICK TO READ', 0, 18);
+            pop();
+        }
+
+        // ── Mouse / touch events ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            if (hoverPoint && !panAnim) {
+                openReportFor(hoverPoint.id);
+            }
+        }
+
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            isTouchDragging = false;
+            touchStart = { x: mouseX, y: mouseY, camX, camY, t: millis() };
+            return false;
+        }
+
+        function touchMoved() {
+            if (!touchStart) return;
+            const dx = mouseX - touchStart.x;
+            const dy = mouseY - touchStart.y;
+            if (!isTouchDragging && (Math.abs(dx) + Math.abs(dy) > 8)) {
+                isTouchDragging = true;
+            }
+            if (isTouchDragging) {
+                camX = touchStart.camX - dx;
+                camY = touchStart.camY - dy;
+                targetCamX = camX;
+                targetCamY = camY;
+            }
+            return false;
+        }
+
+        function touchEnded() {
+            if (touchStart && !isTouchDragging && hoverPoint) {
+                openReportFor(hoverPoint.id);
+            }
+            touchStart = null;
+            return false;
+        }
+
+        // ── Overlay element references ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCatPoint = document.getElementById('cat-point');
+        const elCatLetter = document.getElementById('cat-letter');
+        const elCatDate = document.getElementById('cat-date');
+        const elCatAddress = document.getElementById('cat-address');
+        const elCatFound = document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        // Light-touch purifier: lowercase, strip diacritics, collapse whitespace.
+        // The crime report is written in mixed Spanish/English, so we keep more
+        // characters than the Babel piece — only stripping control bytes.
+        function purifyPhrase(s) {
+            if (!s) return '';
+            let p = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            p = p.replace(/[^a-z0-9 ,.\-:;'"!?]/g, ' ');
+            p = p.replace(/ +/g, ' ').trim();
+            return p;
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ── Deterministic procedural crime report ──
+        function generateReport(p, seed) {
+            const r = rng(seed);
+            // A small bank of additional Kabbalistic flourishes per cardinal point
+            const flourishes = {
+                NORTH: [
+                    'The Talmudist had been writing all night; the typewriter still held a half-finished sentence on the divinity of the Tetragrammaton.',
+                    'On the desk: an open volume of the Sefer Yetzirah, the pages marked with a fingernail.',
+                    'The wound was clean. There was no struggle. The room smelled faintly of indigo ink and cold tobacco.',
+                    'A chalkboard at the corridor\'s end carried, in firm Hebrew block letters, the Kabbalist\'s phrase.'
+                ],
+                WEST: [
+                    'Among the harlequin lozenges of the paint-shop floor, the body lay like a fourth color.',
+                    'The shopkeeper, who had been across the street, swore he saw no one enter. Yet someone entered.',
+                    'The sign on the door, hastily painted, declared in Yiddish that the shop was closed for the Sabbath. It was a Tuesday.',
+                    'A second wound, deeper than the first, suggested an executioner with patience and a sense of geometry.'
+                ],
+                EAST: [
+                    'The booth was on the rue de Liverpool. The receiver was still warm; nobody answered when the police lifted it.',
+                    'A note had been pinned to the wood: signed only with the third letter.',
+                    'The journalist Treviranus considered the case closed. Lönnrot disagreed.',
+                    'The booth\'s lamp had been broken inward; the murderer worked, evidently, in semi-darkness.'
+                ],
+                SOUTH: [
+                    'Triste-le-Roy is a villa nobody admits owning. Its window-shutters are painted to look like windows; its windows, like shutters.',
+                    'The gardens, in symmetric rhomboids, repeat themselves on every side — a cross, a rhombus, a cross again.',
+                    'On a single night each year the moon, in the southern marshes, falls into a long line across the avenue.',
+                    'Inside, in the room of the cross, Red Scharlach reads the report of the detective who will arrive at the predicted hour.'
+                ]
+            };
+            const bank = flourishes[p.id];
+            const sentences = [];
+            // Opening line — anchored to the cardinal point
+            sentences.push(`The body of ${p.victim} was found at ${p.addr}.`);
+            sentences.push(`The signature, in firm Hebrew block letters: "${p.phrase}." (${p.signature}.)`);
+            // Append three deterministic flourishes
+            const used = new Set();
+            while (sentences.length < 5) {
+                const idx = Math.floor(r() * bank.length);
+                if (used.has(idx)) continue;
+                used.add(idx);
+                sentences.push(bank[idx]);
+                if (used.size >= bank.length) break;
+            }
+            return sentences.join(' ');
+        }
+
+        // ── Determine if Lönnrot is on his final approach (E → S) ──
+        function lonnrotApproachingSouth() {
+            // Final segment is seg=3 (E→S). Trigger once he's clearly walking it.
+            return !openPoint && lonnrotT >= 0.78 && lonnrotT <= 1.05;
+        }
+
+        // ── Open the crime report for a cardinal point ──
+        // mode: 'drill' | 'invoke' | 'trap'  (auto-detected if not provided)
+        function openReportFor(pointId, opts = {}) {
+            const p = pointById(pointId);
+            if (!p) return;
+            openPoint = p;
+
+            // Auto-detect trap state for SOUTH when Lönnrot is approaching
+            let mode = opts.mode;
+            if (!mode) {
+                if (pointId === 'SOUTH' && lonnrotApproachingSouth()) mode = 'trap';
+                else mode = 'drill';
+            }
+            const invokedPhrase = opts.phrase || null;
+            if (invokedPhrase) mode = 'invoke';
+
+            // Catalog labels (always shown)
+            elCatPoint.textContent = `${p.dir.toUpperCase()}  ·  the ${p.dir.toLowerCase()} of the map`;
+            elCatLetter.textContent = `${p.letter}  ·  ${p.letterName}`;
+            elCatDate.textContent = p.date;
+            elCatAddress.textContent = p.addr;
+
+            // Reset state classes
+            overlay.classList.remove('invoked');
+            overlay.classList.remove('trapped');
+
+            if (mode === 'trap') {
+                // The trap closes on Lönnrot. Special title + excerpt.
+                elEyebrow.innerHTML = '✟  Lönnrot has been killed';
+                elTitle.textContent = 'The labyrinth was the line he walked.';
+                const lines = [
+                    'Lönnrot reached Triste-le-Roy alone, as predicted. The rhombus on his map was perfect; the dates aligned with the Tetragrammaton; the symmetry was beautiful.',
+                    'Red Scharlach was waiting in the room of the cross. He had studied Lönnrot the way Lönnrot studied evidence — and shaped the world until the reasoning, locally correct at every step, ended at his door.',
+                    'The first three murders were either coincidence or staged for the detective\'s benefit. The pattern was a labyrinth designed to capture him.',
+                    'Lönnrot, before the bullet, asked only that in the next life he be killed by a simpler labyrinth — a single straight line, invisible, unending. Scharlach promised him exactly that.'
+                ];
+                elExcerpt.innerHTML =
+                    '<span class="ellipsis">…</span>' +
+                    escapeHtml(lines.join(' ')) +
+                    '<span class="ellipsis">…</span>';
+                overlay.classList.add('trapped');
+                overlay.classList.add('open');
+                return;
+            }
+
+            // Normal report (drill or invoke)
+            const seed = hashCoords(p.x | 0, p.y | 0) ^ hashString(p.id);
+            const report = generateReport(p, seed);
+
+            if (mode === 'invoke' && invokedPhrase) {
+                // Splice the user's phrase into the report at a deterministic position
+                const purified = purifyPhrase(invokedPhrase);
+                if (purified.length > 0 && purified.length + 16 <= report.length) {
+                    const minOff = 32;
+                    const maxOff = report.length - purified.length - 32;
+                    const pos = minOff + (seed % Math.max(1, maxOff - minOff));
+                    // Snap to nearest space so we never split a word
+                    let snap = pos;
+                    while (snap > 0 && report[snap] !== ' ') snap--;
+                    const before = report.slice(0, snap);
+                    const after = report.slice(snap);
+                    const html =
+                        '<span class="ellipsis">…</span>' +
+                        escapeHtml(before) + ' ' +
+                        '<mark>' + escapeHtml(purified) + '</mark>' +
+                        escapeHtml(after) +
+                        '<span class="ellipsis">…</span>';
+                    elExcerpt.innerHTML = html;
+                } else {
+                    elExcerpt.innerHTML =
+                        '<span class="ellipsis">…</span>' +
+                        escapeHtml(report) +
+                        ' <mark>' + escapeHtml(purified) + '</mark>' +
+                        '<span class="ellipsis">…</span>';
+                }
+
+                // Title — the invocation announcement
+                elTitle.textContent = `The fourth name has been spoken: "${invokedPhrase}"`;
+                // Eyebrow — invocation accent
+                elEyebrow.innerHTML = '✟  The fourth name has been spoken';
+                // "Spoken at" coordinate, derived from the hash
+                const latDeg = ((seed >>> 8) % 1800) / 10 - 90;
+                const lngDeg = ((seed >>> 16) % 3600) / 10 - 180;
+                const latS = latDeg >= 0 ? 'N' : 'S';
+                const lngS = lngDeg >= 0 ? 'E' : 'W';
+                const street = (seed % 9999).toString().padStart(4, '0');
+                elCatFound.textContent =
+                    `${Math.abs(latDeg).toFixed(2)}° ${latS}  ·  ${Math.abs(lngDeg).toFixed(2)}° ${lngS}  ·  gate № ${street}`;
+                overlay.classList.add('invoked');
+            } else {
+                // Plain drill — straight report, no highlight
+                elExcerpt.innerHTML =
+                    '<span class="ellipsis">…</span>' +
+                    escapeHtml(report) +
+                    '<span class="ellipsis">…</span>';
+                elTitle.textContent = `Murder at the ${p.dir.toLowerCase()} · ${p.date}`;
+                elEyebrow.innerHTML = '✟  A Murder Report';
+            }
+
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            overlay.classList.remove('trapped');
+            openPoint = null;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+            const h = hashString(phrase.toLowerCase());
+            // Map to one of the four cardinal points
+            const idx = h % POINTS.length;
+            const target = POINTS[idx];
+
+            // Animate camera pan to that point
+            const distPx = Math.hypot(target.x - camX, target.y - camY);
+            const dur = constrain(900 + distPx * 0.6, 1200, 2600);
+            if (overlay.classList.contains('open')) closeBook();
+            panAnim = {
+                fromX: camX,
+                fromY: camY,
+                toX: target.x,
+                toY: target.y,
+                t: 0,
+                dur,
+                onComplete: () => {
+                    driftSuspendUntil = millis() + 4000;
+                    setTimeout(() => openReportFor(target.id, { phrase }), 280);
+                }
+            };
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>

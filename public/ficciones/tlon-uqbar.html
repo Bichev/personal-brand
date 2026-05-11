@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tlön, Uqbar, Orbis Tertius — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Tlön, Uqbar, Orbis Tertius — an imaginary planet's idealist philosophy overwrites our reality, cell by cell, in a contagious encyclopedia.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">⬡</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="invoke a phrase to seed Tlön's infection…"
+                maxlength="80"
+                aria-label="Invoke a phrase to seed Tlön's infection"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">RENDERING THE ENCYCLOPEDIA…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Encyclopedia</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story begins in a pirated copy of the <strong>Anglo-American Cyclopaedia</strong> — and only that copy — where a single article describes a country called Uqbar that exists in no other edition.</p>
+                    <p>Years later, a complete <strong>forty-volume encyclopedia of Tlön</strong> surfaces in a Memphis library. A fully described world, footnoted into existence. The fabrication begins to leak.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Idealist World</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Tlön is built on radical <strong>idealism</strong>: nothing exists except as perceived. Objects are bundles of perception, not things in themselves.</p>
+                    <p>Its languages have no nouns — only <em>impersonal verbs</em> and adjectives that accrete. A coin lost and rediscovered is not the same coin: it is <strong>two coins</strong>. Mathematics on Tlön has no axiom of identity.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Berkeley &amp; Hume</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Borges builds Tlön from Anglo-Irish idealism. <strong>Berkeley</strong> (1685–1753): <em>esse est percipi</em> — to be is to be perceived.</p>
+                    <p><strong>Hume</strong> (1711–1776): causality is a habit of mind, not a law of the world. Tlön is what you get when you take both philosophers at their word — and write down what the world looks like afterward.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Reality as Text</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The <strong>hrönir</strong> — duplicate objects that appear when something is sought — are inventory error made physical. Two excavators, expecting to find the same artefact, find <em>two</em> identical artefacts.</p>
+                    <p>The encyclopedia precedes the planet. The description authors the described. Borges' wager: <strong>a sufficiently consistent description is reality</strong>.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Invasion Today</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story's final pages: Tlönian objects begin appearing in our world. <strong>English textbooks are replaced with Tlönian ones</strong>; school histories rewritten; an invented past is taught to children as their own.</p>
+                    <p>Read "encyclopedia" as <em>language model</em> and you are reading 2026. The cells you see are still mostly Latin. They will not be for long.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">⬡  Tlön, Uqbar, Orbis Tertius  ⬡</div>
+            <div class="placard-title">The Encyclopedia That Overwrites Us</div>
+            <div class="placard-meta">Jorge Luis Borges · 1940 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">⬡  An Encyclopedia Entry</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Cell</span><span class="value" id="cat-cell">—</span></div>
+                <div class="row"><span class="label">Original</span><span class="value" id="cat-original">—</span></div>
+                <div class="row"><span class="label">Tlönian</span><span class="value" id="cat-tlon">—</span></div>
+                <div class="row"><span class="label">State</span><span class="value" id="cat-state">—</span></div>
+                <div class="row found"><span class="label">Seeded at</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>⬡</span></div>
+
+        <p class="article-eyebrow">⬡  Ficciones · 02  ⬡</p>
+        <h1 class="article-title">The Encyclopedia That Overwrites Us</h1>
+        <p class="article-subtitle">On Tlön, the hrönir, and the prophecy of generated worlds</p>
+
+        <blockquote class="article-epigraph">
+            "Yo conjeturo que esta inminente invasión… Casi inmediatamente, la realidad cedió en más de un punto."
+            <cite>— Jorge Luis Borges, Tlön, Uqbar, Orbis Tertius (1940)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Tlön is a country no one has been to, except in the encyclopedia. The first reference appears in a pirated copy of Bioy Casares's Anglo-American Cyclopaedia — a single article on a region called Uqbar, dense with cross-references to a literature that does not exist. The trail leads inward, footnote into footnote, until a complete forty-volume encyclopedia of Tlön surfaces in a Memphis library. By the story's last page our planet is no longer entirely our own. Borges, writing in 1940, has already noticed what the next eighty years would confirm: a sufficiently consistent description of a thing begins, eventually, to be the thing.</p>
+
+            <p>Tlön's metaphysics matter less than its method. The conceit is a Berkeleyian, Humean, almost Buddhist idealism — objects are bundles of perception, nouns dissolve into adjectives, verbs swallow tenses. None of it is real. None of it has to be. What matters is that the description is dense enough, footnoted enough, internally consistent enough that the reader stops asking which encyclopedia is correct and begins copying from the wrong one. Reality is what the bibliography points to. The <em>hrönir</em> — duplicate objects, conjured into being simply because someone went looking for them — are not magic but inventory error: a catalogue that has begun to write its own warehouse.</p>
+
+            <p>Cellular automata are the smallest machines that imitate this. A grid; a state per cell; a local rule that converts neighbors. Conway's Life of 1970 was already enough to suggest that complex order can emerge from rules small enough to fit on a postcard. This page renders the same idea in Borgesian dress: a single seed cell is Tlönian, its Latin neighbors flip with a probability proportional to how many of <em>their</em> neighbors have already flipped. There is no plan, no design, no master grammar — only contagion. Twelve invented glyphs propagate outward from the centre while the background cools from parchment to indigo. The grid converts itself. The encyclopedia is its own author.</p>
+
+            <p>This is why the last page of Borges' story reads as if it were written this morning. Tlön is winning: English textbooks are being replaced with Tlönian ones; hrönir surface in archaeological digs because someone went looking for them; the children are taught a school history that never happened. Replace "encyclopedia" with "language model" and the parable becomes operational. Generative systems now write faster than any culture can verify, and the cost of producing a plausible counterfeit has fallen to zero. The cells around you are still mostly Latin. They will not be for long. Each tick of the automaton is a screenshot, a press release, a synthetic photograph — small, local, lawful. Reality, Borges suggests, was never anything more than a sufficiently consistent fabrication. The fabrication is now able to write back.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">⬡  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"Yo conjeturo que esta inminente invasión… Casi inmediatamente, la realidad cedió en más de un punto."</p>
+            <p class="literary-heart-quote-en">"I conjecture that this imminent invasion… Almost immediately, reality yielded at more than one point."</p>
+            <p class="literary-heart-formula">12 glyphs × N cells × tick-driven cellular spread</p>
+            <p class="literary-heart-description">A single seed cell is Tlönian. Each tick, every Latin cell flips with probability proportional to its already-converted neighbors. Twelve invented glyphs replace twenty-six Latin letters, while the background tints from parchment-warm to a colder, bluish Tlönian hue as the encyclopedia overwrites the world.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Latin alphabet (the world before Tlön) ──
+        const LATIN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        // ── Twelve invented Tlönian glyphs ──
+        // Unicode-ish hints for the HTML overlay (the canvas draws them as vectors)
+        const TLON_GLYPH_NAMES = [
+            'Ascendant',      // 0 — triangle up
+            'Descendant',     // 1 — triangle down
+            'Hexalith',       // 2 — hexagon
+            'Mote',           // 3 — solid dot
+            'Mirror',         // 4 — diamond
+            'Crucible',       // 5 — cross
+            'Cleave',         // 6 — slash
+            'Counter-Cleave', // 7 — backslash
+            'Ledger',         // 8 — parallel lines
+            'Ouroboros',      // 9 — circle outline
+            'Triad',          // 10 — three dots
+            'Asterism'        // 11 — six-armed star
+        ];
+        const TLON_GLYPH_UNICODE = ['▲','▽','⬡','●','◆','✚','╱','╲','‖','◯','⋮','✦'];
+
+        // ── Deterministic hash & RNG ──
+        // FNV-1a 32-bit
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function hashCoords(c, r) {
+            // Stable hash for (col, row) — also handles negatives if ever needed
+            const a = (c << 1) ^ (c >> 31);
+            const b = (r << 1) ^ (r >> 31);
+            let h = 0x811c9dc5 >>> 0;
+            h ^= a & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= b & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+        // Mulberry32 RNG seeded by uint32
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── Per-cell deterministic helpers ──
+        function latinAt(c, r) {
+            return LATIN[hashCoords(c, r) % LATIN.length];
+        }
+        function tlonIdxAt(c, r) {
+            // Different seed window so the Tlönian glyph differs from the Latin letter
+            return (hashCoords(c, r) ^ 0xDEAD9F) % 12;
+        }
+
+        // ── Borgesian encyclopedia-entry generator ──
+        const ENTRY_WORDS = {
+            volumes: [
+                'eleventh volume', 'third reprinting', 'Tirma index',
+                'appendix of Tsai Khaldun', 'Memphis fragment', 'pirated Cyclopaedia',
+                'Orbis Tertius supplement', 'schedule of the hrönir',
+                'lost annex of the encyclopedia', 'Tlönian dictionary, 1947 edition'
+            ],
+            concepts: [
+                'the recurrence of an object', 'the moon at dawn',
+                'the doubling of a coin', 'an unverifiable persistence',
+                'the tigers of the dictionary', 'a vanished surveyor',
+                'the silver mirror at Tsai Khaldun', 'a circular ruin',
+                'the absence of a witness', 'the seventh adjective of motion',
+                'the verb that has eaten its noun'
+            ],
+            disciplines: [
+                'The metaphysics of duration', 'The geometry of touch',
+                'The dialectic of the hrön', 'The algebra of the perceiver',
+                'The eleventh school of philosophers',
+                'The astronomers of Tsai Khaldun',
+                'A minor sect among the grammarians',
+                'The cartographers of Uqbar'
+            ],
+            ideas: [
+                'a noun masquerading as a verb',
+                'a perception with no perceiver',
+                'the inversion of cause and effect',
+                'an object remembered before its existence',
+                'a sequence whose terms are themselves sequences',
+                'an adjective that survives its noun',
+                'a tense for events that have not yet been described'
+            ],
+            epithets: [
+                'the cardinal sign', 'the heraldic figure',
+                'the unspoken cipher', 'the parsimonious vowel',
+                'the borrowed letter', 'the inherited mark',
+                'the silent inheritance'
+            ],
+            referents: [
+                'the librarians of Ur', 'the tigers of Bengal',
+                'lost continents', 'a Buenos Aires winter',
+                'the surveyor\u2019s ledger', 'a coin Borges remembered twice',
+                'an obscure cartographer', 'the unwritten letters of Hume',
+                'a fragmentary biography of Berkeley'
+            ],
+            ceremonies: [
+                'the third dusk', 'a winter equinox',
+                'the long noon', 'the unnamed hour',
+                'the rite of negation', 'the recitation of the seventeenth volume'
+            ],
+            effects: [
+                'double the listener', 'halve the object',
+                'reverse the order of perceiver and perceived',
+                'summon a hrönir', 'displace the listener by one unit of time',
+                'erase its own pronouncement', 'render the speaker an adjective'
+            ],
+            outcomes: [
+                'a coin where there was no coin',
+                'two surveyors, identically wounded',
+                'the same letter written twice',
+                'a tiger remembered from a dream',
+                'a book that was never written',
+                'a missing volume returned to the shelf',
+                'a city remembered by two people who never met'
+            ],
+            survivals: [
+                'the alphabet of the librarians',
+                'the catalogue of forgotten things',
+                'the prefix of the unborn',
+                'the dictionaries of the Memphis exile',
+                'the elegies of the displaced grammarians',
+                'a footnote in the eleventh volume'
+            ]
+        };
+
+        function pickFrom(rnd, list) {
+            return list[Math.floor(rnd() * list.length)];
+        }
+
+        function generateEntry(c, r) {
+            const seed = hashCoords(c, r);
+            const rnd = rng(seed);
+            const letter = latinAt(c, r);
+            const tlonIdx = tlonIdxAt(c, r);
+            const tlonName = TLON_GLYPH_NAMES[tlonIdx];
+
+            const volume = pickFrom(rnd, ENTRY_WORDS.volumes);
+            const concept = pickFrom(rnd, ENTRY_WORDS.concepts);
+            const discipline = pickFrom(rnd, ENTRY_WORDS.disciplines);
+            const idea = pickFrom(rnd, ENTRY_WORDS.ideas);
+            const epithet = pickFrom(rnd, ENTRY_WORDS.epithets);
+            const referent = pickFrom(rnd, ENTRY_WORDS.referents);
+            const ceremony = pickFrom(rnd, ENTRY_WORDS.ceremonies);
+            const effect = pickFrom(rnd, ENTRY_WORDS.effects);
+            const outcome = pickFrom(rnd, ENTRY_WORDS.outcomes);
+            const survival = pickFrom(rnd, ENTRY_WORDS.survivals);
+
+            const title = `On «${tlonName}», the Tlönian replacement of the Latin ${letter}`;
+            const entry =
+                `In the ${volume}, this glyph denotes ${concept}. ` +
+                `${discipline} reads it as ${idea} — ${epithet} of ${referent}. ` +
+                `Recited at ${ceremony}, the symbol is said to ${effect}, producing a hrön: ${outcome}. ` +
+                `Its Latin counterpart, "${letter}", survives — for now — in ${survival}.`;
+            return { title, entry, letter, tlonIdx, tlonName };
+        }
+
+        // ── p5.js sketch ──
+        let cnv;
+        let cellSize = 24;
+        let cols = 0, rows = 0;
+        // Flat cell store. state: 0 = Latin, 1 = Tlönian. invokedAt: ms timestamp (0 if never)
+        let states;       // Uint8Array of length cols*rows
+        let invokedAt;    // Float32Array of length cols*rows
+        let tlonCount = 0;
+        let totalCells = 0;
+        let tickAccum = 0;
+        const TICK_MS = 110;
+        let boostUntil = 0;          // global probability boost after an invocation
+        let ambientPhase = Math.random() * 1000;
+
+        // Mouse / hover
+        let hoverCol = -1, hoverRow = -1;
+        let hoverActiveUntil = 0;    // hover overlay only when mouse moves
+        let lastMouseX = -1, lastMouseY = -1;
+
+        // Click → overlay state
+        let openCell = null;         // {c, r, invoked}
+
+        // Invocation animation
+        let lastInvokeRow = null;    // {row, startCol, endCol, ts}
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            const loadingEl = container.querySelector('.loading');
+            if (loadingEl) loadingEl.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            textAlign(CENTER, CENTER);
+            noStroke();
+            buildGrid();
+        }
+
+        function buildGrid() {
+            cellSize = constrain(Math.round(min(width, height) * 0.028), 20, 30);
+            cols = Math.ceil(width / cellSize) + 1;
+            rows = Math.ceil(height / cellSize) + 1;
+            totalCells = cols * rows;
+            states = new Uint8Array(totalCells);
+            invokedAt = new Float32Array(totalCells);
+            tlonCount = 0;
+            // Seed: one cell near centre, plus a tiny halo (so the spread starts visible)
+            const sc = Math.floor(cols / 2);
+            const sr = Math.floor(rows / 2);
+            seedCell(sc, sr);
+            seedCell(sc + 1, sr);
+            seedCell(sc - 1, sr);
+            seedCell(sc, sr + 1);
+        }
+
+        function inGrid(c, r) {
+            return c >= 0 && c < cols && r >= 0 && r < rows;
+        }
+
+        function idx(c, r) { return r * cols + c; }
+
+        function seedCell(c, r) {
+            if (!inGrid(c, r)) return;
+            const i = idx(c, r);
+            if (states[i] === 0) {
+                states[i] = 1;
+                tlonCount++;
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+            buildGrid();
+            lastInvokeRow = null;
+        }
+
+        // ── Cellular-automaton tick ──
+        function caTick() {
+            // Spread probability (per Tlönian neighbor, per tick).
+            // Boosted briefly after an invocation.
+            const boost = millis() < boostUntil ? 2.6 : 1.0;
+            const P = 0.038 * boost;
+
+            // Single pass: read current states[], write to next[]
+            // To avoid allocating each tick, we keep one rolling scratch.
+            if (!caTick.scratch || caTick.scratch.length !== totalCells) {
+                caTick.scratch = new Uint8Array(totalCells);
+            }
+            const next = caTick.scratch;
+            next.set(states);
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const i = idx(c, r);
+                    if (states[i] === 1) continue;
+                    // Count Tlönian neighbors (Moore neighborhood)
+                    let n = 0;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        const rr = r + dr;
+                        if (rr < 0 || rr >= rows) continue;
+                        for (let dc = -1; dc <= 1; dc++) {
+                            if (dr === 0 && dc === 0) continue;
+                            const cc = c + dc;
+                            if (cc < 0 || cc >= cols) continue;
+                            if (states[idx(cc, rr)] === 1) n++;
+                        }
+                    }
+                    if (n === 0) continue;
+                    if (Math.random() < n * P) {
+                        next[i] = 1;
+                        tlonCount++;
+                    }
+                }
+            }
+
+            // Ambient mutation: very rare, lawful, persistent — the world is alive
+            // Roughly 1 spontaneous flip per second on average.
+            if (Math.random() < 0.10 && tlonCount < totalCells) {
+                let tries = 0;
+                while (tries++ < 12) {
+                    const rc = Math.floor(Math.random() * cols);
+                    const rr = Math.floor(Math.random() * rows);
+                    const ii = idx(rc, rr);
+                    if (next[ii] === 0) {
+                        next[ii] = 1;
+                        tlonCount++;
+                        break;
+                    }
+                }
+            }
+
+            // Swap
+            const tmp = states;
+            states = next;
+            caTick.scratch = tmp;
+        }
+
+        // ── Hover detection ──
+        function updateHover() {
+            // Detect movement
+            if (mouseX !== lastMouseX || mouseY !== lastMouseY) {
+                hoverActiveUntil = millis() + 1400;
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) {
+                hoverCol = -1; hoverRow = -1;
+                return;
+            }
+            hoverCol = Math.floor(mouseX / cellSize);
+            hoverRow = Math.floor(mouseY / cellSize);
+        }
+
+        // ── Draw ──
+        function draw() {
+            updateHover();
+
+            // Advance CA
+            tickAccum += deltaTime;
+            // Safety: cap how many ticks we'll process if the tab was backgrounded
+            let safety = 6;
+            while (tickAccum >= TICK_MS && safety-- > 0) {
+                caTick();
+                tickAccum -= TICK_MS;
+            }
+            if (tickAccum > TICK_MS * 6) tickAccum = 0;
+
+            // Background — lerp from parchment-warm to cold-Tlönian as ratio grows
+            const ratio = tlonCount / Math.max(1, totalCells);
+            // Eased so the cold creeps in non-linearly
+            const k = Math.pow(ratio, 0.85);
+            const bgR = lerp(13, 8, k);
+            const bgG = lerp(10, 12, k);
+            const bgB = lerp(8, 26, k);
+            background(bgR, bgG, bgB);
+
+            // Subtle ambient parchment grain — gentle radial vignette in warm zones
+            drawAmbientField(ratio);
+
+            // Draw every cell
+            const s = cellSize;
+            const halfGlyph = s * 0.36;
+            for (let r = 0; r < rows; r++) {
+                const y = r * s + s / 2;
+                for (let c = 0; c < cols; c++) {
+                    const x = c * s + s / 2;
+                    const i = idx(c, r);
+                    const st = states[i];
+
+                    // Each cell has a subtle parchment-tinted fill
+                    drawCellBackdrop(x, y, s, st, ratio);
+
+                    if (st === 0) {
+                        drawLatinGlyph(c, r, x, y, halfGlyph, ratio);
+                    } else {
+                        const inv = invokedAt[i];
+                        let crystallizing = 0;
+                        if (inv > 0) {
+                            const dt = millis() - inv;
+                            if (dt < 1400) crystallizing = 1 - dt / 1400;
+                        }
+                        drawTlonGlyph(tlonIdxAt(c, r), x, y, halfGlyph, ratio, crystallizing);
+                    }
+                }
+            }
+
+            // Invocation row outline (vermillion frame) — fades out
+            drawInvokeRow();
+
+            // Hover overlay (region conversion ratio)
+            if (hoverCol >= 0 && hoverRow >= 0 && millis() < hoverActiveUntil) {
+                drawHoverRegion();
+                drawHoverCell();
+            }
+        }
+
+        function drawAmbientField(ratio) {
+            // Two extremely faint radial blobs that breathe with ambient noise.
+            // Warm field shrinks as Tlön spreads.
+            ambientPhase += 0.0014;
+            noStroke();
+            const warmAlpha = lerp(18, 4, ratio);
+            const coldAlpha = lerp(2, 22, ratio);
+            const cx1 = width * (0.32 + 0.04 * noise(ambientPhase));
+            const cy1 = height * (0.40 + 0.04 * noise(ambientPhase + 4));
+            const cx2 = width * (0.68 + 0.04 * noise(ambientPhase + 7));
+            const cy2 = height * (0.62 + 0.04 * noise(ambientPhase + 11));
+            // Warm blob
+            for (let g = 6; g >= 1; g--) {
+                fill(184, 136, 74, warmAlpha / g);
+                circle(cx1, cy1, width * 0.5 * g / 6);
+            }
+            // Cold blob
+            for (let g = 6; g >= 1; g--) {
+                fill(74, 96, 150, coldAlpha / g);
+                circle(cx2, cy2, width * 0.5 * g / 6);
+            }
+        }
+
+        function drawCellBackdrop(x, y, s, state, ratio) {
+            // Very subtle per-cell tint to suggest aged paper / cooled paper
+            noStroke();
+            if (state === 0) {
+                // Warm parchment
+                fill(28, 22, 16, 70);
+            } else {
+                // Cold Tlönian tile
+                fill(18, 22, 36, 90);
+            }
+            rect(x - s / 2 + 0.5, y - s / 2 + 0.5, s - 1, s - 1);
+        }
+
+        function drawLatinGlyph(c, r, x, y, half, ratio) {
+            const ch = latinAt(c, r);
+            // Latin glyphs fade slightly as the world cools
+            const a = lerp(180, 95, ratio);
+            noStroke();
+            fill(232, 216, 183, a);
+            textFont('IBM Plex Mono');
+            textSize(half * 1.7);
+            textAlign(CENTER, CENTER);
+            text(ch, x, y);
+        }
+
+        function drawTlonGlyph(gIdx, x, y, half, ratio, crystallizing) {
+            // Tlönian glyphs alternate indigo / brass deterministically
+            const useBrass = (gIdx & 1) === 0;
+            // Crystallizing cells flash vermillion → indigo
+            push();
+            translate(x, y);
+            let stk;
+            if (crystallizing > 0.001) {
+                stk = [
+                    lerp(useBrass ? 212 : 122, 226, crystallizing),
+                    lerp(useBrass ? 163 : 144, 106, crystallizing),
+                    lerp(useBrass ? 102 : 192, 79,  crystallizing),
+                    230
+                ];
+            } else if (useBrass) {
+                stk = [212, 163, 102, lerp(210, 240, ratio)];
+            } else {
+                stk = [122, 144, 192, lerp(195, 235, ratio)];
+            }
+            noFill();
+            stroke(stk[0], stk[1], stk[2], stk[3]);
+            strokeWeight(lerp(1.1, 1.35, ratio));
+
+            const s = half;
+            switch (gIdx % 12) {
+                case 0: { // Ascendant — triangle up
+                    beginShape();
+                    vertex(0, -s);
+                    vertex(s * 0.87, s * 0.5);
+                    vertex(-s * 0.87, s * 0.5);
+                    endShape(CLOSE);
+                    break;
+                }
+                case 1: { // Descendant — triangle down
+                    beginShape();
+                    vertex(0, s);
+                    vertex(s * 0.87, -s * 0.5);
+                    vertex(-s * 0.87, -s * 0.5);
+                    endShape(CLOSE);
+                    break;
+                }
+                case 2: { // Hexalith — hexagon
+                    beginShape();
+                    for (let i = 0; i < 6; i++) {
+                        const a = Math.PI / 6 + i * Math.PI / 3;
+                        vertex(s * Math.cos(a), s * Math.sin(a));
+                    }
+                    endShape(CLOSE);
+                    break;
+                }
+                case 3: { // Mote — solid dot
+                    noStroke();
+                    fill(stk[0], stk[1], stk[2], stk[3]);
+                    circle(0, 0, s * 0.9);
+                    break;
+                }
+                case 4: { // Mirror — diamond
+                    beginShape();
+                    vertex(0, -s);
+                    vertex(s, 0);
+                    vertex(0, s);
+                    vertex(-s, 0);
+                    endShape(CLOSE);
+                    break;
+                }
+                case 5: { // Crucible — cross
+                    line(-s, 0, s, 0);
+                    line(0, -s, 0, s);
+                    break;
+                }
+                case 6: { // Cleave — slash
+                    line(-s, s, s, -s);
+                    // a small bar across the middle
+                    line(-s * 0.3, 0, s * 0.3, 0);
+                    break;
+                }
+                case 7: { // Counter-Cleave — backslash
+                    line(-s, -s, s, s);
+                    line(0, -s * 0.3, 0, s * 0.3);
+                    break;
+                }
+                case 8: { // Ledger — three parallel lines
+                    line(-s, -s * 0.55, s, -s * 0.55);
+                    line(-s, 0, s, 0);
+                    line(-s, s * 0.55, s, s * 0.55);
+                    break;
+                }
+                case 9: { // Ouroboros — circle outline + central dot
+                    circle(0, 0, s * 1.6);
+                    noStroke();
+                    fill(stk[0], stk[1], stk[2], stk[3]);
+                    circle(0, 0, s * 0.28);
+                    break;
+                }
+                case 10: { // Triad — three dots vertical
+                    noStroke();
+                    fill(stk[0], stk[1], stk[2], stk[3]);
+                    circle(0, -s * 0.55, s * 0.32);
+                    circle(0, 0, s * 0.32);
+                    circle(0, s * 0.55, s * 0.32);
+                    break;
+                }
+                case 11: { // Asterism — six-armed star
+                    for (let i = 0; i < 3; i++) {
+                        const a = (i * Math.PI) / 3;
+                        line(-s * Math.cos(a), -s * Math.sin(a),
+                              s * Math.cos(a),  s * Math.sin(a));
+                    }
+                    break;
+                }
+            }
+
+            // Crystallization halo
+            if (crystallizing > 0.001) {
+                noFill();
+                stroke(226, 106, 79, 80 * crystallizing);
+                strokeWeight(0.8);
+                rect(-s * 1.05, -s * 1.05, s * 2.1, s * 2.1);
+            }
+            pop();
+        }
+
+        function drawInvokeRow() {
+            if (!lastInvokeRow) return;
+            const age = millis() - lastInvokeRow.ts;
+            const FADE = 5200;
+            if (age > FADE) { lastInvokeRow = null; return; }
+            const k = 1 - age / FADE;
+            const { row, startCol, endCol } = lastInvokeRow;
+            const x0 = startCol * cellSize;
+            const y0 = row * cellSize;
+            const w = (endCol - startCol + 1) * cellSize;
+            const h = cellSize;
+            noFill();
+            stroke(226, 106, 79, 200 * k);
+            strokeWeight(1.0);
+            rect(x0 + 0.5, y0 + 0.5, w - 1, h - 1);
+            // Soft outer aura
+            for (let g = 1; g <= 3; g++) {
+                stroke(226, 106, 79, 50 * k / g);
+                strokeWeight(1 + g * 2);
+                rect(x0 - g, y0 - g, w + g * 2, h + g * 2);
+            }
+            // "Phrase crystallized" label
+            const cx = x0 + w / 2;
+            const cy = y0 - 14;
+            if (cy > 12) {
+                noStroke();
+                fill(12, 10, 8, 200 * k);
+                rectMode(CENTER);
+                rect(cx, cy, 160, 18);
+                stroke(226, 106, 79, 140 * k);
+                strokeWeight(0.6);
+                noFill();
+                rect(cx, cy, 160, 18);
+                rectMode(CORNER);
+                noStroke();
+                fill(226, 106, 79, 230 * k);
+                textFont('IBM Plex Mono');
+                textAlign(CENTER, CENTER);
+                textSize(10);
+                text('PHRASE CRYSTALLIZED', cx, cy);
+            }
+        }
+
+        function drawHoverRegion() {
+            // 7x7 region around the cursor: faint brass overlay + percentage
+            const radius = 3;
+            let t = 0, tot = 0;
+            for (let dr = -radius; dr <= radius; dr++) {
+                const rr = hoverRow + dr;
+                if (rr < 0 || rr >= rows) continue;
+                for (let dc = -radius; dc <= radius; dc++) {
+                    const cc = hoverCol + dc;
+                    if (cc < 0 || cc >= cols) continue;
+                    tot++;
+                    if (states[idx(cc, rr)] === 1) t++;
+                }
+            }
+            if (tot === 0) return;
+            const pct = t / tot;
+            const x1 = (hoverCol - radius) * cellSize;
+            const y1 = (hoverRow - radius) * cellSize;
+            const w = (radius * 2 + 1) * cellSize;
+            const h = (radius * 2 + 1) * cellSize;
+
+            // Fade based on how recently the cursor moved
+            const remaining = constrain((hoverActiveUntil - millis()) / 1400, 0, 1);
+            const a = 1 * remaining;
+
+            // Faint brass wash
+            noStroke();
+            fill(212, 163, 102, 18 * a);
+            rect(x1, y1, w, h);
+            // Frame
+            noFill();
+            stroke(212, 163, 102, 110 * a);
+            strokeWeight(0.6);
+            rect(x1 + 0.5, y1 + 0.5, w - 1, h - 1);
+
+            // Floating label above region
+            const labelX = x1 + w / 2;
+            const labelY = y1 - 12 < 16 ? y1 + h + 14 : y1 - 12;
+            noStroke();
+            fill(12, 10, 8, 200 * a);
+            rectMode(CENTER);
+            rect(labelX, labelY, 140, 20);
+            stroke(184, 136, 74, 120 * a);
+            strokeWeight(0.6);
+            noFill();
+            rect(labelX, labelY, 140, 20);
+            rectMode(CORNER);
+            noStroke();
+            fill(224, 180, 120, 235 * a);
+            textFont('IBM Plex Mono');
+            textAlign(CENTER, CENTER);
+            textSize(10);
+            text(`TLÖN  ${Math.round(pct * 100)}%`, labelX, labelY);
+        }
+
+        function drawHoverCell() {
+            if (!inGrid(hoverCol, hoverRow)) return;
+            const x = hoverCol * cellSize;
+            const y = hoverRow * cellSize;
+            noFill();
+            const pulse = 0.7 + 0.3 * Math.sin(millis() * 0.005);
+            stroke(224, 180, 120, 220 * pulse);
+            strokeWeight(1.0);
+            rect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
+            // small "click" hint below
+            const lblY = y + cellSize + 12;
+            if (lblY < height - 12 && (millis() - hoverActiveUntil + 1400 > 600)) {
+                noStroke();
+                fill(232, 216, 183, 130);
+                textFont('IBM Plex Mono');
+                textAlign(CENTER, CENTER);
+                textSize(8);
+                text('CLICK TO READ', x + cellSize / 2, lblY);
+            }
+        }
+
+        // ── Mouse / touch ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            const c = Math.floor(mouseX / cellSize);
+            const r = Math.floor(mouseY / cellSize);
+            if (!inGrid(c, r)) return;
+            openEntryFor(c, r);
+        }
+
+        // Touch support for mobile
+        let touchStart = null;
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            touchStart = { x: mouseX, y: mouseY, t: millis() };
+            return false;
+        }
+        function touchEnded() {
+            if (!touchStart) return false;
+            const dx = mouseX - touchStart.x;
+            const dy = mouseY - touchStart.y;
+            if (Math.abs(dx) + Math.abs(dy) < 10 && (millis() - touchStart.t) < 600) {
+                const c = Math.floor(mouseX / cellSize);
+                const r = Math.floor(mouseY / cellSize);
+                if (inGrid(c, r)) openEntryFor(c, r);
+            }
+            touchStart = null;
+            return false;
+        }
+
+        // ── Overlay: encyclopedia entry ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCell = document.getElementById('cat-cell');
+        const elOriginal = document.getElementById('cat-original');
+        const elTlon = document.getElementById('cat-tlon');
+        const elState = document.getElementById('cat-state');
+        const elFound = document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Convert any user input into a stream of letters that map to one Tlönian
+        // glyph each. Lowercase, strip diacritics, drop everything but a-z.
+        // Each surviving letter becomes one Tlönian glyph in the transliteration.
+        function purifyPhrase(s) {
+            if (!s) return '';
+            let p = String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            p = p.replace(/[^a-z]+/g, ' ').replace(/ +/g, ' ').trim();
+            return p;
+        }
+
+        function transliterate(s) {
+            // Each non-space letter → Tlönian glyph (Unicode hint); spaces preserved
+            let out = '';
+            for (let i = 0; i < s.length; i++) {
+                const ch = s.charCodeAt(i);
+                if (ch === 32) { out += ' '; continue; }
+                // 97 = 'a'; map per-position deterministically
+                const idx = ((ch - 97) * 7 + i * 3) % 12;
+                out += TLON_GLYPH_UNICODE[idx];
+            }
+            return out;
+        }
+
+        function openEntryFor(c, r, invokedPhrase) {
+            openCell = { c, r, invoked: !!invokedPhrase };
+            const e = generateEntry(c, r);
+            const st = states[idx(c, r)] === 1 ? 'Converted to Tlön' : 'Still Latin';
+
+            elTitle.textContent = e.title;
+            elCell.textContent = `col ${c}, row ${r}  ·  ${hashCoords(c, r).toString(16).padStart(8, '0').toUpperCase()}`;
+            elOriginal.textContent = `Latin  «${e.letter}»`;
+            elTlon.textContent = `${TLON_GLYPH_UNICODE[e.tlonIdx]}  «${e.tlonName}»`;
+            elState.textContent = st;
+
+            const purified = purifyPhrase(invokedPhrase || '');
+            if (purified.length > 0) {
+                const xlit = transliterate(purified);
+                elFound.innerHTML =
+                    'row ' + r + ', columns ' + (lastInvokeRow ? lastInvokeRow.startCol : c) +
+                    '–' + (lastInvokeRow ? lastInvokeRow.endCol : c);
+
+                const flavour =
+                    `The phrase <mark>${escapeHtml(purified)}</mark> has crystallized into the encyclopedia ` +
+                    `as the row of Tlönian glyphs <span style="color:var(--brass-bright);letter-spacing:4px;">${escapeHtml(xlit)}</span>. ` +
+                    `From this row the infection now radiates outward; the Latin entries to either side are losing their nouns. `;
+                elExcerpt.innerHTML = flavour + escapeHtml(e.entry);
+                elEyebrow.innerHTML = '⬡  The phrase has been crystallized';
+                overlay.classList.add('invoked');
+            } else {
+                elExcerpt.innerHTML = escapeHtml(e.entry);
+                elEyebrow.innerHTML = '⬡  An Encyclopedia Entry';
+                overlay.classList.remove('invoked');
+            }
+
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            openCell = null;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+
+            const purified = purifyPhrase(phrase);
+            // Need at least one letter to crystallize anything
+            const tokens = purified.replace(/ /g, '');
+            if (tokens.length === 0) return;
+
+            // Deterministic location: hash → (row, startCol)
+            const h = hashString(phrase.toLowerCase());
+            const lenChars = Math.min(tokens.length, Math.max(4, Math.floor(cols * 0.7)));
+            const maxStart = Math.max(1, cols - lenChars - 2);
+            const startCol = 1 + (h % maxStart);
+            const row = 1 + ((h >>> 16) % Math.max(1, rows - 2));
+            const endCol = startCol + lenChars - 1;
+
+            // Seed those cells with Tlönian state and mark them as freshly invoked
+            const now = millis();
+            // Stagger their crystallization slightly so the row appears to write itself
+            for (let k = 0; k < lenChars; k++) {
+                const c = startCol + k;
+                if (!inGrid(c, row)) continue;
+                const i = idx(c, row);
+                if (states[i] === 0) tlonCount++;
+                states[i] = 1;
+                invokedAt[i] = now + k * 40;
+            }
+            lastInvokeRow = { row, startCol, endCol, ts: now };
+            // Boost the conversion probability for a few seconds
+            boostUntil = now + 6500;
+
+            // Open the overlay after the row has written itself in
+            const totalAnim = lenChars * 40 + 200;
+            setTimeout(() => openEntryFor(startCol, row, phrase), totalAnim);
+
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>

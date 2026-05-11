@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Las Ruinas Circulares — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Circular Ruins — a magician dreams a man into being, and a flame within a flame reveals he too is dreamt.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ── Depth announcement (the drill label) ──
+           Borgesian sibling of the oracle's invocation — appears briefly when
+           the camera dives one full level deeper into the recursion. */
+        .depth-announcement {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, calc(-50% + 14px));
+            z-index: 11;
+            background: rgba(12, 10, 8, 0.82);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid var(--brass-faint);
+            padding: 16px 30px 14px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.55s ease, transform 0.55s ease;
+            min-width: 280px;
+        }
+
+        .depth-announcement.show {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+
+        .depth-announcement-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--vermillion-bright);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.95;
+        }
+
+        .depth-announcement-line {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .depth-announcement-line .depth-num {
+            color: var(--brass-bright);
+        }
+
+        .depth-announcement-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1.2px;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+
+            .depth-announcement { min-width: 0; width: calc(100% - 48px); padding: 14px 18px 12px; }
+            .depth-announcement-name { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">△</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="name a dreamer — and we will name who dreams them…"
+                maxlength="80"
+                aria-label="Name a dreamer at this depth"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">KINDLING THE FIRE…</div>
+        </div>
+
+        <!-- Depth announcement (brief drill label) -->
+        <div class="depth-announcement" id="depth-announcement" aria-live="polite">
+            <div class="depth-announcement-eyebrow">△  Descending into the dream</div>
+            <div class="depth-announcement-line">
+                The dreamer at depth <span class="depth-num" id="da-depth">1</span>
+            </div>
+            <div class="depth-announcement-name" id="da-name">—</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Magician's Task</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>A taciturn man arrives at a ruined circular temple along the river. His purpose is one and intolerable: <strong>to dream a man, in minute detail, and impose him upon reality</strong>.</p>
+                    <p>He begins with a beating heart — then nerves, lungs, bones, a face — assembled in sleep across many years. He prays to the multifoliate fire-god of the temple, who agrees to animate the work.</p>
+                    <p>The bargain has one signature: the dreamed son will be <em>invulnerable to fire</em>. That immunity will later prove what kind of being he is.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Recursive Dreaming</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story is, structurally, a <strong>recursion</strong>. The magician dreams a man; the dreamed man will, in turn, presumably dream another. There is no first dreamer and no last.</p>
+                    <p>Each dreamer is the same algorithm executed at a different depth. The recursion has <em>no base case</em>: every "I" is the function-call of a deeper "I".</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Strange Loops (Hofstadter)</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Douglas Hofstadter (<em>Gödel, Escher, Bach</em>, 1979) called this a <strong>strange loop</strong> — a system that contains a faithful model of itself, and so re-enters its own description.</p>
+                    <p>Consciousness, Hofstadter argued, <em>is</em> the strange loop the brain performs when it represents itself representing itself. Borges' magician is the literary instance of the same idea — a self with a witness inside it.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Self-Reference &amp; Identity</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>If every dreamer is dreamt by another, the <strong>identity of the self is borrowed downward</strong>. You are what someone else is currently imagining.</p>
+                    <p>Gödel showed that any sufficiently rich formal system can encode a sentence about <em>itself</em>; Borges shows the same in narrative. The "I" is a fixed point — the smallest stable answer to an infinite recursion.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Fire That Does Not Burn</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The signature of the dream is that the dreamed cannot be harmed by fire. When the magician steps into the wildfire at the end of his life, expecting to die, <strong>the flames pass through him</strong>.</p>
+                    <p>With relief, with humiliation, with terror — <em>another was dreaming him too</em>. The same gift he gave his son was given to him by the dreamer above. The bargain works at every depth.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">△  Las Ruinas Circulares  △</div>
+            <div class="placard-title">The Circular Ruins</div>
+            <div class="placard-meta">Jorge Luis Borges · 1940 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (invoke view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">△  A dreamer in the recursion</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Depth</span><span class="value" id="cat-depth">—</span></div>
+                <div class="row"><span class="label">Dreamer</span><span class="value" id="cat-dreamer">—</span></div>
+                <div class="row"><span class="label">Sigil</span><span class="value" id="cat-sigil">—</span></div>
+                <div class="row"><span class="label">Vow</span><span class="value" id="cat-vow">—</span></div>
+                <div class="row found"><span class="label">Dreamt by</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>△</span></div>
+
+        <p class="article-eyebrow">△  Ficciones · 02  △</p>
+        <h1 class="article-title">He Too Was Dreamt</h1>
+        <p class="article-subtitle">On the fire that does not burn, and the dreamer at every depth</p>
+
+        <blockquote class="article-epigraph">
+            "Nadie lo vio desembarcar en la unánime noche, nadie vio la canoa de bambú
+            sumiéndose en el fango sagrado, pero a los pocos días nadie ignoraba
+            que el hombre taciturno venía del Sur…"
+            <cite>— Jorge Luis Borges, Las ruinas circulares (1940)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>The magician arrives at a ruined circular temple along the muddy river with a single, intolerable purpose: to dream a man — organ by organ, year by year — into existence. He prays nightly to the multifoliate fire-god of the temple, and the god agrees that the dreamed son, woven entirely from sleep, will be invulnerable to fire. The work takes years. When at last the man walks out into the world the magician feels the calm of a finished prayer. Then, late in his life, a wildfire sweeps the temple, and the magician steps into the flames expecting to burn. He does not. With relief, with humiliation, with terror, he understands.</p>
+
+            <p>What Borges sketched in 1940 computer scientists would later call <em>self-similarity</em>. The story has the structure of a function that calls itself: <code>dream(magician)</code> contains, inside it, <code>dream(son)</code>, which contains <code>dream(grandson)</code>, and so on downward without end. Each dreamer runs the same algorithm executed at a different depth — the recursion has no base case. The function returns no value; it returns only itself, smaller, at the next depth. The plot of "Las ruinas circulares" is the trace of an infinite stack frame: the same scene, played out at every scale, with the same vow whispered into the same fire.</p>
+
+            <p>Thirty years later Benoit Mandelbrot wrote down <em>z → z² + c</em> and discovered that its answer is a coastline of self-similar bays. The Mandelbrot set is, formally, an exercise in iterated self-reference: every scale of its boundary contains a smaller copy of the whole boundary. Zoom in and you find yourself zooming through worlds that are not new — only the same world, repeated. Borges' magician lives inside that math. He builds a son who is a smaller copy of himself, and the moment he watches his creation walk through fire, he realizes he himself is also a smaller copy. The flame holds the flame; the flame inside the flame is the same flame.</p>
+
+            <p>The logical regress is infinite, and Borges is not afraid of it. If every "I" is dreamt by a deeper "I", the only stable answer is that the recursion is its own ground — that the world is what consciousness does when it tries to remember itself. Mandelbrot called this iteration; Hofstadter called it the strange loop; Borges, more simply, called it tenderness. Either way, you are looking at it now: a flame containing a flame containing a flame, and you, at the surface, wondering whether you too are someone's deliberate work. The story does not answer the question. It only points to the fire, and notes — quietly — that the fire does not burn.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">△  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"Con alivio, con humillación, con terror, comprendió que él también era una apariencia, que otro estaba soñándolo."</p>
+            <p class="literary-heart-quote-en">"With relief, with humiliation, with terror, he understood that he too was a mere appearance, dreamt by another."</p>
+            <p class="literary-heart-formula">f(x) = self-similar( f(x − 1) )</p>
+            <p class="literary-heart-description">The dreamer at depth <em>x</em> is the same algorithm as the dreamer at depth <em>x−1</em>, only smaller — a flame inside a flame. The function has no base case; its only fixed point is the recursion itself. To read the story is to descend its stack frame and find, at every level, the same magician praying into the same fire.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG ──
+        // FNV-1a 32-bit — same hashing approach as the library-babel pilot,
+        // so that any phrase always lands at the same depth and dreamer ID.
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function hashInt(n) {
+            let h = 0x811c9dc5 >>> 0;
+            let a = n >>> 0;
+            h ^= a & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+        function hashPair(a, b) {
+            return hashInt(hashInt(a) ^ (b >>> 0));
+        }
+        // Mulberry32 RNG seeded by uint32
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── Deterministic dreamer name generator ──
+        // Borgesian-sounding syllable bank — Latin/Aramaic flavour, never quite a real word.
+        const SYLLABLES = [
+            'an','ar','as','el','em','en','in','is','on','or','um','us',
+            'ka','la','ma','na','pa','ra','sa','ta','va','za',
+            'lo','no','ro','so','to','do','mo','go',
+            'li','ni','ri','si','mi','di','vi',
+            'be','de','me','ne','pe','re','se','te','ve',
+            'mor','tor','lor','gor','dor','sor',
+            'ael','iel','oel','uel','aith','eth','ith',
+            'sun','mun','tun','lun','run',
+            'ix','ax','ux','ox','arx'
+        ];
+        function generateName(seed) {
+            const r = rng(seed);
+            const len = 2 + Math.floor(r() * 3); // 2–4 syllables
+            let name = '';
+            for (let i = 0; i < len; i++) {
+                let s = SYLLABLES[Math.floor(r() * SYLLABLES.length)];
+                if (i === 0) {
+                    s = s.charAt(0).toUpperCase() + s.slice(1);
+                }
+                name += s;
+            }
+            return name;
+        }
+        // A short vow / inscription — a few words of pseudo-liturgical text.
+        const VOW_BANK = [
+            'to dream a heart that beats',
+            'to weave a son from sleep',
+            'to call fire and be unburned',
+            'to inscribe a face on the night',
+            'to set a witness inside the world',
+            'to remember what was never lived',
+            'to bind a name to the river',
+            'to teach the dreamed to dream',
+            'to walk uninjured through the flame',
+            'to speak the syllable of the temple',
+            'to give the dream a sigil',
+            'to descend into the next mind',
+        ];
+        function generateVow(seed) {
+            const r = rng(seed ^ 0x9e3779b9);
+            return VOW_BANK[Math.floor(r() * VOW_BANK.length)];
+        }
+        // Sigil: an 8-hex-digit ID, half of which we render as ancient-looking glyph-marks.
+        function generateSigil(seed) {
+            const hex = seed.toString(16).padStart(8, '0').toUpperCase();
+            return hex.slice(0, 4) + '·' + hex.slice(4);
+        }
+        // An inscription — pseudo-Latin liturgical fragment used as the book-title equivalent.
+        const INSCRIPTION_BANK = [
+            'And the fire knew his name, and consented',
+            'The dreamer prayed without speaking',
+            'No witness saw him come, but soon all knew',
+            'The temple was circular, and so was the dream',
+            'He dreamed an organ each year',
+            'The smoke rose into a sky also dreamt',
+            'Beneath the fig tree he slept and was sleep',
+            'The river received him without ceremony',
+            'In the heart of the fire, a smaller fire',
+            'He named the witness and the witness opened its eyes',
+            'The bargain was struck in a dialect of sleep',
+            'He stepped through the flames and was not consumed',
+        ];
+        function generateInscription(seed) {
+            const r = rng(seed ^ 0x243F6A88);
+            return INSCRIPTION_BANK[Math.floor(r() * INSCRIPTION_BANK.length)];
+        }
+
+        // ── Phrase purification ── analogous to babel's purifyPhrase, but lighter:
+        // we just trim and collapse whitespace. The flame's "alphabet" is the world itself.
+        function normalizePhrase(s) {
+            if (!s) return '';
+            return s.replace(/\s+/g, ' ').trim();
+        }
+        function titleCasePhrase(s) {
+            return s.replace(/\S+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        }
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ── p5.js sketch ──
+        let cnv;
+        // Camera: a continuous depth in the recursion. Integer values mean
+        // "level N exactly fills the viewport at BASE_SIZE."
+        let cameraDepth = 0.0;     // current (eased)
+        let targetDepth = 0.0;     // where the camera wants to be
+        let baseDepth = 0;         // discrete drill steps
+        let panX = 0, panY = 0;    // small horizontal/vertical pan from cursor
+        let targetPanX = 0, targetPanY = 0;
+        let cameraLocked = false;  // when an invocation locks the camera
+        let invokedDepthSnapshot = 0;
+        let invokedNameSnapshot = '';
+        let ambientPhase = Math.random() * 1000;
+        let lastMouseMoveTime = 0;
+        let bornFlash = { depth: -1, t: 1.0 };  // animation of "newly born" man at a given level
+
+        // Recursion params
+        const SCALE = 0.38;        // each child flame is 38% of its parent
+        const VISIBLE_LEVELS = 7;  // we render 7 levels per frame (6 visible nested + 1 buffer)
+        const MAX_DRILL = 32;      // sanity ceiling on how deep we'll allow
+
+        // Easing
+        const DEPTH_EASE = 0.07;
+        const PAN_EASE = 0.06;
+
+        // Pan strength
+        const PAN_STRENGTH_X = 0.10;
+        const PAN_STRENGTH_Y = 0.04;
+
+        // Cursor depth contribution (top of screen → pulls out, bottom → drives deeper)
+        const CURSOR_DEPTH_RANGE = 1.4;   // how much depth a cursor sweep adds
+        const CURSOR_DEPTH_BIAS = -0.35;  // baseline offset (negative so middle ≈ baseDepth)
+
+        // Particles (sparks) per flame
+        const SPARKS_PER_FLAME = 22;
+
+        // Heart click hit radius (multiplier of base flame size)
+        const HEART_HIT_RATIO = 0.34;
+
+        // Pre-computed per-depth deterministic offsets (in fractions of parent size)
+        const offsetCache = new Map();
+        function offsetForDepth(d) {
+            if (offsetCache.has(d)) return offsetCache.get(d);
+            // Tiny offset so the inner flame is "slightly offset" inside its parent's heart.
+            const r = rng(hashInt(d * 31 + 7));
+            const dx = (r() - 0.5) * 0.10;       // ±5% horizontal
+            const dy = -0.04 + (r() - 0.5) * 0.06; // slight upward, ±3%
+            const v = { dx, dy };
+            offsetCache.set(d, v);
+            return v;
+        }
+
+        // World position of level d, expressed in BASE_SIZE units of level 0.
+        // We accumulate: pos[d] = pos[d-1] + offset(d-1) * SCALE^(d-1)
+        const worldCache = new Map();
+        function worldPosForDepth(d) {
+            if (worldCache.has(d)) return worldCache.get(d);
+            if (d <= 0) {
+                const v = { x: 0, y: 0 };
+                worldCache.set(d, v);
+                return v;
+            }
+            const prev = worldPosForDepth(d - 1);
+            const off = offsetForDepth(d - 1);
+            const s = Math.pow(SCALE, d - 1);
+            const v = { x: prev.x + off.dx * s, y: prev.y + off.dy * s };
+            worldCache.set(d, v);
+            return v;
+        }
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            noStroke();
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+        }
+
+        function baseSize() {
+            // The "size" of a flame whose level matches cameraDepth — fills ~half the smaller dimension.
+            return min(width, height) * 0.46;
+        }
+
+        // ── Camera update ──
+        function updateCamera() {
+            ambientPhase += 0.0016;
+            const ambDepth = (noise(ambientPhase, 12.3) - 0.5) * 0.30;
+            const ambPanX = (noise(ambientPhase + 50, 8.1) - 0.5) * 0.18;
+            const ambPanY = (noise(ambientPhase + 100, 8.1) - 0.5) * 0.10;
+
+            if (cameraLocked) {
+                // Drift suspended — gently hold at the snapshot depth.
+                targetDepth = invokedDepthSnapshot + ambDepth * 0.25;
+                targetPanX = ambPanX * 0.4 * width;
+                targetPanY = ambPanY * 0.4 * height;
+            } else {
+                // Cursor contribution: Y → depth, X → horizontal pan
+                const inside = mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height;
+                let cursorContribution = 0;
+                let cursorPanX = 0;
+                let cursorPanY = 0;
+                if (inside) {
+                    const ny = mouseY / height;            // 0 top, 1 bottom
+                    cursorContribution = CURSOR_DEPTH_BIAS + ny * CURSOR_DEPTH_RANGE;
+                    const nx = mouseX / width - 0.5;        // -0.5 left, 0.5 right
+                    cursorPanX = nx * width * PAN_STRENGTH_X;
+                    cursorPanY = (ny - 0.5) * height * PAN_STRENGTH_Y;
+                }
+                targetDepth = baseDepth + cursorContribution + ambDepth;
+                if (targetDepth < 0) targetDepth = 0;
+                if (targetDepth > MAX_DRILL) targetDepth = MAX_DRILL;
+                targetPanX = cursorPanX + ambPanX * 24;
+                targetPanY = cursorPanY + ambPanY * 24;
+            }
+
+            cameraDepth += (targetDepth - cameraDepth) * DEPTH_EASE;
+            panX += (targetPanX - panX) * PAN_EASE;
+            panY += (targetPanY - panY) * PAN_EASE;
+        }
+
+        // ── Draw ──
+        function draw() {
+            // Aged-paper black background, plus a faint indigo glow centered on the focal flame.
+            background(12, 10, 8);
+            // Faint indigo halo behind everything
+            push();
+            noStroke();
+            const halo = baseSize() * 1.6;
+            for (let i = 8; i > 0; i--) {
+                const t = i / 8;
+                fill(58, 78, 122, 5 * (1 - t));
+                ellipse(width / 2 + panX * 0.2, height / 2 + panY * 0.2, halo * t * 1.4, halo * t * 1.4);
+            }
+            pop();
+
+            updateCamera();
+
+            const BASE = baseSize();
+            const cd = cameraDepth;
+            const floorD = Math.floor(cd);
+            const frac = cd - floorD;
+
+            // Camera world position (interpolated between adjacent levels)
+            const wpA = worldPosForDepth(floorD);
+            const wpB = worldPosForDepth(floorD + 1);
+            const camWX = lerp(wpA.x, wpB.x, frac);
+            const camWY = lerp(wpA.y, wpB.y, frac);
+
+            const screenCX = width / 2 + panX;
+            const screenCY = height / 2 + panY;
+
+            // Slow "newborn" animation timer (set when we drill)
+            if (bornFlash.t < 1) {
+                bornFlash.t += deltaTime / 2200;
+            }
+
+            // Render levels from floorD .. floorD + VISIBLE_LEVELS
+            // From outer (bigger) to inner (smaller). Painter's order: outer first.
+            const flames = [];
+            for (let k = 0; k <= VISIBLE_LEVELS; k++) {
+                const d = floorD + k;
+                if (d > MAX_DRILL + VISIBLE_LEVELS) break;
+                const wp = worldPosForDepth(d);
+                // Screen scale factor: BASE units per world-unit
+                const zoom = BASE / Math.pow(SCALE, cd);
+                const sx = (wp.x - camWX) * zoom + screenCX;
+                const sy = (wp.y - camWY) * zoom + screenCY;
+                const sSize = BASE * Math.pow(SCALE, d - cd);
+                flames.push({ d, sx, sy, size: sSize });
+            }
+
+            // Draw outermost first so inner flames sit on top.
+            for (const f of flames) {
+                if (f.size < 2) continue;        // too small to be useful
+                if (f.size > BASE * 8) continue; // way too big — skip the extreme outer
+                drawFlame(f.sx, f.sy, f.size, f.d);
+            }
+
+            // The man-shape lives at the *deepest visible* level — that's the
+            // last flame in our painter's order. We always draw it; its alpha
+            // is governed by how prominently visible its flame is.
+            const deepest = flames[flames.length - 1];
+            // Also draw a fainter man-shape in the *second-to-deepest* — it gives
+            // a sense that the figure is "forming" as new levels appear.
+            for (let i = flames.length - 1; i >= Math.max(0, flames.length - 3); i--) {
+                const f = flames[i];
+                if (f.size < 4) continue;
+                // Depth into recursion of this level relative to camera — closer to deepest = stronger
+                const visibility = (i - (flames.length - 3)) / 3;
+                if (visibility <= 0) continue;
+                const isNewborn = (bornFlash.depth === f.d) && bornFlash.t < 1;
+                drawManShape(f.sx, f.sy, f.size, visibility, isNewborn ? bornFlash.t : -1);
+            }
+
+            // Heart hint — a soft pulsing ring at the heart of the focal flame,
+            // visible only when the cursor is near it (invites the click).
+            let cursorOverHeart = false;
+            const focalIdx = Math.min(flames.length - 1, Math.max(0, Math.round(frac) > 0 ? 1 : 0));
+            const focal = flames[focalIdx];
+            if (focal && !cameraLocked && !overlay.classList.contains('open')) {
+                const heart = flames[focalIdx + 1] || flames[focalIdx];
+                const dx = mouseX - heart.sx;
+                const dy = mouseY - heart.sy;
+                const hRad = heart.size * HEART_HIT_RATIO + 4;
+                const dist = Math.hypot(dx, dy);
+                if (dist < hRad * 3.2) {
+                    const proximity = constrain(1 - dist / (hRad * 3.2), 0, 1);
+                    drawHeartHint(heart.sx, heart.sy, hRad, proximity);
+                    if (proximity > 0.45) cursorOverHeart = true;
+                }
+            }
+            document.body.style.cursor = cursorOverHeart ? 'pointer' : 'default';
+        }
+
+        // ── Flame rendering ──
+        // A flame at (cx, cy) with characteristic size s.
+        // Vermillion at the core, brass at the edges, flickering particles.
+        function drawFlame(cx, cy, s, depth) {
+            const seed = hashInt(depth + 1 + Math.floor(cameraDepth * 7));
+            const flickerSeed = hashInt(depth + 17);
+            const t = millis() * 0.001;
+            const r = rng(flickerSeed);
+            // Slight flicker offsets
+            const flickerX = Math.sin(t * 6.1 + depth * 1.7) * s * 0.018;
+            const wobble = Math.sin(t * 2.7 + depth * 0.9) * 0.04;
+            const breath = 0.5 + 0.5 * Math.sin(t * 1.3 + depth * 0.5);
+
+            push();
+            translate(cx, cy);
+
+            // Soft brass outer halo — multiple translucent ellipses
+            noStroke();
+            const haloLayers = 7;
+            for (let i = 0; i < haloLayers; i++) {
+                const u = i / (haloLayers - 1);
+                const w = s * (1.6 - u * 0.8);
+                const h = s * (2.2 - u * 1.0) * (1 + wobble * 0.5);
+                fill(198, 150, 84, 10 + u * 14);
+                ellipse(flickerX * (1 - u) * 0.3, -s * (0.05 + u * 0.10), w, h);
+            }
+
+            // Mid orange body
+            const midLayers = 9;
+            for (let i = 0; i < midLayers; i++) {
+                const u = i / (midLayers - 1);
+                const w = s * (1.05 - u * 0.65);
+                const h = s * (1.55 - u * 0.85) * (1 + wobble * (1 - u) * 0.6);
+                // Color: brass → vermillion
+                const kk = u;
+                const rC = lerp(212, 197, kk);
+                const gC = lerp(163, 74, kk);
+                const bC = lerp(102, 48, kk);
+                const a = 28 + u * 30;
+                fill(rC, gC, bC, a);
+                ellipse(flickerX * (1 - u) * 0.6, -s * (0.05 + u * 0.10), w, h);
+            }
+
+            // Inner vermillion core
+            const coreLayers = 7;
+            for (let i = 0; i < coreLayers; i++) {
+                const u = i / (coreLayers - 1);
+                const w = s * (0.42 - u * 0.30);
+                const h = s * (0.62 - u * 0.40);
+                // Vermillion → bright vermillion → ember-yellow
+                let rC, gC, bC;
+                if (u < 0.6) {
+                    const kk = u / 0.6;
+                    rC = lerp(197, 226, kk);
+                    gC = lerp(74, 106, kk);
+                    bC = lerp(48, 79, kk);
+                } else {
+                    const kk = (u - 0.6) / 0.4;
+                    rC = lerp(226, 246, kk);
+                    gC = lerp(106, 196, kk);
+                    bC = lerp(79, 130, kk);
+                }
+                const a = 60 + u * 60;
+                fill(rC, gC, bC, a);
+                ellipse(flickerX * (1 - u), -s * (0.05 + u * 0.06), w, h);
+            }
+
+            // Hot pinpoint (only at larger sizes — would be invisible at small scales)
+            if (s > 60) {
+                fill(252, 220, 160, 80 + breath * 40);
+                ellipse(flickerX * 0.7, -s * 0.06, s * 0.08, s * 0.10);
+            }
+
+            // Flickering particles (sparks) — deterministic positions per flame,
+            // but each particle drifts upward over a short loop.
+            if (s > 24) {
+                const sparkR = rng(seed);
+                const sparkCount = Math.min(SPARKS_PER_FLAME, Math.floor(s * 0.32));
+                for (let i = 0; i < sparkCount; i++) {
+                    const baseAngle = -Math.PI / 2 + (sparkR() - 0.5) * 1.0;
+                    const baseDist = s * (0.55 + sparkR() * 0.55);
+                    const speed = 0.4 + sparkR() * 0.9;
+                    const phase = sparkR() * 1000;
+                    const cyc = ((t * speed + phase) % 1);
+                    const rise = cyc;
+                    const px = Math.cos(baseAngle) * baseDist + flickerX * 1.3 +
+                               Math.sin((t * 3 + i * 1.7)) * s * 0.012;
+                    const py = Math.sin(baseAngle) * baseDist - rise * s * 0.6 +
+                               flickerX * 0.4;
+                    const fade = (1 - rise) * (0.6 + 0.4 * Math.sin(t * 6 + i));
+                    const ps = Math.max(1.2, s * 0.008 * (1 - rise * 0.6));
+                    fill(232, 180, 110, 200 * fade);
+                    ellipse(px, py, ps, ps);
+                    if (sparkR() > 0.55) {
+                        fill(254, 220, 160, 160 * fade);
+                        ellipse(px, py, ps * 0.5, ps * 0.5);
+                    }
+                }
+            }
+
+            // Catalog mark (depth ID) — only on prominent flames
+            if (s > BASE_DEBUG_THRESHOLD()) {
+                noStroke();
+                fill(198, 150, 84, 95);
+                textSize(8);
+                textAlign(CENTER, BASELINE);
+                const sigil = (hashInt(depth) % 999).toString(16).toUpperCase().padStart(3, '0');
+                text('△ ' + sigil + ' · d' + depth, 0, s * 0.85);
+            }
+
+            pop();
+        }
+        function BASE_SIZE_FOR_FLAG() { return min(width, height) * 0.46; }
+        function BASE_DEBUG_THRESHOLD() { return BASE_SIZE_FOR_FLAG() * 0.55; }
+
+        // ── The man-shape inside the deepest flame ──
+        // Drawn from polygons — a faint translucent parchment figure that pulses slowly.
+        function drawManShape(cx, cy, flameSize, visibility, newbornT) {
+            // The figure lives inside the flame's body, slightly below center
+            const figH = flameSize * 0.58;
+            const figY = cy + flameSize * 0.05;
+            const t = millis() * 0.001;
+            const pulse = 0.55 + 0.45 * Math.sin(t * 1.1);
+            // Newborn animation: 0..1 ramps from invisible/small to full
+            let newbornAlpha = 1.0;
+            let newbornScale = 1.0;
+            if (newbornT >= 0) {
+                const k = constrain(newbornT, 0, 1);
+                // Ease-out cubic
+                const e = 1 - Math.pow(1 - k, 3);
+                newbornAlpha = e;
+                newbornScale = lerp(0.55, 1.0, e);
+            }
+            const alphaBase = 110 * visibility * pulse * newbornAlpha;
+            if (alphaBase < 2) return;
+
+            push();
+            translate(cx, figY);
+            scale(newbornScale);
+            noStroke();
+            fill(236, 220, 188, alphaBase);
+
+            // Head — small hexagonal polygon
+            const headR = figH * 0.075;
+            beginShape();
+            for (let i = 0; i < 7; i++) {
+                const a = -Math.PI / 2 + i * (Math.PI * 2 / 7);
+                vertex(Math.cos(a) * headR, -figH * 0.40 + Math.sin(a) * headR);
+            }
+            endShape(CLOSE);
+
+            // Neck
+            quad(
+                -figH * 0.015, -figH * 0.345,
+                 figH * 0.015, -figH * 0.345,
+                 figH * 0.025, -figH * 0.305,
+                -figH * 0.025, -figH * 0.305
+            );
+
+            // Torso — narrow trapezoid (cloaked figure)
+            quad(
+                -figH * 0.085, -figH * 0.305,
+                 figH * 0.085, -figH * 0.305,
+                 figH * 0.110,  figH * 0.075,
+                -figH * 0.110,  figH * 0.075
+            );
+
+            // Right arm
+            quad(
+                figH * 0.075, -figH * 0.275,
+                figH * 0.115, -figH * 0.255,
+                figH * 0.210,  figH * 0.080,
+                figH * 0.175,  figH * 0.100
+            );
+            // Left arm
+            quad(
+                -figH * 0.115, -figH * 0.255,
+                -figH * 0.075, -figH * 0.275,
+                -figH * 0.175,  figH * 0.100,
+                -figH * 0.210,  figH * 0.080
+            );
+
+            // Right leg
+            quad(
+                 figH * 0.010, figH * 0.075,
+                 figH * 0.105, figH * 0.075,
+                 figH * 0.105, figH * 0.430,
+                 figH * 0.025, figH * 0.430
+            );
+            // Left leg
+            quad(
+                -figH * 0.105, figH * 0.075,
+                -figH * 0.010, figH * 0.075,
+                -figH * 0.025, figH * 0.430,
+                -figH * 0.105, figH * 0.430
+            );
+
+            // Faint indigo aura behind the figure
+            noStroke();
+            fill(122, 144, 192, alphaBase * 0.18);
+            ellipse(0, 0, figH * 0.55, figH * 0.95);
+
+            pop();
+        }
+
+        // ── Heart hint — pulsing brass ring at click target ──
+        function drawHeartHint(cx, cy, hRad, proximity) {
+            const t = millis() * 0.001;
+            const pulse = 0.7 + 0.3 * Math.sin(t * 2.4);
+            push();
+            translate(cx, cy);
+            noFill();
+            for (let g = 0; g < 4; g++) {
+                stroke(212, 163, 102, 18 * pulse * proximity / (g + 1));
+                strokeWeight(1.5 + g * 1.6);
+                ellipse(0, 0, hRad * 2.2, hRad * 2.2);
+            }
+            stroke(212, 163, 102, 200 * proximity * pulse);
+            strokeWeight(1.0);
+            ellipse(0, 0, hRad * 2.0, hRad * 2.0);
+            // Inner glyph
+            noStroke();
+            fill(232, 180, 110, 200 * proximity);
+            textSize(10);
+            textAlign(CENTER, CENTER);
+            textFont('IBM Plex Mono');
+            if (proximity > 0.55) {
+                text('△  DRILL', 0, hRad * 2.0 + 18);
+            }
+            pop();
+        }
+
+        // ── Drill (click the heart) ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav') ||
+                      t.closest('.scroll-indicator'))) return;
+
+            if (overlay.classList.contains('open')) return;
+
+            // Determine current heart position (same logic as draw loop's hint).
+            const BASE = baseSize();
+            const cd = cameraDepth;
+            const floorD = Math.floor(cd);
+            const frac = cd - floorD;
+            const wpA = worldPosForDepth(floorD);
+            const wpB = worldPosForDepth(floorD + 1);
+            const camWX = lerp(wpA.x, wpB.x, frac);
+            const camWY = lerp(wpA.y, wpB.y, frac);
+
+            // Heart = level (focal + 1). Focal = level closest to cameraDepth that is "filling" the view.
+            const focalLevel = floorD;       // the largest currently-visible flame
+            const heartLevel = focalLevel + 1; // its heart contains the next inner flame
+            const wp = worldPosForDepth(heartLevel);
+            const zoom = BASE / Math.pow(SCALE, cd);
+            const hsx = (wp.x - camWX) * zoom + width / 2 + panX;
+            const hsy = (wp.y - camWY) * zoom + height / 2 + panY;
+            const hSize = BASE * Math.pow(SCALE, heartLevel - cd);
+            const hRad = hSize * HEART_HIT_RATIO + 6;
+
+            const dist = Math.hypot(mouseX - hsx, mouseY - hsy);
+            if (dist <= hRad * 3.0) {
+                drillOneLevel();
+            }
+        }
+
+        function drillOneLevel() {
+            if (baseDepth >= MAX_DRILL) return;
+            baseDepth += 1;
+            const newDepth = baseDepth;
+            // Show the depth announcement with a deterministic name
+            const dreamerSeed = hashInt(newDepth * 0x9e3779b1);
+            const name = generateName(dreamerSeed);
+            announceDepth(newDepth, name);
+            // Trigger the "newborn" animation for the man-shape at this new visible level.
+            bornFlash = { depth: newDepth + 6, t: 0 };
+        }
+
+        // ── Depth announcement (DOM) ──
+        const depthAnnouncement = document.getElementById('depth-announcement');
+        const daDepth = document.getElementById('da-depth');
+        const daName = document.getElementById('da-name');
+        let announcementTimer = null;
+        function announceDepth(depth, name) {
+            daDepth.textContent = depth;
+            daName.textContent = name;
+            depthAnnouncement.classList.add('show');
+            if (announcementTimer) clearTimeout(announcementTimer);
+            announcementTimer = setTimeout(() => {
+                depthAnnouncement.classList.remove('show');
+            }, 2200);
+        }
+
+        // ── Book overlay (invoke view) ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCatDepth = document.getElementById('cat-depth');
+        const elCatDreamer = document.getElementById('cat-dreamer');
+        const elCatSigil = document.getElementById('cat-sigil');
+        const elCatVow = document.getElementById('cat-vow');
+        const elCatFound = document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function openInvocation(phrase) {
+            const trimmed = normalizePhrase(phrase);
+            if (!trimmed) return;
+            const seed = hashString(trimmed.toLowerCase());
+
+            // Current depth at the moment of invocation. We lock the camera here.
+            const lockedDepth = Math.max(0, Math.round(cameraDepth));
+            invokedDepthSnapshot = lockedDepth;
+            invokedNameSnapshot = trimmed;
+            cameraLocked = true;
+
+            // The "deeper dreamer" — depth N+1, deterministic from the user's phrase
+            const deeperSeed = hashPair(seed, lockedDepth + 1);
+            const deeperName = generateName(deeperSeed);
+            const sigil = generateSigil(seed);
+            const vow = generateVow(seed);
+            const inscription = generateInscription(deeperSeed);
+
+            const displayName = titleCasePhrase(trimmed);
+
+            // Title — the inscription / question
+            elTitle.innerHTML = 'WHO DREAMS <em style="font-style: italic; color: var(--vermillion-bright);">' + escapeHtml(displayName) + '</em>?';
+
+            elCatDepth.textContent = 'd · ' + lockedDepth;
+            elCatDreamer.textContent = displayName;
+            elCatSigil.textContent = sigil;
+            elCatVow.textContent = vow;
+            elCatFound.textContent = deeperName + '  ·  d · ' + (lockedDepth + 1);
+
+            // Excerpt: a paragraph weaving the user's name into a Borgesian fragment,
+            // with the user's input rubricated.
+            const fragment =
+                'At depth ' + lockedDepth + ', the dreamer is named ' +
+                '<mark>' + escapeHtml(displayName) + '</mark>. ' +
+                inscription + '. ' +
+                'Below this depth, in the unanimous night of the next mind, ' +
+                escapeHtml(deeperName) + ' is sleeping, and in their sleep they have begun to assemble ' +
+                'the heart, the lungs, the witness, the name. ' +
+                'The bargain at this level was: ' + vow + '. ' +
+                'The fire here does not burn — which is, as always, the proof.';
+
+            elExcerpt.innerHTML = fragment;
+
+            elEyebrow.innerHTML = '△  A dreamer has been named';
+            overlay.classList.add('invoked');
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            // Release the lock — let drift resume
+            cameraLocked = false;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+            openInvocation(phrase);
+            oracleInput.blur();
+        });
+
+        // ── Touch handling (mobile) ──
+        // Tap near the heart drills one level. There's no separate drag — drift
+        // is controlled by ambient breathing on touch devices.
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav') ||
+                      t.closest('.scroll-indicator'))) return;
+            // Defer to mousePressed-style hit-test via touches[0]
+            return false;
+        }
+        function touchEnded() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
+                      t.closest('.book-overlay') || t.closest('.back-nav') ||
+                      t.closest('.scroll-indicator'))) return;
+            // Use the last touch position via mouseX/mouseY (p5 sets these on touchEnd)
+            // Reuse mousePressed logic
+            mousePressed();
+            return false;
+        }
+    </script>
+</body>
+</html>

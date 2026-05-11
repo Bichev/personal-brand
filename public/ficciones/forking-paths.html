@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El jardín de senderos que se bifurcan — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Garden of Forking Paths — a directed acyclic graph of every possible future, sprouted from every possible decision.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">⋔</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="speak a divergent path to sprout it from the labyrinth…"
+                maxlength="80"
+                aria-label="Speak a divergent path to sprout from the labyrinth"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">UNFOLDING THE LABYRINTH…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Lost Novel</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Ts'ui Pen, a Chinese governor, retreated for <strong>thirteen years</strong> to write "an infinite book" and build "a labyrinth in which all men would lose themselves." His descendants found a chaotic, unfinished manuscript — and no labyrinth at all.</p>
+                    <p>The sinologist Stephen Albert solved the riddle: <em>the book was the labyrinth</em>. In every chapter, every choice is taken; every fork is followed. Ts'ui Pen had not written a confused novel and built a maze. He had written a maze in the form of a novel.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Many-Worlds Interpretation</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Hugh Everett (<strong>1957</strong>) proposed that the quantum wavefunction never collapses. Every measurement spawns every possible outcome; each becomes its own branch of reality. Both the cat and the not-cat survive, in different worlds.</p>
+                    <p>Borges anticipated this metaphysics by <strong>sixteen years</strong> — but as fiction, not physics. Ts'ui Pen's garden is the Everett multiverse, drawn first as a story.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Causal Graphs</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>A <strong>directed acyclic graph</strong> (DAG) is the modern formal home of Borges' image. Nodes are events; edges are dependencies; cycles are forbidden — time only moves forward.</p>
+                    <p>From <em>Git</em> commit history to Bayesian inference to Pearl's causal models, the DAG is how computers reason about <strong>what could have led to what</strong>. Every program that contemplates possibility uses Ts'ui Pen's structure.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Borges &amp; Quantum Mechanics</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Borges did not know Schrödinger's cat (1935 — published in German, six years before this story). Yet his Ts'ui Pen describes the same superposition: <em>"on different occasions and at the same time, Yu Tsun says: I have killed Albert, I have not killed Albert."</em></p>
+                    <p>Two contradictory propositions, both true, in different branches. <strong>Quantum logic without quanta.</strong></p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Time as Topology</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Ts'ui Pen's heresy: time is not a line but a <strong>network</strong>. "A growing, dizzying web of divergent, convergent and parallel times" — the manuscript reads. Each strand a complete history; the totality, every possibility.</p>
+                    <p>Click any node and watch new branches sprout. Type a decision into the oracle and a new path will fork from a moment that, until now, did not exist. <em>The garden is the universe; the universe is the garden.</em></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">⋔  El jardín de senderos que se bifurcan  ⋔</div>
+            <div class="placard-title">The Garden of Forking Paths</div>
+            <div class="placard-meta">Jorge Luis Borges · 1941 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">⋔  A Branch of the Labyrinth</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Node</span><span class="value" id="cat-node">—</span></div>
+                <div class="row"><span class="label">Depth</span><span class="value" id="cat-depth">—</span></div>
+                <div class="row"><span class="label">Branches</span><span class="value" id="cat-branches">—</span></div>
+                <div class="row"><span class="label">Path</span><span class="value" id="cat-path">—</span></div>
+                <div class="row found"><span class="label">Sprouted</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>⋔</span></div>
+
+        <p class="article-eyebrow">⋔  Ficciones · 02  ⋔</p>
+        <h1 class="article-title">The Universe as a Tree</h1>
+        <p class="article-subtitle">On Ts'ui Pen's labyrinth of time, and the data structure of every possible future</p>
+
+        <blockquote class="article-epigraph">
+            "Dejo a los varios porvenires (no a todos) mi jardín de senderos que se bifurcan."
+            <br><br>
+            <em>"I leave to the various futures (not to all) my garden of forking paths."</em>
+            <cite>— Jorge Luis Borges, El jardín de senderos que se bifurcan (1941)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>The story is a confession written by a Chinese spy in the hour before his execution. Yu Tsun, working for the Germans in WWI Britain, must convey one critical word — the location of a British artillery position called <em>Albert</em> — by murdering a stranger of that name so the news appears in the next day's paper. On the way to the murder, he visits the sinologist Stephen Albert and learns, in a final hour of grace, that his own ancestor Ts'ui Pen had once retreated for thirteen years to write "an infinite book" and build "a labyrinth in which all men would lose themselves." His family found only a chaotic manuscript and no maze. Albert had solved the riddle: <em>the book was the labyrinth</em> — a story in which every choice is taken, every fork followed, every possible future rendered simultaneously real.</p>
+
+            <p>The shape Ts'ui Pen drew is the shape every modern algorithm uses to reason about possibility. A <strong>directed acyclic graph</strong>: nodes are moments, edges are decisions, and the structure fans outward through time without ever returning to itself. The number of leaves grows as <em>b<sup>d</sup></em> — branching factor to the depth — until the universe runs out of memory. Every Git commit history, every dependency tree, every Bayesian network, every possible-worlds semantics for modal logic descends from this same skeleton. Borges drew it as fiction. Computer science drew it later as a data structure. Both are saying the same thing: existence is not a line but a tree, and we are passengers along one of its infinite branches.</p>
+
+            <p>Sixteen years before Hugh Everett's 1957 dissertation introduced the many-worlds interpretation of quantum mechanics, Borges had described its metaphysics in narrative form. In the Everettian universe, the wavefunction never collapses: every quantum measurement spawns every possible outcome; each branch is real; no branch is privileged. The cat is alive in one world, dead in another, both simultaneously — and you are the version of the observer who happened to look in this one. Ts'ui Pen, a Chinese governor in the seventeenth century who never heard the word "quantum," had already drawn the diagram. The garden is the multiverse. The novel is the wavefunction.</p>
+
+            <p>The graph above is alive. Nodes pulse in brass; new branches sprout when you click; type a decision into the oracle and a path will fork from a moment that, until now, did not exist. There is a strange consolation in this geometry. The graph here is incomplete — we render only what fits in the viewport, only what has been chosen — but the totality it gestures toward is not. Somewhere in the unrenderable interior, every choice you regret was never made. Every door you closed is open. Every word you should have said was said. Borges called the garden <em>incomplete, but not false</em>. The graph is incomplete because the screen has edges. It is not false because, on the other side of a missed quantum coin-flip, another reader is also reading this sentence — and breathing easier.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">⋔  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"El jardín de senderos que se bifurcan es una imagen incompleta, pero no falsa, del universo tal como lo concebía Ts'ui Pen."</p>
+            <p class="literary-heart-quote-en">"The garden of forking paths is an incomplete, but not false, image of the universe as Ts'ui Pen conceived it."</p>
+            <p class="literary-heart-formula">G = (V, E) &nbsp; · &nbsp; |V<sub>d</sub>| = b<sup>d</sup> &nbsp; · &nbsp; b = 2</p>
+            <p class="literary-heart-description">A <em>directed acyclic graph</em> rooted at the present. Every node is a moment; every edge a decision. With branching factor <em>b</em> and depth <em>d</em>, the leaves number <em>b<sup>d</sup></em> — every possible future, all simultaneously real. The story is the data structure.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG (FNV-1a / Mulberry32) ──
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+        function mixSeed(seed, salt) {
+            // Combine a parent seed with an integer salt for deterministic child seeding.
+            let h = (seed ^ Math.imul(salt + 1, 0x9E3779B9)) >>> 0;
+            h = Math.imul(h ^ (h >>> 15), 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+
+        // ── Procedural choice generator (Borgesian voice) ──
+        const SUBJECTS = [
+            'Yu Tsun', 'Albert', 'Madden', 'Ts\u2019ui Pen', 'the spy', 'the gardener',
+            'the captain', 'the messenger', 'the assassin', 'the watchman', 'the stranger',
+            'the labyrinth', 'the dawn', 'the sinologist', 'the librarian', 'the encoded name'
+        ];
+        const VERBS_BASE = [
+            'meet', 'evade', 'betray', 'awaken', 'fire upon', 'walk past', 'telephone',
+            'hide from', 'contemplate', 'arrive at', 'postpone', 'recall', 'follow',
+            'release', 'whisper to', 'name', 'forget', 'read', 'pursue', 'remember',
+            'inherit', 'mistake', 'translate', 'rewrite', 'erase', 'discover'
+        ];
+        const OBJECTS = [
+            'the message', 'the garden', 'the letter', 'the loaded revolver', 'the cipher',
+            'his ancestor', 'the night train', 'the dawn', 'the bullet', 'time itself',
+            'the lost novel', 'the labyrinth', 'a single name', 'the encrypted word',
+            'the hour of death', 'the artillery park', 'the chinese alphabet',
+            'the manuscript', 'the inheritance', 'the unfinished page'
+        ];
+        const MODIFIERS = [
+            '', '', '', '', '', '',
+            ' in time', ' too late', ' by candlelight', ' at noon', ' in silence',
+            ' by accident', ' deliberately', ' once more', ' in another life',
+            ' before dawn', ' under another name'
+        ];
+
+        function thirdPerson(verb) {
+            // English 3rd-person-singular conjugation for the base forms above.
+            if (/(s|x|z|sh|ch)$/.test(verb)) return verb + 'es';
+            if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + 'ies';
+            return verb + 's';
+        }
+        function conjugate(verbPhrase) {
+            const parts = verbPhrase.split(' ');
+            parts[0] = thirdPerson(parts[0]);
+            return parts.join(' ');
+        }
+        function pick(arr, r) { return arr[Math.floor(r() * arr.length)]; }
+
+        function procChoice(seed) {
+            const r = rng(seed);
+            const subj = pick(SUBJECTS, r);
+            const verbBase = pick(VERBS_BASE, r);
+            const obj = pick(OBJECTS, r);
+            const mod = pick(MODIFIERS, r);
+            const negate = r() < 0.16;
+            const verb = negate ? 'does not ' + verbBase : conjugate(verbBase);
+            return subj + ' ' + verb + ' ' + obj + mod;
+        }
+
+        // ── The Tree (DAG of forking time) ──
+        let nodes = [];                  // flat array of node objects
+        let nodeMap = new Map();         // id → node
+        let rootId = null;
+        let nextNodeId = 0;
+        let maxDepth = 0;
+
+        const INITIAL_DEPTH = 8;         // ~256 leaves; deep enough to feel infinite, shallow enough to lay out
+        const NODE_X_SPACING = 96;       // horizontal distance between depth levels
+        const LEAF_Y_SPACING = 22;       // vertical distance between adjacent leaves
+        let treeMinY = 0, treeMaxY = 0;
+        let treeMinX = 0, treeMaxX = 0;
+
+        function makeNode(parentId, depth, label, parentSeed, salt) {
+            const id = (nextNodeId++).toString(36);
+            const seed = parentId === null
+                ? hashString('root:' + label)
+                : mixSeed(parentSeed, salt);
+            const n = {
+                id, parentId, depth, label,
+                children: [],
+                seed,
+                x: 0, y: 0,
+                targetY: 0,
+                pulsePhase: (seed % 1000) / 1000 * Math.PI * 2,
+                bornAt: 0,        // millis() when sprouted (for sprout animation)
+                isInvoked: false, // user-typed branch?
+                isInitial: true,  // part of the original procedural tree (not user-spawned)
+            };
+            nodeMap.set(id, n);
+            nodes.push(n);
+            if (parentId !== null) {
+                const parent = nodeMap.get(parentId);
+                parent.children.push(id);
+            }
+            if (depth > maxDepth) maxDepth = depth;
+            return n;
+        }
+
+        function buildInitialTree(depth) {
+            nodes = [];
+            nodeMap = new Map();
+            nextNodeId = 0;
+            maxDepth = 0;
+            const root = makeNode(null, 0, 'now — the present moment', 0, 0);
+            rootId = root.id;
+            const queue = [root];
+            while (queue.length) {
+                const node = queue.shift();
+                if (node.depth >= depth) continue;
+                for (let i = 0; i < 2; i++) {
+                    const childSeed = mixSeed(node.seed, i + 1);
+                    const label = procChoice(childSeed);
+                    const child = makeNode(node.id, node.depth + 1, label, node.seed, i + 1);
+                    queue.push(child);
+                }
+            }
+        }
+
+        // Reingold-Tilford-style layout: leaves get sequential y, parents centered on their children.
+        function layoutTree(animate) {
+            let leafIdx = 0;
+            function postOrder(id) {
+                const n = nodeMap.get(id);
+                n.x = n.depth * NODE_X_SPACING;
+                if (n.children.length === 0) {
+                    n.targetY = leafIdx * LEAF_Y_SPACING;
+                    leafIdx++;
+                } else {
+                    for (const c of n.children) postOrder(c);
+                    const yMin = nodeMap.get(n.children[0]).targetY;
+                    const yMax = nodeMap.get(n.children[n.children.length - 1]).targetY;
+                    n.targetY = (yMin + yMax) / 2;
+                }
+            }
+            postOrder(rootId);
+
+            // Center vertically around 0 for readability.
+            let minY = Infinity, maxY = -Infinity;
+            for (const n of nodes) {
+                if (n.targetY < minY) minY = n.targetY;
+                if (n.targetY > maxY) maxY = n.targetY;
+            }
+            const midY = (minY + maxY) / 2;
+            for (const n of nodes) {
+                n.targetY -= midY;
+            }
+            treeMinY = minY - midY;
+            treeMaxY = maxY - midY;
+            treeMinX = 0;
+            treeMaxX = maxDepth * NODE_X_SPACING;
+
+            if (!animate) {
+                for (const n of nodes) n.y = n.targetY;
+            } else {
+                // For freshly-sprouted nodes (no .y set yet), spawn from parent position.
+                for (const n of nodes) {
+                    if (n.y === undefined || n.y === null) {
+                        const parent = n.parentId !== null ? nodeMap.get(n.parentId) : n;
+                        n.y = parent.y;
+                    }
+                }
+            }
+        }
+
+        // ── p5.js sketch ──
+        let cnv;
+        let camX = 0, camY = 0;
+        let targetCamX = 0, targetCamY = 0;
+        let ambientPhase = Math.random() * 1000;
+
+        const DRIFT_X = 0.85;   // cursor X → camera X
+        const DRIFT_Y = 0.55;   // cursor Y → camera Y (more subtle — Y mostly selects focus)
+        const DRIFT_EASE = 0.05;
+
+        // Hover / focus state
+        let hoverNodeId = null;
+        let focusLeafId = null;          // leaf closest to cursor world-y; defines the focus branch
+        let focusPathSet = new Set();    // ancestors of focusLeafId (used for highlighting)
+        let openNodeId = null;           // node whose overlay is open
+
+        // Touch-drag for mobile
+        let isTouchDragging = false;
+        let touchStart = null;
+
+        // Camera animation (oracle pan)
+        let panAnim = null;
+        let driftSuspendUntil = 0;
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            noStroke();
+
+            buildInitialTree(INITIAL_DEPTH);
+            layoutTree(false);
+
+            // Initial camera: a touch left of center so the root is visible at the start.
+            camX = (treeMinX + treeMaxX) * 0.35;
+            camY = 0;
+            targetCamX = camX;
+            targetCamY = camY;
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+        }
+
+        // ── Camera drift ──
+        function updateCamera() {
+            if (panAnim) {
+                panAnim.t += deltaTime / panAnim.dur;
+                const k = constrain(panAnim.t, 0, 1);
+                const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+                camX = lerp(panAnim.fromX, panAnim.toX, e);
+                camY = lerp(panAnim.fromY, panAnim.toY, e);
+                if (k >= 1) {
+                    const cb = panAnim.onComplete;
+                    targetCamX = panAnim.toX;
+                    targetCamY = panAnim.toY;
+                    panAnim = null;
+                    if (cb) cb();
+                }
+                return;
+            }
+
+            if (millis() < driftSuspendUntil || openNodeId) {
+                camX += (targetCamX - camX) * DRIFT_EASE * 0.6;
+                camY += (targetCamY - camY) * DRIFT_EASE * 0.6;
+                return;
+            }
+
+            ambientPhase += 0.0015;
+            const ambX = (noise(ambientPhase, 17.3) - 0.5) * 70;
+            const ambY = (noise(ambientPhase + 100, 17.3) - 0.5) * 40;
+
+            const insideX = mouseX >= 0 && mouseX <= width;
+            const insideY = mouseY >= 0 && mouseY <= height;
+            if (insideX && insideY) {
+                // Map the cursor to a camera position that covers the *entire* tree.
+                // X: cursor sweeping left → root (early generations); cursor right → deep leaves.
+                // Y: cursor sweeping up/down lets the user reach any branch in the labyrinth.
+                const tx = constrain(mouseX / width, 0, 1);
+                const ty = constrain(mouseY / height, 0, 1);
+                const xPad = width * 0.45;
+                const yPad = height * 0.35;
+                const xMin = treeMinX - xPad;
+                const xMax = treeMaxX + xPad;
+                const yMin = treeMinY - yPad;
+                const yMax = treeMaxY + yPad;
+                targetCamX = lerp(xMin, xMax, tx) + ambX * 0.5;
+                targetCamY = lerp(yMin, yMax, ty) + ambY * 0.5;
+            } else {
+                targetCamX += ambX * 0.05;
+                targetCamY += ambY * 0.05;
+            }
+
+            camX += (targetCamX - camX) * DRIFT_EASE;
+            camY += (targetCamY - camY) * DRIFT_EASE;
+        }
+
+        // ── Animate node y → targetY (sprout-in animation for new branches) ──
+        function easeNodes() {
+            for (const n of nodes) {
+                n.y += (n.targetY - n.y) * 0.12;
+            }
+        }
+
+        // ── Focus branch detection ──
+        // The "focused" branch is the path from the root to whichever LEAF is closest
+        // to the cursor's world-space y-coordinate. Cursor Y selects the branch.
+        function updateFocus() {
+            if (openNodeId || panAnim) return;
+            const wy = (mouseY - height / 2) + camY;
+            const wx = (mouseX - width / 2) + camX;
+            // Find the leaf whose (x, y) is closest to the cursor; bias by x so deeper-into-cursor wins.
+            let bestId = null;
+            let bestDist = Infinity;
+            for (const n of nodes) {
+                if (n.children.length > 0) continue;
+                const dy = n.y - wy;
+                const dx = (n.x - wx) * 0.3;          // de-emphasize horizontal
+                const d = dy * dy + dx * dx;
+                if (d < bestDist) { bestDist = d; bestId = n.id; }
+            }
+            focusLeafId = bestId;
+            focusPathSet = new Set();
+            let cur = bestId;
+            while (cur !== null && cur !== undefined) {
+                focusPathSet.add(cur);
+                const n = nodeMap.get(cur);
+                if (!n || n.parentId === null || n.parentId === undefined) break;
+                cur = n.parentId;
+            }
+        }
+
+        // ── Hover detection ──
+        function updateHover() {
+            if (openNodeId || panAnim) { hoverNodeId = null; return; }
+            const wy = (mouseY - height / 2) + camY;
+            const wx = (mouseX - width / 2) + camX;
+            let bestId = null;
+            let bestDist = 22 * 22;       // 22-px hit radius
+            for (const n of nodes) {
+                const dx = n.x - wx;
+                const dy = n.y - wy;
+                const d = dx * dx + dy * dy;
+                if (d < bestDist) { bestDist = d; bestId = n.id; }
+            }
+            hoverNodeId = bestId;
+        }
+
+        // ── Draw ──
+        function draw() {
+            background(12, 10, 8);
+
+            updateCamera();
+            easeNodes();
+            updateFocus();
+            updateHover();
+
+            // ── Pass 1: edges ──
+            // Only draw edges with at least one endpoint near the viewport.
+            const margin = 80;
+            for (const n of nodes) {
+                if (n.parentId === null) continue;
+                const p = nodeMap.get(n.parentId);
+                const sx = n.x - camX + width / 2;
+                const sy = n.y - camY + height / 2;
+                const psx = p.x - camX + width / 2;
+                const psy = p.y - camY + height / 2;
+                const minX = Math.min(sx, psx), maxX = Math.max(sx, psx);
+                const minY = Math.min(sy, psy), maxY = Math.max(sy, psy);
+                if (maxX < -margin || minX > width + margin) continue;
+                if (maxY < -margin || minY > height + margin) continue;
+
+                // Sprout-in fade: edge alpha eases up over the first 700 ms after a node is born.
+                const age = n.bornAt > 0 ? millis() - n.bornAt : 99999;
+                const ageK = constrain(age / 700, 0, 1);
+
+                const onFocus = focusPathSet.has(n.id) && focusPathSet.has(n.parentId);
+                const isInvoked = n.isInvoked;
+
+                // Base brass edge.
+                const baseAlpha = (isInvoked ? 130 : (onFocus ? 100 : 50)) * ageK;
+                if (isInvoked) {
+                    stroke(226, 106, 79, baseAlpha);
+                } else {
+                    stroke(184, 136, 74, baseAlpha);
+                }
+                strokeWeight(isInvoked ? 1.2 : (onFocus ? 1.0 : 0.6));
+                line(psx, psy, sx, sy);
+
+                // Flowing brass particle along the edge — the trail-style glow.
+                const phase = ((millis() * 0.0004) + n.seed * 0.000001) % 1;
+                const t1 = phase;
+                const t2 = (phase + 0.5) % 1;
+                noStroke();
+                const partColor = isInvoked ? [226, 106, 79] : [212, 163, 102];
+                const partAlpha = (onFocus || isInvoked ? 220 : 130) * ageK;
+                fill(partColor[0], partColor[1], partColor[2], partAlpha);
+                circle(lerp(psx, sx, t1), lerp(psy, sy, t1), isInvoked ? 2.6 : 1.8);
+                fill(partColor[0], partColor[1], partColor[2], partAlpha * 0.55);
+                circle(lerp(psx, sx, t2), lerp(psy, sy, t2), 1.4);
+            }
+
+            // ── Pass 2: nodes ──
+            for (const n of nodes) {
+                const sx = n.x - camX + width / 2;
+                const sy = n.y - camY + height / 2;
+                if (sx < -margin || sx > width + margin) continue;
+                if (sy < -margin || sy > height + margin) continue;
+
+                const age = n.bornAt > 0 ? millis() - n.bornAt : 99999;
+                const ageK = constrain(age / 700, 0, 1);
+
+                const onFocus = focusPathSet.has(n.id);
+                const isHover = hoverNodeId === n.id;
+                const isInvoked = n.isInvoked;
+                const isRoot = n.parentId === null;
+
+                // Pulse: brightness oscillation per-node, faster on the focus branch.
+                const speed = onFocus ? 0.0035 : 0.0018;
+                const pulse = 0.55 + 0.45 * (Math.sin(millis() * speed + n.pulsePhase) * 0.5 + 0.5);
+
+                // Size: root largest, leaves slightly smaller, hover larger.
+                let r0 = isRoot ? 7.5 : (n.children.length === 0 ? 3.6 : 4.6);
+                if (onFocus) r0 += 0.7;
+                if (isHover) r0 += 2.2;
+                r0 *= ageK;
+
+                // Outer glow halo.
+                noStroke();
+                const glowColor = isInvoked ? [226, 106, 79] : [212, 163, 102];
+                const glowAlpha = (isHover ? 80 : (onFocus ? 36 : 18)) * pulse * ageK;
+                for (let g = 3; g >= 1; g--) {
+                    fill(glowColor[0], glowColor[1], glowColor[2], glowAlpha / g);
+                    circle(sx, sy, r0 * 2 + g * 6);
+                }
+
+                // Core fill — brass, brighter when in focus / hover / invoked.
+                const coreAlpha = (180 + 60 * pulse) * ageK;
+                if (isInvoked) {
+                    fill(232, 130, 100, coreAlpha);
+                } else if (isHover) {
+                    fill(232, 200, 140, coreAlpha);
+                } else if (onFocus) {
+                    fill(224, 180, 120, coreAlpha);
+                } else {
+                    fill(184, 136, 74, coreAlpha * 0.85);
+                }
+                circle(sx, sy, r0 * 2);
+
+                // Crisp inner highlight for the root and invoked nodes.
+                if (isRoot || isInvoked || isHover) {
+                    fill(248, 230, 200, 200 * ageK);
+                    circle(sx, sy, r0 * 0.7);
+                }
+            }
+
+            // ── Pass 3: hover label ──
+            if (hoverNodeId) {
+                const n = nodeMap.get(hoverNodeId);
+                const sx = n.x - camX + width / 2;
+                const sy = n.y - camY + height / 2;
+                drawHoverLabel(sx, sy, n);
+            }
+
+            // ── Pass 4: focus path subtitle (only when no hover) ──
+            else if (focusLeafId && !panAnim) {
+                drawFocusReadout();
+            }
+        }
+
+        function drawHoverLabel(sx, sy, n) {
+            push();
+            translate(sx, sy - 18);
+            const labelMain = n.parentId === null ? 'now' : n.label;
+            textFont('IBM Plex Mono');
+            textSize(11);
+            textAlign(CENTER, CENTER);
+            const tw = Math.min(textWidth(labelMain), 320);
+            // Backdrop
+            noStroke();
+            fill(12, 10, 8, 215);
+            rect(-tw / 2 - 10, -12, tw + 20, 24, 1);
+            stroke(184, 136, 74, 110);
+            strokeWeight(0.6);
+            noFill();
+            rect(-tw / 2 - 10, -12, tw + 20, 24, 1);
+            // Label
+            noStroke();
+            fill(232, 216, 183, 235);
+            text(labelMain, 0, 0);
+
+            // Sub-label: depth + click hint
+            textSize(8);
+            fill(184, 136, 74, 200);
+            text('DEPTH ' + n.depth + '  ·  CLICK TO FORK', 0, 18);
+            pop();
+        }
+
+        function drawFocusReadout() {
+            const leaf = nodeMap.get(focusLeafId);
+            if (!leaf) return;
+            // Compose a short "now → … → leaf" trail of the last 2 ancestors + the leaf label.
+            const path = pathFromRoot(focusLeafId);
+            const tail = path.slice(-3).map(id => nodeMap.get(id).label);
+            if (path.length > 3) tail.unshift('…');
+            const trail = tail.join('  →  ');
+
+            push();
+            textFont('IBM Plex Mono');
+            textAlign(LEFT, BOTTOM);
+            textSize(10);
+            const tw = Math.min(textWidth(trail), width - 48);
+            const x = 24;
+            const y = height - 24;
+            noStroke();
+            fill(12, 10, 8, 180);
+            rect(x - 10, y - 22, tw + 22, 30, 1);
+            stroke(184, 136, 74, 80);
+            strokeWeight(0.6);
+            noFill();
+            rect(x - 10, y - 22, tw + 22, 30, 1);
+            noStroke();
+            fill(184, 136, 74, 220);
+            textAlign(LEFT, CENTER);
+            text('FOCUS', x, y - 8);
+            fill(232, 216, 183, 200);
+            text(trail, x + 44, y - 7);
+            pop();
+        }
+
+        function pathFromRoot(id) {
+            const out = [];
+            let cur = id;
+            while (cur !== null && cur !== undefined) {
+                out.unshift(cur);
+                const n = nodeMap.get(cur);
+                if (!n || n.parentId === null || n.parentId === undefined) break;
+                cur = n.parentId;
+            }
+            return out;
+        }
+
+        // ── Mouse / touch events ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            if (hoverNodeId && !panAnim) {
+                forkNode(hoverNodeId);
+                openNodeFor(hoverNodeId);
+            }
+        }
+
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            isTouchDragging = false;
+            touchStart = { x: mouseX, y: mouseY, camX, camY, t: millis() };
+            return false;
+        }
+
+        function touchMoved() {
+            if (!touchStart) return;
+            const dx = mouseX - touchStart.x;
+            const dy = mouseY - touchStart.y;
+            if (!isTouchDragging && (Math.abs(dx) + Math.abs(dy) > 8)) {
+                isTouchDragging = true;
+            }
+            if (isTouchDragging) {
+                camX = touchStart.camX - dx;
+                camY = touchStart.camY - dy;
+                targetCamX = camX;
+                targetCamY = camY;
+            }
+            return false;
+        }
+
+        function touchEnded() {
+            if (touchStart && !isTouchDragging && hoverNodeId) {
+                forkNode(hoverNodeId);
+                openNodeFor(hoverNodeId);
+            }
+            touchStart = null;
+            return false;
+        }
+
+        // ── Drill — fork a node into 2 or 3 new procedural children ──
+        function forkNode(id) {
+            const n = nodeMap.get(id);
+            if (!n) return;
+            // Stop infinite forking by limiting absolute fanout / depth.
+            if (n.children.length >= 5) return;
+            if (n.depth >= 24) return;
+
+            const r = rng(mixSeed(n.seed, 7777 + n.children.length));
+            const newCount = 2 + Math.floor(r() * 2); // 2 or 3
+            const now = millis();
+            for (let i = 0; i < newCount; i++) {
+                const childSeed = mixSeed(n.seed, n.children.length * 31 + i + 101);
+                const label = procChoice(childSeed);
+                const child = makeNode(n.id, n.depth + 1, label, n.seed, n.children.length * 31 + i + 101);
+                child.bornAt = now;
+                child.isInitial = false;
+                child.y = n.y;
+            }
+            layoutTree(true);
+        }
+
+        // ── Book overlay (drill view) ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCatNode = document.getElementById('cat-node');
+        const elCatDepth = document.getElementById('cat-depth');
+        const elCatBranches = document.getElementById('cat-branches');
+        const elCatPath = document.getElementById('cat-path');
+        const elCatFound = document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function shortNodeId(id) {
+            // Display: first 6 chars of FNV(id+seed), zero-padded uppercase hex.
+            const n = nodeMap.get(id);
+            if (!n) return id;
+            const h = hashString(id + ':' + n.seed);
+            return h.toString(16).padStart(8, '0').toUpperCase().slice(0, 8);
+        }
+
+        function openNodeFor(id, invokedPhrase) {
+            openNodeId = id;
+            const n = nodeMap.get(id);
+            if (!n) return;
+            const path = pathFromRoot(id);
+            // Title: the chosen label ending at this node.
+            elTitle.textContent = n.label;
+
+            // Catalog rows
+            elCatNode.textContent = '#' + shortNodeId(id);
+            elCatDepth.textContent = n.depth + ' of ' + maxDepth;
+            elCatBranches.textContent = n.children.length + ' children';
+
+            // Path: short binary-ish trail of choice indices ("L/R/L/L/R" up to depth).
+            // Computed from each ancestor's index in its parent's children.
+            const trail = [];
+            for (let i = 1; i < path.length; i++) {
+                const parent = nodeMap.get(nodeMap.get(path[i]).parentId);
+                const idx = parent.children.indexOf(path[i]);
+                trail.push(parent.children.length === 2 ? (idx === 0 ? 'L' : 'R') : String(idx + 1));
+            }
+            elCatPath.textContent = trail.length ? trail.join(' · ') : 'root';
+
+            // Excerpt: full root-to-leaf chain of decisions, rendered as a timeline.
+            const labels = path.map(pid => nodeMap.get(pid).label);
+            const purified = (invokedPhrase || '').trim();
+
+            const parts = labels.map((lab, i) => {
+                const isLast = i === labels.length - 1;
+                const isInvokedLeaf = isLast && purified && lab === purified;
+                const lead = i === 0 ? '' : '<span class="ellipsis"> → </span>';
+                if (isInvokedLeaf) {
+                    return lead + '<mark>' + escapeHtml(lab) + '</mark>';
+                }
+                return lead + escapeHtml(lab);
+            });
+            elExcerpt.innerHTML = parts.join('');
+
+            if (purified) {
+                // Derive a deterministic "sprouted at" address from the seed — the address
+                // the labyrinth assigns to this newly-grown branch.
+                const h = hashString(purified.toLowerCase()) >>> 0;
+                const generation = ((h >>> 8) % 9999).toString().padStart(4, '0');
+                const lineage = ((h >>> 16) % 999).toString().padStart(3, '0');
+                elCatFound.textContent = 'Generation ' + generation + ' · Lineage ' + lineage + ' · Depth ' + n.depth;
+                elEyebrow.innerHTML = '⋔  The path has been sprouted';
+                overlay.classList.add('invoked');
+            } else {
+                elEyebrow.innerHTML = '⋔  A Branch of the Labyrinth';
+                overlay.classList.remove('invoked');
+            }
+
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            openNodeId = null;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        // Hash the user's phrase to deterministically select one of the existing nodes
+        // (descend the tree using the hash bits, just like babel hashes to coordinates),
+        // then sprout a brand-new child carrying the user's text. Pan to the new branch
+        // and open the overlay showing the full root-to-leaf path.
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        function pickHostNode(phrase) {
+            const h = hashString(phrase.toLowerCase()) >>> 0;
+            // Walk down the tree using bits of the hash to choose left/right at each level.
+            // This is the deterministic mapping: same phrase → same host node.
+            let cur = nodeMap.get(rootId);
+            let bits = h;
+            for (let lvl = 0; lvl < 12 && cur.children.length > 0; lvl++) {
+                const b = bits & 1;
+                bits = bits >>> 1;
+                const idx = b % cur.children.length;
+                cur = nodeMap.get(cur.children[idx]);
+            }
+            return cur;
+        }
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+
+            const host = pickHostNode(phrase);
+            // Sprout a new child carrying the user's phrase as its label.
+            const childSeed = mixSeed(host.seed, hashString(phrase) & 0xFFFF);
+            const child = makeNode(host.id, host.depth + 1, phrase, host.seed, hashString(phrase) & 0xFFFF);
+            child.bornAt = millis();
+            child.isInvoked = true;
+            child.isInitial = false;
+            child.y = host.y;
+            // Mark the path from root → host as invoked too, so the lineage glows.
+            let cur = host;
+            while (cur) {
+                if (cur.parentId !== null) {
+                    // Visual flair: only the new edge is vermillion, but we still let the host
+                    // pulse a touch hotter via isInvoked on the leaf alone.
+                }
+                cur = cur.parentId !== null ? nodeMap.get(cur.parentId) : null;
+            }
+            layoutTree(true);
+
+            // Animate the camera to the new node.
+            const target = { x: child.x, y: child.targetY };
+            const distPx = Math.hypot(target.x - camX, target.y - camY);
+            const dur = constrain(900 + distPx * 0.6, 1200, 2600);
+            if (overlay.classList.contains('open')) closeBook();
+            panAnim = {
+                fromX: camX,
+                fromY: camY,
+                toX: target.x,
+                toY: target.y,
+                t: 0,
+                dur,
+                onComplete: () => {
+                    driftSuspendUntil = millis() + 4000;
+                    setTimeout(() => openNodeFor(child.id, phrase), 280);
+                }
+            };
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>

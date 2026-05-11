@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficciones — Vladimir Bichev</title>
+    <meta name="description" content="A digital exhibition translating Borges' Ficciones (1944) into interactive computational works — libraries of all possible books, forking timelines, recursive dreams.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--parchment);
+            font-family: 'EB Garamond', serif;
+            font-weight: 400;
+            line-height: 1.7;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Navigation ── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2.5rem;
+            background: rgba(12, 10, 8, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .nav-back {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+        }
+        .nav-back:hover { opacity: 1; color: var(--brass-bright); }
+
+        .nav-name {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--parchment-faint);
+        }
+
+        /* ── Header ── */
+        .header {
+            padding: 9rem 2rem 3rem;
+            text-align: center;
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--brass);
+            margin-bottom: 1.8rem;
+            opacity: 0.95;
+        }
+
+        .header-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: clamp(3.4rem, 7vw, 5.6rem);
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.05;
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.5px;
+        }
+
+        .header-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: clamp(1.15rem, 2vw, 1.45rem);
+            font-weight: 300;
+            color: var(--brass);
+            margin-bottom: 2.6rem;
+        }
+
+        .divider {
+            width: 90px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--brass), transparent);
+            margin: 0 auto 3rem;
+        }
+
+        .intro {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--parchment-dim);
+            max-width: 640px;
+            margin: 0 auto 3rem;
+            line-height: 1.85;
+        }
+
+        .intro em {
+            color: var(--brass-bright);
+            font-style: italic;
+        }
+
+        /* ── Companion gallery banner ── */
+        .companion {
+            max-width: 620px;
+            margin: 0 auto 4rem;
+            padding: 1rem 1.5rem;
+            border: 1px solid var(--brass-faint);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        .companion:hover { border-color: rgba(198, 150, 84, 0.55); }
+
+        .companion-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+        .companion-link {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+        .companion-link:hover { color: var(--brass-bright); }
+
+        /* ── Gallery Grid ── */
+        .gallery {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem 5rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        /* ── Painting Card ── */
+        .painting {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            background: var(--bg-2);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            overflow: hidden;
+            transition: transform 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
+            position: relative;
+        }
+
+        .painting::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 1px solid rgba(198, 150, 84, 0.06);
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .painting:hover {
+            transform: translateY(-3px);
+            border-color: rgba(198, 150, 84, 0.55);
+            box-shadow: 0 0 40px rgba(198, 150, 84, 0.08);
+        }
+
+        .canvas {
+            aspect-ratio: 4 / 3;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .placard {
+            padding: 1.4rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(198, 150, 84, 0.1);
+            position: relative;
+        }
+
+        .placard-number {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--parchment);
+            margin-bottom: 0.35rem;
+            line-height: 1.2;
+        }
+
+        .placard-spanish {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            margin-bottom: 0.65rem;
+        }
+
+        .placard-desc {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-weight: 400;
+            font-size: 0.92rem;
+            color: var(--parchment-dim);
+            line-height: 1.55;
+        }
+
+        /* ── Per-piece CSS canvases (suggestive placeholders) ── */
+
+        /* 1 — Tlön/Uqbar: glyph lattice over a faint map */
+        .canvas-tlon {
+            background:
+                radial-gradient(ellipse 60% 40% at 50% 55%, rgba(122, 144, 192, 0.10) 0%, transparent 65%),
+                repeating-linear-gradient(0deg, transparent 0 18px, rgba(198, 150, 84, 0.07) 18px 19px),
+                repeating-linear-gradient(90deg, transparent 0 18px, rgba(198, 150, 84, 0.07) 18px 19px),
+                radial-gradient(circle 4px at 24% 32%, rgba(224, 180, 120, 0.75) 0%, transparent 100%),
+                radial-gradient(circle 4px at 38% 48%, rgba(224, 180, 120, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 4px at 62% 36%, rgba(224, 180, 120, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 4px at 70% 60%, rgba(224, 180, 120, 0.5) 0%, transparent 100%),
+                radial-gradient(circle 4px at 48% 70%, rgba(224, 180, 120, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 4px at 80% 25%, rgba(197, 74, 48, 0.45) 0%, transparent 100%),
+                linear-gradient(165deg, #14110d 0%, #0c0a08 100%);
+        }
+
+        /* 2 — Pierre Menard: two text layers in palimpsest */
+        .canvas-menard {
+            background:
+                repeating-linear-gradient(178deg, transparent 0 4px, rgba(236, 220, 188, 0.06) 4px 5px, transparent 5px 9px),
+                repeating-linear-gradient(182deg, transparent 0 4px, rgba(198, 150, 84, 0.05) 4px 5px, transparent 5px 9px),
+                radial-gradient(ellipse 50% 60% at 50% 50%, rgba(198, 150, 84, 0.06) 0%, transparent 70%),
+                linear-gradient(170deg, #14110d 0%, #0c0a08 100%);
+        }
+
+        /* 3 — Circular Ruins: recursive flame */
+        .canvas-ruins {
+            background:
+                radial-gradient(ellipse 12% 22% at 50% 60%, rgba(226, 106, 79, 0.7) 0%, rgba(197, 74, 48, 0.4) 30%, transparent 70%),
+                radial-gradient(ellipse 22% 36% at 50% 60%, transparent 35%, rgba(197, 74, 48, 0.25) 45%, transparent 70%),
+                radial-gradient(ellipse 36% 52% at 50% 60%, transparent 38%, rgba(198, 150, 84, 0.18) 50%, transparent 65%),
+                radial-gradient(ellipse 56% 70% at 50% 60%, transparent 42%, rgba(198, 150, 84, 0.10) 52%, transparent 62%),
+                linear-gradient(180deg, #0c0a08 0%, #14110d 50%, #0c0a08 100%);
+        }
+
+        /* 4 — Lottery in Babylon: stochastic field consuming a grid */
+        .canvas-lottery {
+            background:
+                radial-gradient(circle 8px at 22% 28%, rgba(197, 74, 48, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 6px at 32% 42%, rgba(122, 144, 192, 0.5) 0%, transparent 100%),
+                radial-gradient(circle 10px at 58% 30%, rgba(224, 180, 120, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 5px at 68% 55%, rgba(197, 74, 48, 0.4) 0%, transparent 100%),
+                radial-gradient(circle 8px at 78% 72%, rgba(122, 144, 192, 0.45) 0%, transparent 100%),
+                radial-gradient(circle 6px at 44% 68%, rgba(224, 180, 120, 0.5) 0%, transparent 100%),
+                radial-gradient(circle 5px at 28% 78%, rgba(197, 74, 48, 0.4) 0%, transparent 100%),
+                repeating-linear-gradient(0deg, transparent 0 12px, rgba(198, 150, 84, 0.05) 12px 13px),
+                repeating-linear-gradient(90deg, transparent 0 12px, rgba(198, 150, 84, 0.05) 12px 13px),
+                linear-gradient(160deg, #14110d 0%, #0c0a08 100%);
+        }
+
+        /* 5 — Library of Babel: receding hex tessellation */
+        .canvas-babel {
+            background:
+                radial-gradient(ellipse at center, transparent 25%, rgba(12, 10, 8, 0.65) 70%),
+                radial-gradient(circle 5px at 50% 50%, rgba(224, 180, 120, 0.95) 0%, transparent 100%),
+                radial-gradient(circle 4px at 38% 42%, rgba(198, 150, 84, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 4px at 62% 42%, rgba(198, 150, 84, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 4px at 38% 58%, rgba(198, 150, 84, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 4px at 62% 58%, rgba(198, 150, 84, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 3px at 26% 50%, rgba(198, 150, 84, 0.5) 0%, transparent 100%),
+                radial-gradient(circle 3px at 74% 50%, rgba(198, 150, 84, 0.5) 0%, transparent 100%),
+                radial-gradient(circle 3px at 50% 30%, rgba(198, 150, 84, 0.45) 0%, transparent 100%),
+                radial-gradient(circle 3px at 50% 70%, rgba(198, 150, 84, 0.45) 0%, transparent 100%),
+                radial-gradient(circle 8px at 14% 40%, rgba(198, 150, 84, 0.3) 0%, transparent 100%),
+                radial-gradient(circle 8px at 86% 40%, rgba(198, 150, 84, 0.3) 0%, transparent 100%),
+                linear-gradient(180deg, #14110d 0%, #0c0a08 100%);
+        }
+
+        /* 6 — Forking Paths: branching DAG */
+        .canvas-forking {
+            background:
+                radial-gradient(circle 4px at 14% 50%, rgba(224, 180, 120, 0.9) 0%, transparent 100%),
+                radial-gradient(circle 3px at 32% 32%, rgba(198, 150, 84, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 3px at 32% 68%, rgba(198, 150, 84, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 3px at 52% 20%, rgba(198, 150, 84, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 3px at 52% 44%, rgba(198, 150, 84, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 3px at 52% 56%, rgba(198, 150, 84, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 3px at 52% 80%, rgba(198, 150, 84, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 12%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 28%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 40%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 52%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 64%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 78%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 76% 88%, rgba(122, 144, 192, 0.55) 0%, transparent 100%),
+                linear-gradient(95deg, transparent 13%, rgba(198, 150, 84, 0.15) 14%, transparent 15%, transparent 31%, rgba(198, 150, 84, 0.12) 32%, transparent 33%),
+                linear-gradient(170deg, #0c0a08 0%, #14110d 100%);
+        }
+
+        /* 7 — Funes: accumulating point cloud */
+        .canvas-funes {
+            background:
+                radial-gradient(circle 1.5px at 22% 28%, rgba(236, 220, 188, 0.85) 0%, transparent 100%),
+                radial-gradient(circle 1px at 28% 34%, rgba(236, 220, 188, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 35% 42%, rgba(236, 220, 188, 0.75) 0%, transparent 100%),
+                radial-gradient(circle 1px at 42% 38%, rgba(224, 180, 120, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 2px at 48% 50%, rgba(236, 220, 188, 0.8) 0%, transparent 100%),
+                radial-gradient(circle 1px at 55% 46%, rgba(236, 220, 188, 0.65) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 62% 54%, rgba(224, 180, 120, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 1px at 68% 60%, rgba(236, 220, 188, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 2px at 72% 50%, rgba(236, 220, 188, 0.75) 0%, transparent 100%),
+                radial-gradient(circle 1px at 78% 56%, rgba(236, 220, 188, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 32% 64%, rgba(224, 180, 120, 0.65) 0%, transparent 100%),
+                radial-gradient(circle 1px at 40% 72%, rgba(236, 220, 188, 0.6) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 50% 68%, rgba(236, 220, 188, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 1px at 58% 78%, rgba(236, 220, 188, 0.55) 0%, transparent 100%),
+                radial-gradient(circle 2px at 25% 80%, rgba(224, 180, 120, 0.7) 0%, transparent 100%),
+                radial-gradient(circle 1px at 80% 36%, rgba(236, 220, 188, 0.6) 0%, transparent 100%),
+                linear-gradient(180deg, #0c0a08 0%, #14110d 100%);
+        }
+
+        /* 8 — Shape of the Sword: crescent scar */
+        .canvas-sword {
+            background:
+                radial-gradient(ellipse 45% 4% at 50% 50%, transparent 40%, rgba(197, 74, 48, 0.7) 48%, rgba(226, 106, 79, 0.9) 50%, rgba(197, 74, 48, 0.7) 52%, transparent 60%),
+                radial-gradient(ellipse 30% 8% at 35% 45%, transparent 40%, rgba(197, 74, 48, 0.4) 50%, transparent 60%),
+                radial-gradient(ellipse 30% 8% at 65% 55%, transparent 40%, rgba(197, 74, 48, 0.4) 50%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 50% 50%, transparent 30%, rgba(236, 220, 188, 0.04) 50%, transparent 80%),
+                linear-gradient(170deg, #0c0a08 0%, #14110d 50%, #0c0a08 100%);
+        }
+
+        /* 9 — Traitor and Hero: two phase-locked waveforms */
+        .canvas-traitor {
+            background:
+                repeating-linear-gradient(90deg, transparent 0 10px, rgba(198, 150, 84, 0.04) 10px 11px),
+                radial-gradient(ellipse 80% 3% at 50% 36%, transparent 40%, rgba(224, 180, 120, 0.5) 50%, transparent 60%),
+                radial-gradient(ellipse 80% 3% at 50% 64%, transparent 40%, rgba(122, 144, 192, 0.5) 50%, transparent 60%),
+                radial-gradient(circle 5px at 22% 36%, rgba(224, 180, 120, 0.85) 0%, transparent 100%),
+                radial-gradient(circle 5px at 22% 64%, rgba(122, 144, 192, 0.85) 0%, transparent 100%),
+                radial-gradient(circle 5px at 48% 36%, rgba(224, 180, 120, 0.85) 0%, transparent 100%),
+                radial-gradient(circle 5px at 48% 64%, rgba(122, 144, 192, 0.85) 0%, transparent 100%),
+                radial-gradient(circle 5px at 76% 36%, rgba(224, 180, 120, 0.85) 0%, transparent 100%),
+                radial-gradient(circle 5px at 76% 64%, rgba(122, 144, 192, 0.85) 0%, transparent 100%),
+                linear-gradient(180deg, #0c0a08 0%, #14110d 100%);
+        }
+
+        /* 10 — Death and Compass: Tetragrammaton rhombus */
+        .canvas-compass {
+            background:
+                linear-gradient(120deg, transparent 38%, rgba(198, 150, 84, 0.25) 39%, transparent 40%),
+                linear-gradient(60deg, transparent 38%, rgba(198, 150, 84, 0.25) 39%, transparent 40%),
+                linear-gradient(-60deg, transparent 38%, rgba(198, 150, 84, 0.25) 39%, transparent 40%),
+                linear-gradient(-120deg, transparent 38%, rgba(198, 150, 84, 0.25) 39%, transparent 40%),
+                radial-gradient(circle 6px at 30% 30%, rgba(224, 180, 120, 0.9) 0%, transparent 100%),
+                radial-gradient(circle 6px at 70% 30%, rgba(224, 180, 120, 0.9) 0%, transparent 100%),
+                radial-gradient(circle 6px at 30% 70%, rgba(224, 180, 120, 0.9) 0%, transparent 100%),
+                radial-gradient(circle 6px at 70% 70%, rgba(224, 180, 120, 0.9) 0%, transparent 100%),
+                radial-gradient(circle 3px at 50% 50%, rgba(197, 74, 48, 0.6) 0%, transparent 100%),
+                repeating-linear-gradient(0deg, transparent 0 18px, rgba(122, 144, 192, 0.05) 18px 19px),
+                repeating-linear-gradient(90deg, transparent 0 18px, rgba(122, 144, 192, 0.05) 18px 19px),
+                linear-gradient(170deg, #14110d 0%, #0c0a08 100%);
+        }
+
+        /* 11 — Secret Miracle: frozen instant */
+        .canvas-miracle {
+            background:
+                radial-gradient(circle 3px at 38% 50%, rgba(226, 106, 79, 0.95) 0%, transparent 100%),
+                radial-gradient(circle 2px at 42% 50%, rgba(226, 106, 79, 0.65) 0%, transparent 100%),
+                radial-gradient(circle 2px at 46% 50%, rgba(226, 106, 79, 0.45) 0%, transparent 100%),
+                radial-gradient(circle 2px at 50% 50%, rgba(226, 106, 79, 0.3) 0%, transparent 100%),
+                radial-gradient(circle 1px at 54% 50%, rgba(226, 106, 79, 0.2) 0%, transparent 100%),
+                radial-gradient(ellipse 8% 18% at 22% 50%, rgba(198, 150, 84, 0.35) 0%, transparent 100%),
+                radial-gradient(ellipse 8% 18% at 26% 50%, rgba(198, 150, 84, 0.25) 0%, transparent 100%),
+                radial-gradient(ellipse 8% 18% at 30% 50%, rgba(198, 150, 84, 0.2) 0%, transparent 100%),
+                linear-gradient(180deg, #14110d 0%, #0c0a08 70%, #14110d 100%);
+        }
+
+        /* 12 — The South: hospital/pampas crossfade */
+        .canvas-south {
+            background:
+                linear-gradient(0deg, rgba(122, 144, 192, 0.18) 0%, transparent 45%),
+                linear-gradient(180deg, rgba(236, 220, 188, 0.06) 0%, transparent 55%),
+                radial-gradient(ellipse 100% 12% at 50% 55%, rgba(198, 150, 84, 0.3) 0%, transparent 80%),
+                repeating-linear-gradient(0deg, transparent 0 20px, rgba(236, 220, 188, 0.04) 20px 21px),
+                repeating-linear-gradient(90deg, transparent 0 20px, rgba(236, 220, 188, 0.04) 20px 21px),
+                linear-gradient(180deg, #14110d 0%, #0c0a08 100%);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            max-width: 740px;
+            margin: 0 auto;
+            padding: 0 2rem 5rem;
+            text-align: center;
+        }
+
+        .footer .divider { margin-bottom: 2.5rem; }
+
+        .artist-statement {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: var(--parchment-dim);
+            line-height: 1.85;
+            margin-bottom: 2.5rem;
+        }
+
+        .footer-credit {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.8rem;
+        }
+
+        .footer-links a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s, color 0.3s;
+        }
+        .footer-links a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ── Responsive ── */
+        @media (max-width: 1100px) {
+            .gallery { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 860px) {
+            .gallery { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 720px) {
+            .nav { padding: 0.85rem 1.25rem; }
+            .nav-back { font-size: 10px; letter-spacing: 1.5px; }
+            .nav-name { font-size: 9px; letter-spacing: 2px; }
+            .header { padding: 7rem 1.25rem 2.5rem; }
+            .companion { padding: 0.85rem 1rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+            .companion-label, .companion-link { font-size: 9.5px; }
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 1.6rem;
+                padding: 0 1.25rem 4rem;
+            }
+            .placard { padding: 1.1rem 1.25rem 1.35rem; }
+            .placard-title { font-size: 1.2rem; }
+            .footer { padding: 0 1.25rem 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="nav">
+        <a href="/" class="nav-back">← Back to Site</a>
+        <span class="nav-name">Vladimir Bichev</span>
+    </nav>
+
+    <header class="header">
+        <p class="eyebrow">⬡  Digital Exhibition  ⬡</p>
+        <h1 class="header-title">Ficciones</h1>
+        <p class="header-subtitle">Borges' algorithms, made visible</p>
+        <div class="divider"></div>
+        <p class="intro">
+            Every story in <em>Ficciones</em> is a computational thought-experiment dressed in
+            prose — an infinite library, a garden of forking timelines, a man who remembers
+            every leaf of every tree. Twelve of those stories, translated into interactive
+            algorithms. Each piece reacts to your cursor, opens at your touch, and answers
+            when you invoke a phrase.
+        </p>
+    </header>
+
+    <a href="/algoart/" class="companion">
+        <span class="companion-label">Companion Gallery</span>
+        <span class="companion-link">AlgoArt — Nature's algorithms  →</span>
+    </a>
+
+    <section class="gallery">
+
+        <a href="/ficciones/tlon-uqbar.html" class="painting">
+            <div class="canvas canvas-tlon"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Ficciones · 01</p>
+                <h2 class="placard-title">Tlön, Uqbar, Orbis Tertius</h2>
+                <p class="placard-spanish">Tlön, Uqbar, Orbis Tertius · 1940</p>
+                <p class="placard-desc">An invented encyclopedia leaks its world into ours</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/pierre-menard.html" class="painting">
+            <div class="canvas canvas-menard"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Ficciones · 02</p>
+                <h2 class="placard-title">Pierre Menard</h2>
+                <p class="placard-spanish">Pierre Menard, autor del Quijote · 1939</p>
+                <p class="placard-desc">Identical words, three centuries apart, opposite meanings</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/circular-ruins.html" class="painting">
+            <div class="canvas canvas-ruins"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Ficciones · 03</p>
+                <h2 class="placard-title">The Circular Ruins</h2>
+                <p class="placard-spanish">Las ruinas circulares · 1940</p>
+                <p class="placard-desc">A man dreams a son, then learns he too is dreamt</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/lottery-babylon.html" class="painting">
+            <div class="canvas canvas-lottery"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Ficciones · 04</p>
+                <h2 class="placard-title">The Lottery in Babylon</h2>
+                <p class="placard-spanish">La lotería en Babilonia · 1941</p>
+                <p class="placard-desc">A lottery whose rules grow until they govern every life</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/library-babel.html" class="painting">
+            <div class="canvas canvas-babel"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Ficciones · 05</p>
+                <h2 class="placard-title">The Library of Babel</h2>
+                <p class="placard-spanish">La biblioteca de Babel · 1941</p>
+                <p class="placard-desc">Infinite hexagonal galleries containing every possible book</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/forking-paths.html" class="painting">
+            <div class="canvas canvas-forking"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Ficciones · 06</p>
+                <h2 class="placard-title">The Garden of Forking Paths</h2>
+                <p class="placard-spanish">El jardín de senderos que se bifurcan · 1941</p>
+                <p class="placard-desc">A novel in which every choice spawns every possible future</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/funes.html" class="painting">
+            <div class="canvas canvas-funes"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Artificios · 07</p>
+                <h2 class="placard-title">Funes the Memorious</h2>
+                <p class="placard-spanish">Funes el memorioso · 1942</p>
+                <p class="placard-desc">A boy who remembers every leaf of every tree at every instant</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/shape-of-sword.html" class="painting">
+            <div class="canvas canvas-sword"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Artificios · 08</p>
+                <h2 class="placard-title">The Shape of the Sword</h2>
+                <p class="placard-spanish">La forma de la espada · 1942</p>
+                <p class="placard-desc">A traitor's face bears a scar shaped like the crescent moon</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/traitor-and-hero.html" class="painting">
+            <div class="canvas canvas-traitor"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Artificios · 09</p>
+                <h2 class="placard-title">The Traitor and the Hero</h2>
+                <p class="placard-spanish">Tema del traidor y del héroe · 1944</p>
+                <p class="placard-desc">A revolution staged to plagiarize Julius Caesar, history rhyming on purpose</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/death-compass.html" class="painting">
+            <div class="canvas canvas-compass"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Artificios · 10</p>
+                <h2 class="placard-title">Death and the Compass</h2>
+                <p class="placard-spanish">La muerte y la brújula · 1942</p>
+                <p class="placard-desc">Four murders tracing the Tetragrammaton on a city map</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/secret-miracle.html" class="painting">
+            <div class="canvas canvas-miracle"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Artificios · 11</p>
+                <h2 class="placard-title">The Secret Miracle</h2>
+                <p class="placard-spanish">El milagro secreto · 1943</p>
+                <p class="placard-desc">God grants a poet one frozen year to finish his play</p>
+            </div>
+        </a>
+
+        <a href="/ficciones/the-south.html" class="painting">
+            <div class="canvas canvas-south"></div>
+            <div class="placard">
+                <p class="placard-number">⬡  Artificios · 12</p>
+                <h2 class="placard-title">The South</h2>
+                <p class="placard-spanish">El sur · 1953</p>
+                <p class="placard-desc">A hospital ceiling and a pampas duel, crossfading toward death</p>
+            </div>
+        </a>
+
+    </section>
+
+    <footer class="footer">
+        <div class="divider"></div>
+        <p class="artist-statement">
+            Where AlgoArt translates nature's algorithms — spirals, growth, chaos — Ficciones
+            translates literary algorithms: libraries, labyrinths, mirrors, time. Each piece
+            uses the same interaction grammar: <em>drift</em> the cursor to wander, <em>drill</em>
+            into anything that glows, <em>invoke</em> a phrase to ask the work to answer back.
+        </p>
+        <p class="footer-credit">Vladimir Bichev · 2026 · After Jorge Luis Borges</p>
+        <div class="footer-links">
+            <a href="/algoart/">← AlgoArt</a>
+            <a href="https://www.linkedin.com/in/bichev/" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://github.com/bichev" target="_blank" rel="noopener">GitHub</a>
+        </div>
+    </footer>
+
+</body>
+</html>

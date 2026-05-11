@@ -153,6 +153,19 @@ export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: 'ficciones-gallery',
+    title: 'Ficciones: Borges\' Algorithms, Made Visible',
+    excerpt: 'A companion gallery to AlgoArt. Twelve stories from Borges\' Ficciones (1944) translated into interactive computational works — an infinite library, forking timelines, recursive dreams, a Tetragrammaton of murders. Each piece responds to drift, drill, and an invoked phrase.',
+    content: '',
+    date: '2026-05-11',
+    readTime: '12 pieces',
+    tags: ['Literature', 'Borges', 'Generative', 'p5.js', 'Interactive'],
+    published: true,
+    source: 'internal',
+    localPath: '/ficciones/',
+    featured: true,
+  },
+  {
     id: 'algoart-gallery',
     title: 'AlgoArt: Interactive Algorithmic Art Gallery',
     excerpt: 'Twelve interactive algorithmic art pieces — from Turing\'s reaction-diffusion to Lorenz attractors, L-system fractals, and Conway\'s Game of Life. Each paired with an educational deep-dive into the mathematics.',
@@ -420,6 +433,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Projects', href: '#projects' },
   { name: 'Blog', href: '#blog' },
   { name: 'AlgoArt', href: '/algoart/', external: true },
+  { name: 'Ficciones', href: '/ficciones/', external: true },
   { name: 'Interests', href: '#interests' },
   { name: 'Contact', href: '#contact' },
 ]; 

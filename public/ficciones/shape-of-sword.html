@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La forma de la espada — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' La forma de la espada — a crescent scar, drawn parametrically across the canvas, that names its bearer in the first person of the man he betrayed.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">☾</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="speak a confession to inscribe it on the scar…"
+                maxlength="80"
+                aria-label="Speak a confession to inscribe it on the scar"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">INSCRIBING THE BLADE…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Crescent Mark</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Moon's surname becomes his face. The crescent scar — given to the traitor by the man he himself betrayed — is the literal shape of the syllable <strong>Moon</strong>.</p>
+                    <p>The body becomes the lexicon of the deed: <em>before</em> the confession is spoken, the geometry of the face has already pronounced it.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Betrayal as Signature</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Borges treats acts of cowardice and treason as <strong>engravings</strong>. Once committed, they become permanent features of the actor's body and biography.</p>
+                    <p>To betray, in this story, is to have the betrayal inscribed somewhere visible — where every stranger reads it before you have a chance to speak.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>First-Person Disguises</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story is told in the first person — but the <em>I</em> is borrowed. Moon impersonates the man he betrayed, telling the tale in that man's voice.</p>
+                    <p>The first person here is a <strong>disguise</strong>; the truth is hidden in the grammatical position from which it is uttered.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Confession That Names Itself</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The shape of the scar names its bearer. The story names its narrator only at the end, when the voice that has been speaking becomes the subject of its own indictment.</p>
+                    <p>It is a <strong>recursive confession</strong>: the curve already contains the signature of the confessor, who will not arrive in the text until the final sentence.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Borges &amp; the Doppelgänger</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Behind the story stand Stevenson, Wilde and Conrad — the European tradition of the <strong>divided self</strong>. Borges adds a distinctly modern twist.</p>
+                    <p>The double is not a separate person but a <em>grammatical position</em>: <strong>I</strong> and <strong>he</strong> are the same body, viewed from two different ethical distances.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">☾  La forma de la espada  ☾</div>
+            <div class="placard-title">The Shape of the Sword</div>
+            <div class="placard-meta">Jorge Luis Borges · 1942 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">☾  A Mark on the Face</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Mark</span><span class="value" id="cat-mark">—</span></div>
+                <div class="row"><span class="label">Hour</span><span class="value" id="cat-hour">—</span></div>
+                <div class="row"><span class="label">Place</span><span class="value" id="cat-place">—</span></div>
+                <div class="row"><span class="label">Witness</span><span class="value" id="cat-witness">—</span></div>
+                <div class="row found"><span class="label">Spoken at</span><span class="value" id="cat-spoken">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>☾</span></div>
+
+        <p class="article-eyebrow">☾  Ficciones · 02  ☾</p>
+        <h1 class="article-title">The Crescent That Names Its Bearer</h1>
+        <p class="article-subtitle">On the scar that knows the truth before its owner does</p>
+
+        <blockquote class="article-epigraph">
+            "Soy Vincent Moon. Ahora desprécieme."
+            <cite>— Jorge Luis Borges, La forma de la espada (1942)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>In Borges' shortest and most cunning betrayal story, an Englishman in Uruguay tells a stranger how he came by the crescent scar across his face. He calls it the inheritance of an Irish revolutionary named John Vincent Moon — a coward who sold out his comrades to the Black and Tans during the war of independence. The narrator presents himself as Moon's victim — the comrade Moon betrayed; before fleeing, the narrator carved a crescent into the traitor's face with a curved blade. In the last sentence, the speaker breaks the spell. <em>I am Moon.</em> He has been telling the story all along in the first person of the man he betrayed — the only voice in which he can bear to confess.</p>
+
+            <p>The scar is the story's algorithm. Before any word is spoken, before the narrator decides which version of himself to perform for the visitor, the geometry of his face has already announced the truth. A crescent moon, etched in flesh, is the literal shape of the syllable <em>Moon</em> — his own surname inscribed on his cheek by the man he betrayed. When you commit a particular act of cowardice, Borges suggests, your body becomes the equation that solves it. The face is a parametric function: <em>f(t) = scar(t)</em>, and the scar ends, deterministically, at the shape of your own name.</p>
+
+            <p>To visualize this story is to draw a curve. The single line that crosses the canvas above is computed in real time — a sine-modulated arc whose endpoint must, by construction, be a crescent. You can hover near it and read fragments of the betrayal that are deterministic from your cursor's position; you can click anywhere along its length and the wound becomes a Borgesian micro-confession, generated from those exact coordinates. Two visitors who click the same point of the scar receive the same paragraph. The scar is not painted — it is <em>solved</em>, the way Moon's face was solved by the sword that wrote it.</p>
+
+            <p>The strangest grace of <em>La forma de la espada</em> is its first-person inversion. To accuse oneself in one's own voice is, Borges thinks, almost impossible: the <em>I</em> is too thick with self-defence. So Moon borrows the voice of the man he betrayed, and through that borrowed mouth says everything he could never say as himself. The oracle at the top of this gallery offers the visitor the same trick — type a confession in the first person, and the curve will accept it as its own, lettering your sentence along the scar. The page will note: <em>I, John Vincent Moon, was once braver than this. I am writing in the first person of the man who betrayed me.</em> That is the algorithm of the story: the only confession that names itself does so in the voice of someone else.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">☾  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"Ya ve usted, llevo escrito en la cara mi infamia: por eso, en cuanto un visitante le habla a este hombre por primera vez, el escarnio se le aparece."</p>
+            <p class="literary-heart-quote-en">"You see, I have my infamy written on my face: this is why, when any visitor speaks to this man for the first time, scorn appears."</p>
+            <p class="literary-heart-formula">f(t) = parametric_curve(t)</p>
+            <p class="literary-heart-description">The scar as a function of time — a sine-modulated arc whose endpoint must, by construction, be a crescent. The curve is the confession; the confession is the surname; the surname is the moon.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG ──
+        // FNV-1a 32-bit
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function hashCoords(q, r) {
+            const a = (q << 1) ^ (q >> 31);
+            const b = (r << 1) ^ (r >> 31);
+            let h = 0x811c9dc5 >>> 0;
+            h ^= a & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= b & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (b >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+        // Mulberry32 RNG seeded by uint32
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── Drift: fragments revealed by cursor proximity to the scar ──
+        const SCAR_FRAGMENTS = [
+            '…he flinched…',
+            '…the bullet missed…',
+            '…his name was Moon…',
+            '…I cried out his name…',
+            '…the rain on the cobbles…',
+            '…the door swung open…',
+            '…I gave him up…',
+            '…the captain only nodded…',
+            '…the sword was already raised…',
+            '…the shape was waiting in the steel…',
+            '…he said nothing, then everything…',
+            '…the scar wrote itself…',
+            '…that night in Galway…',
+            '…the betrayal preceded the deed…',
+            '…the moon was waning…',
+            '…I read it on his face…',
+            '…the courtyard was empty…',
+            '…the crescent was inevitable…',
+            '…I curved the blade out of mercy…',
+            '…I am Moon…',
+        ];
+
+        // ── Drill: deterministic Borgesian confession pools ──
+        const CONF_TITLES = [
+            'The crescent that named its bearer',
+            'A confession told in a borrowed voice',
+            'I have my infamy written on my face',
+            'The wound that wrote its giver',
+            'The coward who borrowed a brave man\'s name',
+            'In the first person of the man I betrayed',
+            'The shape of the blade was already my shape',
+            'A scar that could only be a moon',
+            'The infamy that pronounces itself',
+            'I, John Vincent Moon, am writing as another',
+            'The night I read my surname on my face',
+            'A face the visitor recognised before I spoke',
+        ];
+
+        const CONF_OPEN = [
+            'In the courtyard at Galway I was taken for a brave man.',
+            'When the firing began, I learnt the weight of my own pulse.',
+            'I had been speaking of liberty for an hour and a half.',
+            'The captain had trusted me with a single message and a single gun.',
+            'There were nine of us in the farmhouse, and I alone could read the maps.',
+            'The night had turned cold and the door of the safehouse stood open.',
+            'I am writing this with the voice of a man I once admired in silence.',
+            'The crescent was carved into me before I understood why.',
+            'The Black and Tans came at the hour I had named to them.',
+            'I sat in the kitchen polishing his rifle, the rifle he never fired.',
+        ];
+
+        const CONF_MID = [
+            'I flinched before I knew I had flinched, and the act outran the choice.',
+            'Some acts make themselves known by the light they give off afterwards.',
+            'The shape of what I did was older than my reasons for doing it.',
+            'A coward, in the end, is only a man who learns the truth about himself one second too soon.',
+            'I told the soldiers what I had been told never to tell, and I told it gladly.',
+            'I imagined later that I had hesitated; in fact I had not.',
+            'I was, that evening, the precise opposite of the man I had described all afternoon.',
+            'I betrayed him in the only currency I still possessed: silence at the right moment.',
+            'My body did the deed before my mind had finished its argument.',
+            'I had rehearsed the betrayal so often in private that the public version felt almost familiar.',
+        ];
+
+        const CONF_CLOSE = [
+            'I am writing this in the first person of the man I betrayed, because no other person of mine survives.',
+            'The face I show the visitor is not mine; the scar is mine, and the scar is the only true face.',
+            'I, John Vincent Moon, am writing as a brave man would write, since the brave man is dead and the cowardly man cannot.',
+            'The crescent moon on my cheek is my surname pronounced in flesh.',
+            'I have made a habit of speaking of myself in the third person; tonight, for once, the third person is the truth.',
+            'I borrow his I as I once borrowed his courage, with the same intention of returning it and the same impossibility.',
+            'The wound that names its giver also names its receiver, and the two men were never, in any usable sense, two.',
+            'You are reading the confession of a man who refuses, even now, to call himself by the name on his own face.',
+        ];
+
+        const PLACES = [
+            'Galway', 'Dublin', 'Limerick', 'Cork', 'Tralee', 'Drogheda', 'Wexford',
+            'a back road outside Athenry', 'a farmhouse in Connemara', 'a barn near Kildare',
+        ];
+        const WITNESSES = [
+            'the captain', 'the courier', 'the Englishman', 'the priest',
+            'a passing stranger', 'the dog at the gate', 'the rain on the slates',
+            'no one but the lamp', 'an unknown soldier of the Crown',
+        ];
+        const POSITION_LABELS = [
+            { until: 0.10, name: 'at the temple' },
+            { until: 0.28, name: 'on the upper cheek' },
+            { until: 0.50, name: 'across the cheekbone' },
+            { until: 0.72, name: 'beneath the cheek' },
+            { until: 0.90, name: 'along the jaw' },
+            { until: 1.01, name: 'at the hook of the moon' },
+        ];
+
+        function positionAlongScar(t) {
+            for (const p of POSITION_LABELS) {
+                if (t < p.until) return p.name;
+            }
+            return POSITION_LABELS[POSITION_LABELS.length - 1].name;
+        }
+
+        // ── Generate a confession from a wound seed ──
+        function generateConfession(seed) {
+            const r = rng(seed);
+            const o = CONF_OPEN[Math.floor(r() * CONF_OPEN.length)];
+            const m = CONF_MID[Math.floor(r() * CONF_MID.length)];
+            const c = CONF_CLOSE[Math.floor(r() * CONF_CLOSE.length)];
+            return o + ' ' + m + ' ' + c;
+        }
+
+        function generateTitle(seed) {
+            const r = rng(seed);
+            return CONF_TITLES[Math.floor(r() * CONF_TITLES.length)];
+        }
+
+        // ── Format a catalog entry from a wound ──
+        function catalogFromWound(t, x, y) {
+            const seed = hashCoords(Math.round(x * 13), Math.round(y * 13));
+            const idHex = seed.toString(16).padStart(8, '0').toUpperCase();
+            const r = rng(seed >>> 1);
+            const hour = Math.floor(r() * 5) + 1;        // 1..5 of the morning
+            const minute = Math.floor(r() * 60).toString().padStart(2, '0');
+            const place = PLACES[Math.floor(r() * PLACES.length)];
+            const witness = WITNESSES[Math.floor(r() * WITNESSES.length)];
+            return {
+                seed,
+                mark: idHex.slice(0, 4) + '-' + idHex.slice(4) + '  ·  ⌒ t ' + t.toFixed(3),
+                hour: hour + ':' + minute + ' of the morning',
+                place: place,
+                witness: witness,
+                spoken: 't ' + t.toFixed(3) + ' · ' + positionAlongScar(t),
+            };
+        }
+
+        // ── Sanitize phrase (preserve glyphs; the curve takes any text) ──
+        function sanitizePhrase(s) {
+            if (!s) return '';
+            let p = s.normalize('NFC');
+            p = p.replace(/[\u0000-\u001F\u007F]/g, '');
+            p = p.replace(/\s+/g, ' ').trim();
+            return p.slice(0, 80);
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ── Scar parametric function ──
+        // f(t) = parametric_curve(t): a sine-modulated arc whose endpoint
+        // must, by construction, fall at the hook of a crescent moon.
+        const SQRT3 = Math.sqrt(3);
+        const SCAR_RES = 800;
+        let scarPath = [];
+        let scarLengths = [];   // cumulative arc lengths
+        let scarTotalLen = 0;
+
+        function scarPoint(t) {
+            // Crescent geometry: an arc of ~210° opens to the LEFT,
+            // with subtle sine modulation along its length.
+            const arcCx = width * 0.42;
+            const arcCy = height * 0.50;
+            const baseR = Math.min(width, height) * 0.34;
+
+            const startA = -Math.PI * 0.62;   // upper-right (the temple)
+            const endA   =  Math.PI * 0.62;   // lower-right (the hook of the moon)
+            const angle = startA + (endA - startA) * t;
+
+            const radiusMod = baseR * 0.045 * Math.sin(t * Math.PI * 6 + 0.7);
+            const radius = baseR + radiusMod;
+
+            return {
+                x: arcCx + radius * Math.cos(angle),
+                y: arcCy + radius * Math.sin(angle),
+            };
+        }
+
+        function precomputeScar() {
+            scarPath = new Array(SCAR_RES + 1);
+            scarLengths = new Array(SCAR_RES + 1);
+            scarLengths[0] = 0;
+            for (let i = 0; i <= SCAR_RES; i++) {
+                const t = i / SCAR_RES;
+                scarPath[i] = scarPoint(t);
+                if (i > 0) {
+                    const dx = scarPath[i].x - scarPath[i - 1].x;
+                    const dy = scarPath[i].y - scarPath[i - 1].y;
+                    scarLengths[i] = scarLengths[i - 1] + Math.hypot(dx, dy);
+                }
+            }
+            scarTotalLen = scarLengths[SCAR_RES];
+        }
+
+        // Find the index/parameter of the closest scar point to (mx, my)
+        // Returns null if outside the considered (drawn) portion.
+        function nearestScarT(mx, my, maxT) {
+            if (scarPath.length === 0) return null;
+            const lim = Math.max(2, Math.floor((maxT == null ? 1 : maxT) * SCAR_RES));
+            let bestI = 0;
+            let bestD = Infinity;
+            for (let i = 0; i <= lim; i++) {
+                const dx = scarPath[i].x - mx;
+                const dy = scarPath[i].y - my;
+                const d = dx * dx + dy * dy;
+                if (d < bestD) { bestD = d; bestI = i; }
+            }
+            return { t: bestI / SCAR_RES, dist: Math.sqrt(bestD), idx: bestI };
+        }
+
+        // ── p5.js sketch ──
+        let cnv;
+        let scarStartTime = 0;
+        const SCAR_DRAW_DURATION = 6000; // ms
+        let woundMarks = [];             // array of { t, seed }
+        let userPhrase = '';             // currently inscribed phrase
+        let userPhraseT = 0;             // start position of that phrase along the curve
+        let openWound = null;            // { t } when overlay open
+        let invokeFlashUntil = 0;        // ms — short bright flash after invoke
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            noStroke();
+            precomputeScar();
+            scarStartTime = millis();
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+            precomputeScar();
+        }
+
+        function getScarProgress() {
+            const elapsed = millis() - scarStartTime;
+            return constrain(elapsed / SCAR_DRAW_DURATION, 0, 1);
+        }
+
+        function ambientPulse() {
+            // 0.7 .. 1.0 — subtle continuous breath
+            return 0.70 + 0.30 * (0.5 + 0.5 * Math.sin(millis() * 0.0017));
+        }
+
+        // ── Background: dark indigo gradient ──
+        function drawBackgroundGradient() {
+            const ctx = drawingContext;
+            const g = ctx.createRadialGradient(
+                width * 0.5, height * 0.55, 0,
+                width * 0.5, height * 0.55, Math.max(width, height) * 0.85
+            );
+            g.addColorStop(0.00, '#1b2444');
+            g.addColorStop(0.45, '#121a32');
+            g.addColorStop(1.00, '#08080f');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // ── The faint face silhouette (jawline curve) in lower-center ──
+        function drawFaceSilhouette() {
+            const cx = width * 0.50;
+            const cy = height * 0.66;
+            const fw = Math.min(width, height) * 0.21;
+            const fh = Math.min(width, height) * 0.13;
+
+            push();
+            noFill();
+            stroke(232, 216, 183, 36);
+            strokeWeight(1);
+            beginShape();
+            for (let i = 0; i <= 80; i++) {
+                const t = i / 80;
+                const angle = Math.PI + t * Math.PI; // PI → 2PI: lower semicircle (jaw)
+                // p5: y is downward; we want the chin to dip DOWN at t=0.5.
+                // sin(PI..2PI) goes 0 → -1 → 0, so we negate to get 0 → +1 → 0.
+                const x = cx + fw * Math.cos(angle);
+                const y = cy + fh * (-Math.sin(angle));
+                vertex(x, y);
+            }
+            endShape();
+
+            // A second, even fainter brow/temple line above
+            stroke(232, 216, 183, 14);
+            strokeWeight(0.8);
+            beginShape();
+            for (let i = 0; i <= 40; i++) {
+                const t = i / 40;
+                const angle = Math.PI + t * Math.PI;
+                const x = cx + fw * 0.92 * Math.cos(angle);
+                const y = cy - fh * 1.55 + fh * 0.45 * (-Math.sin(angle));
+                vertex(x, y);
+            }
+            endShape();
+            pop();
+        }
+
+        // ── The scar: a parametric arc that draws stroke-by-stroke ──
+        function drawScar() {
+            if (scarPath.length === 0) return;
+            const progress = getScarProgress();
+            const lastIdx = Math.floor(progress * SCAR_RES);
+            if (lastIdx < 1) return;
+
+            const pulse = ambientPulse();
+            const isFlashing = millis() < invokeFlashUntil;
+            const flashBoost = isFlashing
+                ? (1 - (millis() - (invokeFlashUntil - 700)) / 700)
+                : 0;
+
+            push();
+            // Soft outer glow — multiple offset strokes in vermillion
+            noFill();
+            for (let g = 3; g >= 1; g--) {
+                stroke(197, 74, 48, (24 + 30 * flashBoost) / g * pulse);
+                strokeWeight(2.4 + g * 1.6);
+                beginShape();
+                for (let i = 0; i <= lastIdx; i++) {
+                    vertex(scarPath[i].x, scarPath[i].y);
+                }
+                endShape();
+            }
+            // The crisp inner stroke
+            stroke(226, 106, 79, (200 + 55 * flashBoost) * pulse);
+            strokeWeight(1.6);
+            beginShape();
+            for (let i = 0; i <= lastIdx; i++) {
+                vertex(scarPath[i].x, scarPath[i].y);
+            }
+            endShape();
+
+            // Etching tip: a small bright bead at the leading edge
+            if (progress < 1) {
+                const head = scarPath[lastIdx];
+                const px = head.x;
+                const py = head.y;
+                noStroke();
+                for (let g = 4; g >= 1; g--) {
+                    fill(226, 106, 79, 28 / g);
+                    circle(px, py, 6 + g * 5);
+                }
+                fill(248, 220, 195, 230);
+                circle(px, py, 3.4);
+            }
+
+            pop();
+        }
+
+        // ── Wound marks (clicks the user has placed) ──
+        function drawWoundMarks() {
+            if (woundMarks.length === 0) return;
+            push();
+            noStroke();
+            for (const w of woundMarks) {
+                const idx = Math.floor(w.t * SCAR_RES);
+                if (idx < 0 || idx >= scarPath.length) continue;
+                const p = scarPath[idx];
+                const pulse = 0.7 + 0.3 * Math.sin(millis() * 0.004 + w.t * 9.7);
+                for (let g = 5; g >= 1; g--) {
+                    fill(226, 106, 79, (32 / g) * pulse);
+                    circle(p.x, p.y, 8 + g * 6);
+                }
+                fill(248, 220, 195, 235);
+                circle(p.x, p.y, 3.6);
+            }
+            pop();
+        }
+
+        // ── Drift fragment — text that appears near the cursor when close to the scar ──
+        function drawDriftFragment() {
+            if (openWound) return;
+            if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+            const progress = getScarProgress();
+            if (progress < 0.05) return;
+            const near = nearestScarT(mouseX, mouseY, progress);
+            if (!near) return;
+
+            const PROXIMITY = 90;
+            if (near.dist > PROXIMITY) return;
+
+            // Deterministic fragment from t (stable per cursor position)
+            const idx = Math.floor(near.t * SCAR_FRAGMENTS.length * 1.7) % SCAR_FRAGMENTS.length;
+            const fragment = SCAR_FRAGMENTS[idx];
+            const fade = 1 - near.dist / PROXIMITY;
+
+            push();
+            textFont('Cormorant Garamond');
+            textStyle(ITALIC);
+            textSize(13);
+            textAlign(LEFT, BOTTOM);
+            noStroke();
+            // Soft backdrop chip
+            const tw = textWidth(fragment);
+            fill(12, 10, 8, 170 * fade);
+            rect(mouseX + 12, mouseY - 22, tw + 16, 20, 1);
+            stroke(197, 74, 48, 70 * fade);
+            strokeWeight(0.6);
+            noFill();
+            rect(mouseX + 12, mouseY - 22, tw + 16, 20, 1);
+            noStroke();
+            fill(232, 130, 110, 220 * fade);
+            text(fragment, mouseX + 20, mouseY - 7);
+
+            // A faint tether to the scar — short pale line from cursor toward the scar
+            const idx2 = near.idx;
+            const target = scarPath[idx2];
+            stroke(226, 106, 79, 60 * fade);
+            strokeWeight(0.6);
+            line(mouseX, mouseY, target.x, target.y);
+            pop();
+        }
+
+        // ── User's invoked phrase, rendered along the scar curve ──
+        function drawPhraseAlongScar() {
+            if (!userPhrase || scarTotalLen === 0) return;
+            const progress = getScarProgress();
+            if (progress < 1) return;
+
+            push();
+            textFont('Cormorant Garamond');
+            textStyle(ITALIC);
+            textSize(15);
+            noStroke();
+            fill(232, 216, 183, 230);
+
+            // Approximate total phrase length (sum of glyph widths)
+            let phraseW = 0;
+            for (let i = 0; i < userPhrase.length; i++) phraseW += textWidth(userPhrase[i]) + 0.4;
+
+            // Start so the centre of the phrase coincides with the user's wound
+            let startDist = userPhraseT * scarTotalLen - phraseW / 2;
+            const margin = 18;
+            startDist = Math.max(margin, Math.min(scarTotalLen - phraseW - margin, startDist));
+            if (startDist < margin) startDist = margin;
+
+            let cursor = startDist;
+            for (let i = 0; i < userPhrase.length; i++) {
+                const ch = userPhrase[i];
+                const cw = textWidth(ch);
+                const target = cursor + cw / 2;
+                if (target > scarTotalLen - margin) break;
+
+                // Locate segment via binary-ish scan
+                let seg = 1;
+                while (seg < scarLengths.length && scarLengths[seg] < target) seg++;
+                if (seg >= scarLengths.length) break;
+                const segDist = target - scarLengths[seg - 1];
+                const segLen = Math.max(0.0001, scarLengths[seg] - scarLengths[seg - 1]);
+                const u = segDist / segLen;
+                const p0 = scarPath[seg - 1];
+                const p1 = scarPath[seg];
+                const x = p0.x + (p1.x - p0.x) * u;
+                const y = p0.y + (p1.y - p0.y) * u;
+                const ang = Math.atan2(p1.y - p0.y, p1.x - p0.x);
+
+                push();
+                translate(x, y);
+                rotate(ang);
+                textAlign(CENTER, CENTER);
+                // Letter shadow for legibility on the indigo
+                fill(8, 6, 14, 200);
+                text(ch, 0, -16.4);
+                fill(248, 232, 200, 240);
+                text(ch, 0, -16);
+                pop();
+
+                cursor += cw + 0.4;
+            }
+            pop();
+        }
+
+        // ── Hint label that follows the cursor when no fragment is close ──
+        function drawHoverHint() {
+            if (openWound) return;
+            const progress = getScarProgress();
+            if (progress < 1) return;
+            if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
+            const near = nearestScarT(mouseX, mouseY, progress);
+            if (!near) return;
+            const VERY_CLOSE = 30;
+            if (near.dist > VERY_CLOSE) return;
+            // Show a faint "click to confess" hint
+            push();
+            textFont('IBM Plex Mono');
+            textSize(9);
+            textAlign(LEFT, TOP);
+            noStroke();
+            fill(232, 216, 183, 130);
+            text('CLICK TO CONFESS', mouseX + 14, mouseY + 12);
+            pop();
+        }
+
+        // ── Draw ──
+        function draw() {
+            drawBackgroundGradient();
+            drawFaceSilhouette();
+            drawScar();
+            drawPhraseAlongScar();
+            drawWoundMarks();
+            drawDriftFragment();
+            drawHoverHint();
+        }
+
+        // ── Mouse events: drill ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+
+            const progress = getScarProgress();
+            if (progress < 0.05) return;
+            const near = nearestScarT(mouseX, mouseY, progress);
+            if (!near) return;
+            // Click must be reasonably close to the scar
+            if (near.dist > 38) return;
+            openWoundFor(near.t);
+        }
+
+        // Touch
+        let touchStart = null;
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            touchStart = { x: mouseX, y: mouseY, t: millis() };
+            return false;
+        }
+        function touchEnded() {
+            if (!touchStart) return false;
+            const dx = mouseX - touchStart.x;
+            const dy = mouseY - touchStart.y;
+            const moved = Math.hypot(dx, dy);
+            if (moved < 12) {
+                const progress = getScarProgress();
+                if (progress >= 0.05) {
+                    const near = nearestScarT(mouseX, mouseY, progress);
+                    if (near && near.dist <= 44) openWoundFor(near.t);
+                }
+            }
+            touchStart = null;
+            return false;
+        }
+
+        // ── Book overlay (drill / invoke view) ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCatMark = document.getElementById('cat-mark');
+        const elCatHour = document.getElementById('cat-hour');
+        const elCatPlace = document.getElementById('cat-place');
+        const elCatWitness = document.getElementById('cat-witness');
+        const elCatSpoken = document.getElementById('cat-spoken');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function ensureScarComplete() {
+            // If the user invokes/clicks before the etching has finished, snap it.
+            const progress = getScarProgress();
+            if (progress < 1) {
+                scarStartTime = millis() - SCAR_DRAW_DURATION;
+            }
+        }
+
+        function openWoundFor(t, invokedPhrase) {
+            ensureScarComplete();
+            openWound = { t };
+
+            // Place a persistent wound mark at this t (deduplicated by closeness)
+            const exists = woundMarks.some(w => Math.abs(w.t - t) < 0.004);
+            if (!exists) woundMarks.push({ t });
+            // Cap the number of marks to keep the canvas readable
+            if (woundMarks.length > 24) woundMarks.shift();
+
+            // Compute wound world position from t (used for catalog hashing)
+            const idx = Math.max(0, Math.min(SCAR_RES, Math.floor(t * SCAR_RES)));
+            const p = scarPath[idx];
+
+            const cat = catalogFromWound(t, p.x, p.y);
+            const title = generateTitle(cat.seed);
+            const confession = generateConfession(cat.seed);
+
+            elCatMark.textContent = cat.mark;
+            elCatHour.textContent = cat.hour;
+            elCatPlace.textContent = cat.place;
+            elCatWitness.textContent = cat.witness;
+            elCatSpoken.textContent = cat.spoken;
+
+            const sanitized = sanitizePhrase(invokedPhrase || '');
+            if (sanitized.length > 0) {
+                // INVOKE mode — title is the fixed signature line; excerpt is the
+                // user's phrase rubricated, followed by the narrator's response.
+                elTitle.textContent = 'The confession that names itself';
+                elEyebrow.innerHTML = '☾  The confession has been inscribed';
+                elExcerpt.innerHTML =
+                    '<span class="ellipsis">«</span>' +
+                    '<mark>' + escapeHtml(sanitized) + '</mark>' +
+                    '<span class="ellipsis">»</span>' +
+                    ' — the confession that names itself. ' +
+                    'I, John Vincent Moon, was once braver than this. ' +
+                    'I am writing in the first person of the man who betrayed me.';
+                overlay.classList.add('invoked');
+            } else {
+                // DRILL mode — procedural confession from the wound seed.
+                elTitle.textContent = title;
+                elEyebrow.innerHTML = '☾  A Mark on the Face';
+                elExcerpt.innerHTML =
+                    '<span class="ellipsis">…</span>' +
+                    escapeHtml(confession) +
+                    '<span class="ellipsis">…</span>';
+                overlay.classList.remove('invoked');
+            }
+
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            openWound = null;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const raw = (oracleInput.value || '').trim();
+            const phrase = sanitizePhrase(raw);
+            if (!phrase) return;
+
+            // Deterministic location along the scar from the phrase hash
+            const h = hashString(phrase.toLowerCase());
+            const t = ((h % 100000) / 100000) * 0.86 + 0.07; // keep inside [0.07, 0.93]
+
+            // Inscribe the phrase along the curve (rendered every frame)
+            userPhrase = phrase;
+            userPhraseT = t;
+
+            // Bright pulse along the entire scar
+            ensureScarComplete();
+            invokeFlashUntil = millis() + 700;
+
+            if (overlay.classList.contains('open')) closeBook();
+
+            // Brief delay so the user can see the phrase being inscribed before
+            // the overlay opens with the "confession that names itself".
+            setTimeout(() => openWoundFor(t, phrase), 620);
+
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>

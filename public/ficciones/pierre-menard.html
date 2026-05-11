@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pierre Menard, autor del Quijote — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Pierre Menard — two layers of Don Quixote drift across the canvas, identical word-for-word, three centuries apart.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+
+        /* ─────────────────────────────────────────
+           Pierre Menard — piece-specific overlay accents
+           (additions only; chrome above is unmodified)
+           ───────────────────────────────────────── */
+
+        .menard-title {
+            color: var(--vermillion-bright);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+        }
+
+        .meaning-block {
+            display: block;
+            margin-bottom: 22px;
+        }
+        .meaning-block:last-child { margin-bottom: 0; }
+
+        .meaning-year {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.95;
+        }
+
+        .meaning-block.is-1605 .meaning-year { color: var(--brass); }
+        .meaning-block.is-1934 .meaning-year { color: var(--indigo-bright); }
+
+        .meaning-text {
+            display: block;
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.85;
+        }
+        .meaning-block.is-1605 .meaning-text { color: var(--parchment); }
+        .meaning-block.is-1934 .meaning-text { color: rgba(168, 184, 220, 0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">‖</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="invoke a phrase — both authors will write it…"
+                maxlength="80"
+                aria-label="Invoke a phrase to be doubled across 329 years"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">COMPOSING THE QUIXOTE, TWICE…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Invisible Work</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Pierre Menard, a French symbolist of the early twentieth century, never published the chapters that earn him the title of the story. The narrator-critic catalogues his <strong>visible work</strong> — translations, sonnet sequences, a study of Leibniz, an invective against Paul Valéry — and then describes the <em>invisible work</em>: chapters nine and thirty-eight of the first part of <em>Don Quixote</em>, and a fragment of chapter twenty-two.</p>
+                    <p>The catalogue itself is the joke. The most important achievement in the bibliography is the one no one can read.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Word-for-Word Doubling</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Menard does not <strong>copy</strong>. He <em>composes</em>. The result is, line by line and letter for letter, identical to Cervantes' original — but the identity is the result, not the method.</p>
+                    <p>The narrator insists on the distinction. A copyist transcribes; a composer arrives. Menard arrives — not by becoming Cervantes, but by remaining Pierre Menard.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Anachronistic Reading</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story is the first explicit theory of <strong>anachronistic reading</strong> in modern literature. A text written in 1605 means one thing; the same text composed in 1934 means another, because reading is a function of the historical context of its author.</p>
+                    <p>Borges weaponizes this: Menard's Quixote is, the narrator insists, <em>infinitely richer</em> than Cervantes', because every word is haunted by the three centuries that did not yet exist when Cervantes wrote it.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Author Function</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>Three decades before Foucault's <em>What is an Author?</em> (1969), Borges had answered it. The author is not the person who pushes the pen but <strong>the historical position from which the words are written</strong>.</p>
+                    <p>To attribute the same sentence to two authors at two different moments is, the story argues, to write two different sentences.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Why Identical ≠ Same</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>To the algorithm, two strings are equal if and only if every byte agrees. To the reader, <strong>"equal" is a function of who is reading, when, and after what</strong>. The story's deepest claim is that meaning lives outside the glyphs.</p>
+                    <p>Hover the cursor here at center: the layers align and the text rubricates into vermillion. Drift outward: parchment and indigo separate. <em>The same letters; not the same text.</em></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">‖  Pierre Menard, autor del Quijote  ‖</div>
+            <div class="placard-title">Pierre Menard, Author of the Quixote</div>
+            <div class="placard-meta">Jorge Luis Borges · 1939 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">‖  A single word, twice authored</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Source</span><span class="value" id="cat-source">—</span></div>
+                <div class="row"><span class="label">Δ Time</span><span class="value" id="cat-delta">329 years (1605 → 1934)</span></div>
+                <div class="row"><span class="label">1605</span><span class="value" id="cat-frame-1605">—</span></div>
+                <div class="row"><span class="label">1934</span><span class="value" id="cat-frame-1934">—</span></div>
+                <div class="row found"><span class="label">Doubled at</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <div class="book-excerpt" id="book-excerpt">—</div>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>‖</span></div>
+
+        <p class="article-eyebrow">‖  Ficciones · 02  ‖</p>
+        <h1 class="article-title">What Menard Wrote</h1>
+        <p class="article-subtitle">On the impossibility of the identical text</p>
+
+        <blockquote class="article-epigraph">
+            "No quería componer otro Quijote — lo cual es fácil — sino el Quijote.
+            Inútil agregar que no encaró nunca una transcripción mecánica del original;
+            no se proponía copiarlo. Su admirable ambición era producir unas páginas
+            que coincidieran — palabra por palabra y línea por línea — con las de Miguel de Cervantes."
+            <cite>— Jorge Luis Borges, Pierre Menard, autor del Quijote (1939)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>Pierre Menard published almost nothing in his lifetime — a few translations, a sonnet sequence, a study of Leibniz, an invective against Paul Valéry. The work the fictional critic-narrator wishes to discuss is invisible: chapters nine and thirty-eight of the first part of <em>Don Quixote</em>, and a fragment of chapter twenty-two, composed in the early twentieth century, word for word identical to Cervantes' original. Menard rejected the easy path of becoming Cervantes — learning Spanish, recovering the Catholic faith, fighting Moors, forgetting the history of Europe between 1602 and 1918. That, the narrator says, would have been less arduous and less interesting. The harder, more interesting task was to remain Pierre Menard and arrive at the Quixote anyway, through the experiences of Pierre Menard.</p>
+
+            <p>The story is a thirty-page argument for a single, vertiginous claim: that the same words, written by a different author at a different historical moment, are not the same text. Cervantes' "<em>la verdad, cuya madre es la historia</em>" — truth, whose mother is history — is, in 1605, a routine seventeenth-century rhetorical compliment to the past. Menard's identical sentence, written in 1934 by a near-contemporary of Bertrand Russell and William James, is, the narrator says, "an astonishing idea": a pragmatist proposition that history fabricates truth. The same words have grown deeper because their author is anachronistically wrong.</p>
+
+            <p>This piece tries to literalize the contention. Two semi-transparent layers of the opening of the Quixote drift across the canvas: the parchment text is Cervantes, 1605; the indigo text is Menard, 1934. They share every letter. Where the cursor pulls them into perfect register, the bilingual identity blooms into vermillion — the same words, rubricated by their double authorship. As the cursor drifts outward, the layers separate, and the work shows what Borges insists you should see: that even at zero typographical difference, an unbridgeable thirty-year war has fought itself between them. Click any word, and the overlay shows you the war.</p>
+
+            <p>The story is haunting because its joke is now technologically real. When a generative model produces a paragraph of <em>Hamlet</em>, character-for-character identical to Shakespeare's, is it Hamlet? Borges, in 1939, says no — a text is not a sequence of glyphs but a sequence of glyphs read against a context, and the context of an LLM in the 21st century is not the context of an Elizabethan playwright. Menard is the patron saint of a question we will be arguing about for the rest of our cultural lives: when a machine writes the words a human wrote, what, exactly, has been written?</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">‖  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"Componer el Quijote a principios del siglo diecisiete era una empresa razonable, necesaria, acaso fatal; a principios del veinte, es casi imposible."</p>
+            <p class="literary-heart-quote-en">"To compose the Quijote at the beginning of the seventeenth century was a reasonable, necessary, perhaps inevitable undertaking; at the beginning of the twentieth, it is almost impossible."</p>
+            <p class="literary-heart-formula">identical text × Δt(329 years) → meaning differential</p>
+            <p class="literary-heart-description">The same character string, authored by Cervantes in 1605 and by Menard in 1934, is two different works. Borges' equation: the meaning of a text is the integral of the words against the historical position of the author. Change the author, and the integral — even over the same words — is a different number.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            header.classList.toggle('active');
+            header.nextElementSibling.classList.toggle('active');
+        }
+
+        // ── Don Quixote source text — opening of Part I, Chapter 1 ──
+        // Two layers of this exact text are rendered simultaneously: parchment for
+        // Cervantes (1605), indigo for Menard (1934). Where they perfectly register,
+        // a vermillion (rubricated) layer shines through.
+        const QUIXOTE_TEXT = "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor. Una olla de algo más vaca que carnero, salpicón las más noches, duelos y quebrantos los sábados, lentejas los viernes, algún palomino de añadidura los domingos, consumían las tres partes de su hacienda. Frisaba la edad de nuestro hidalgo con los cincuenta años; era de complexión recia, seco de carnes, enjuto de rostro, gran madrugador y amigo de la caza. La verdad, cuya madre es la historia, émula del tiempo, depósito de las acciones, testigo de lo pasado, ejemplo y aviso de lo presente, advertencia de lo por venir.";
+
+        // ── Deterministic hash & RNG (same approach as babel) ──
+        // FNV-1a 32-bit hash — same primes, same output shape.
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        // Mulberry32 RNG seeded by uint32
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // Strip diacritics + trailing punctuation; lowercase. Used as the lookup
+        // key for the hand-curated KNOWN dictionary below.
+        function normWord(s) {
+            return String(s)
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/^[¡¿"'(\[.,;:]+/, '')
+                .replace(/[.,;:!?"'\)\]]+$/g, '');
+        }
+
+        // ── Voices: hand-crafted glosses for canonical Quijote vocabulary ──
+        // Each word maps to the same sign read from two historical positions.
+        const KNOWN = {
+            'verdad': {
+                f1605: 'a divine truth, certain and immutable, kept by Heaven against the slow corruption of the world',
+                f1934: 'a working consensus, a culturally bound convention — true insofar as it produces predictable behavior',
+                tag1605: 'theological', tag1934: 'pragmatist'
+            },
+            'historia': {
+                f1605: 'the unbroken record providence keeps of human affairs — a chronicle, a witness, a faithful copy',
+                f1934: 'a partial narrative built by the historian out of survivors — selected, biased, always revisable',
+                tag1605: 'providential', tag1934: 'constructivist'
+            },
+            'tiempo': {
+                f1605: 'a measure given by God, the medium in which His designs unfold toward their predestined ends',
+                f1934: 'an axis along which entropy increases and culture mutates — a relativized, post-Einsteinian magnitude',
+                tag1605: 'eschatological', tag1934: 'relativistic'
+            },
+            'lugar': {
+                f1605: 'a station fixed in the great chain of being — the proper degree of a Christian gentleman',
+                f1934: 'a contingent point in social and economic space, dissolvable by the analysis that comes after',
+                tag1605: 'hierarchical', tag1934: 'sociological'
+            },
+            'mancha': {
+                f1605: 'a real, dusty corner of New Castile — and, by the elder logic of names, an honored signifier of land',
+                f1934: 'a literary signifier whose referent is itself a sign in the system of "Spain" — folkloric and quoted',
+                tag1605: 'topographical', tag1934: 'semiotic'
+            },
+            'hidalgo': {
+                f1605: 'a man of inherited rank, bound by blood and title to honor, the king, and the Catholic faith',
+                f1934: 'a melancholy social fossil — a category whose conditions of possibility have already passed',
+                tag1605: 'feudal', tag1934: 'historicized'
+            },
+            'nombre': {
+                f1605: 'a sign that participates, by ancient mystery, in the thing it names — to know it is to hold it',
+                f1934: 'an arbitrary label that the modern narrator may withhold at will, for irony or discretion',
+                tag1605: 'realist', tag1934: 'nominalist'
+            },
+            'amigo': {
+                f1605: 'a fellow Christian bound by sworn loyalty under the eye of God — a covenant, not a preference',
+                f1934: 'a contingent affinity, dissolvable by interest, fashion, or the slow attrition of time',
+                tag1605: 'covenantal', tag1934: 'contingent'
+            },
+            'edad': {
+                f1605: 'a stage of the soul on its journey toward judgment, marked by spiritual rather than mere bodily change',
+                f1934: 'a biological interval, narrated by the conventions of the bourgeois novel and tracked by the census',
+                tag1605: 'spiritual', tag1934: 'biological'
+            },
+            'rostro': {
+                f1605: 'the face by which the world reads the soul beneath — physiognomy as legible providence',
+                f1934: 'a surface produced by genes, gestures, and class — to be read by Lavater, Lombroso, or Freud',
+                tag1605: 'physiognomic', tag1934: 'psychoanalytic'
+            },
+            'caza': {
+                f1605: 'a noble pastime fit for a hidalgo — half pastoral leisure, half martial preparation against the Moor',
+                f1934: 'a pastime of an obsolete class, irretrievably nostalgic, available now only as quotation',
+                tag1605: 'aristocratic', tag1934: 'nostalgic'
+            },
+            'madre': {
+                f1605: 'the natural and divinely ordained source — the principle from which a thing legitimately descends',
+                f1934: 'an originary cause whose lineage is a metaphor — useful, but not reliable as ontology',
+                tag1605: 'genealogical', tag1934: 'metaphoric'
+            },
+            'fiestas': {
+                f1605: 'the holy days set by the Church, woven into the calendar of salvation and the agrarian year',
+                f1934: 'consumer rituals that have shed their sacred frame and survive as social custom and commerce',
+                tag1605: 'liturgical', tag1934: 'secular'
+            },
+            'viernes': {
+                f1605: 'a day of fast — the day of the Crucifixion, bound to the body of Christ and to abstinence',
+                f1934: 'an interval in the work-week whose meaning is set by the labor calendar and the wage relation',
+                tag1605: 'sacramental', tag1934: 'industrial'
+            },
+            'pasado': {
+                f1605: 'what God has fixed and what the chronicle preserves intact — closed and authoritative',
+                f1934: 'a construction of the present, edited and re-edited as the future requires',
+                tag1605: 'archival', tag1934: 'revisionist'
+            },
+            'presente': {
+                f1605: 'the moment in which the soul stands accountable before its Maker — a point of decision',
+                f1934: 'a fugitive instant, never available to itself — only to the analysis that comes after',
+                tag1605: 'kerygmatic', tag1934: 'phenomenological'
+            },
+            'venir': {
+                f1605: 'what God already sees, only veiled to us — the future as appointment and judgement',
+                f1934: 'the open space of contingency, computable only in probabilities and futures markets',
+                tag1605: 'apocalyptic', tag1934: 'probabilistic'
+            },
+            'acciones': {
+                f1605: 'deeds for which the soul will answer — weighed by Heaven on the day of accounts',
+                f1934: 'observable behaviors, products of incentive structures, traceable by the social sciences',
+                tag1605: 'moral', tag1934: 'behavioral'
+            },
+            'testigo': {
+                f1605: 'a sworn witness whose word, given before God, has the force of evidence and binds the soul',
+                f1934: 'an unreliable narrator whose testimony is conditioned by memory, language, and ideology',
+                tag1605: 'juridical', tag1934: 'unreliable'
+            },
+            'ejemplo': {
+                f1605: 'an exemplum — a teaching held up by the elders for moral imitation by the young',
+                f1934: 'a case study, a data point, an illustration whose generality is statistical, not exemplary',
+                tag1605: 'didactic', tag1934: 'statistical'
+            },
+            'aviso': {
+                f1605: 'a warning sent by Providence, to be heeded under penalty of grace — a sign in the world',
+                f1934: 'a heuristic alert from the apparatus of the modern state or the modern marketplace',
+                tag1605: 'prophetic', tag1934: 'administrative'
+            },
+            'depósito': {
+                f1605: 'a sacred trust, a thing held in keeping for its rightful owner, who is ultimately God',
+                f1934: 'a stored quantity in an archive or bank — a holding to be drawn upon under modern terms',
+                tag1605: 'sacred', tag1934: 'archival'
+            },
+            'deposito': {
+                f1605: 'a sacred trust, a thing held in keeping for its rightful owner, who is ultimately God',
+                f1934: 'a stored quantity in an archive or bank — a holding to be drawn upon under modern terms',
+                tag1605: 'sacred', tag1934: 'archival'
+            },
+            'advertencia': {
+                f1605: 'an admonition from the wise to the heedless, framed against the eternal stakes of the soul',
+                f1934: 'a notice with no transcendent author — the impersonal warning of an institution or a manual',
+                tag1605: 'pastoral', tag1934: 'institutional'
+            },
+            'honor': {
+                f1605: 'the immortal honor of a Christian gentleman — reputation among the godly, a covenant kept',
+                f1934: 'a culturally specific code of self-presentation, of interest mainly to historians of mentalities',
+                tag1605: 'chivalric', tag1934: 'historicized'
+            },
+            'dios': {
+                f1605: 'the living God of Catholic Spain — present, providential, the speaker behind every speaker',
+                f1934: 'a hypothesis the modern reader entertains philologically, with the help of footnotes',
+                tag1605: 'incarnational', tag1934: 'philological'
+            },
+            'olla': {
+                f1605: 'the modest stew of the country gentleman — the daily evidence of his estate, blessed at table',
+                f1934: 'a sociological signifier of class and consumption, retrievable now only as period detail',
+                tag1605: 'pastoral', tag1934: 'sociological'
+            },
+            'vaca': {
+                f1605: 'the meat of the lesser table — a sign that what is on the spit is, properly, beneath the gentleman',
+                f1934: 'a commodity readable through the price index of the seventeenth century — economic, not moral',
+                tag1605: 'estatial', tag1934: 'economic'
+            },
+            'carnero': {
+                f1605: 'the meat of the proper table — a sign of the gentleman\'s established station and right',
+                f1934: 'an item in the historical food-basket — readable, not livable, by the modern analyst',
+                tag1605: 'estatial', tag1934: 'economic'
+            },
+            'cuyo': {
+                f1605: 'a relative pronoun framing possession as natural, unproblematic, given by the order of the world',
+                f1934: 'a rhetorical device that the modern reader notices precisely because such phrasings have aged',
+                tag1605: 'transparent', tag1934: 'ironic'
+            },
+            'noches': {
+                f1605: 'the nights of the rural year, framed by candle, prayer, and the certain return of the morning',
+                f1934: 'an interval scheduled by the electrified clock — an absence of work rather than a presence of stars',
+                tag1605: 'agrarian', tag1934: 'industrial'
+            },
+            'astillero': {
+                f1605: 'the rack on which the inherited lance leans — a sign of arms once and again ready for the king',
+                f1934: 'a museum object — the vocabulary of an extinct martial economy, retained for atmosphere',
+                tag1605: 'martial', tag1934: 'antiquarian'
+            }
+        };
+
+        // Generic frames for words not in KNOWN — picked deterministically by hash.
+        const GENERIC_1605 = [
+            'a thing as the elders described it — solid, ordained, signed by the world that made it',
+            'a sign in the great catalogue of created things, weighed in the scale of God',
+            'a category given by Aristotle and confirmed by the Church — established, authorized, lived',
+            'an honored figure of speech, kept by the rhetors for ornament and instruction',
+            'a fixture of the natural order, evident to anyone who looks with a Catholic eye',
+            'a reality whose meaning lies outside the speaker — written into the world before any reader',
+            'a noble word, polished by tradition into a settled and confident sense',
+            'a marker of the order of things — visible because the world is, before anything, ordered',
+            'a stable referent, a thing the elders had a right to name and a right to mean',
+            'a sign tied to its referent by the ancient mysteries the schoolmen tried to name',
+            'a customary thing, dignified by long use and by the consent of the godly',
+            'an instance of providence — a particular through which the universal speaks'
+        ];
+
+        const GENERIC_1934 = [
+            'a contingent thing, produced by class and history and revisable by both',
+            'a sign whose meaning is built and rebuilt by interpretation — never final, never fixed',
+            'a category visible only against the background of a vanished worldview',
+            'a heuristic borrowed by the modern reader, useful but unsponsored by Heaven',
+            'a trace of the social conditions that produced its naming — readable by Marx, ironized by Freud',
+            'a literary effect, available now only as quotation across the abyss of three centuries',
+            'a fragile assertion, knowing itself as such — the late style of a doubting culture',
+            'a position taken in a system of differences, meaningful only by what it is not',
+            'a label whose authority depends on the apparatus that issues it',
+            'a sign whose referent has slipped — read now in the angled light of a later age',
+            'a usage one cites with quotation marks, having lost the conviction that once held it',
+            'a residue of a worldview whose explanatory power has been taken up elsewhere'
+        ];
+
+        const TAGS_1605 = ['theological', 'providential', 'chivalric', 'natural', 'rhetorical', 'sacred', 'feudal', 'doctrinal', 'liturgical', 'covenantal', 'estatial', 'sacramental'];
+        const TAGS_1934 = ['pragmatist', 'empirical', 'historicist', 'modernist', 'psychoanalytic', 'secular', 'sociological', 'ironic', 'relativized', 'semiotic', 'phenomenological', 'constructivist'];
+
+        function meaningsForWord(word) {
+            const key = normWord(word);
+            if (KNOWN[key]) return KNOWN[key];
+            const seed = hashString(key || word);
+            const r = rng(seed);
+            const i1 = Math.floor(r() * GENERIC_1605.length);
+            const i2 = Math.floor(r() * GENERIC_1934.length);
+            const t1 = Math.floor(r() * TAGS_1605.length);
+            const t2 = Math.floor(r() * TAGS_1934.length);
+            return {
+                f1605: GENERIC_1605[i1],
+                f1934: GENERIC_1934[i2],
+                tag1605: TAGS_1605[t1],
+                tag1934: TAGS_1934[t2]
+            };
+        }
+
+        // ── Phrase voices (the oracle invoke) ──
+        // For arbitrary user-typed phrases. Each is a "voice in a frame" — a way of
+        // hearing the phrase from inside its century. Picked deterministically.
+        const PHRASE_1605 = [
+            'In 1605 — in the wake of Lepanto, the Council of Trent, and the certainty of a Catholic universe — these words would mean what they say. They would be a vow, a witness, a contract with Heaven; their meaning fixed by the author who is in possession of the truth he speaks.',
+            'Cervantes, writing them at the dawn of the seventeenth century, would mean them as plain testimony: that what is named is, by the saying, made real beneath the eye of God.',
+            'Read in 1605, a sentence is a thing weighed and signed; its meaning is the property of the order from which the speaker speaks. There is no abyss between the words and what they mean — the abyss is what the Church has not yet authorized.',
+            'In the seventeenth century, before doubt is technical, the same words are confident, theological, and bound to a world that knows itself as having been made.',
+            'These words, in 1605, would be heard as a faithful echo of the elders — a continuation, not an invention; a recital, not a claim.'
+        ];
+
+        const PHRASE_1934 = [
+            'In 1934 — after Nietzsche, after Marx, after the cataclysm of 1914 and the gas, the trenches, the Bolshevik state — the same words are unmasked as a position taken, an interest made literary. The author no longer speaks for the world; the world has not authorized him.',
+            'Menard, near-contemporary of Bertrand Russell and the Vienna Circle, hears them ironically: a fragile assertion, knowing itself as such — meaningful, but no longer believing in the kind of meaning the elders meant.',
+            'Read in the twentieth century, the same sentence admits its own contingency. Its meaning is now the history that produced its author, the position from which he speaks, and the apparatus of belief that, behind him, is silent.',
+            'After Freud and the structural linguists, the words become signs whose meaning is determined by what they are not. The certainty of 1605 has dissolved — not into nothing, but into the angled light of a later age.',
+            'In 1934 the words are also, scandalously, a quotation. They cite a worldview that the author no longer occupies. Their meaning is the distance the author has travelled since they were first true.'
+        ];
+
+        function meaningsForPhrase(phrase) {
+            const seed = hashString(String(phrase).toLowerCase());
+            const r = rng(seed);
+            return {
+                f1605: PHRASE_1605[Math.floor(r() * PHRASE_1605.length)],
+                f1934: PHRASE_1934[Math.floor(r() * PHRASE_1934.length)],
+                tag1605: TAGS_1605[Math.floor(r() * TAGS_1605.length)],
+                tag1934: TAGS_1934[Math.floor(r() * TAGS_1934.length)]
+            };
+        }
+
+        // ── p5.js sketch ──
+        let cnv;
+        let layoutWords = [];        // [{text, cleanText, x, y, w, h}]
+        let baseTextSize = 22;
+        let lineHeight = 36;
+
+        // Drift parameters
+        const DRIFT_AMP_DESKTOP = 92;   // max layer separation (px) at canvas edge
+        const DRIFT_AMP_MOBILE = 54;
+        let driftAmp = DRIFT_AMP_DESKTOP;
+        const AMBIENT_GLOBAL = 14;      // slow ambient global drift amplitude
+        const AMBIENT_SEP = 7;          // ambient separation between layers
+        let ambientPhase = Math.random() * 1000;
+
+        // Hover / click / invoke state
+        let hoverWord = null;
+        let openWord = null;            // truthy while overlay is open
+        let invocation = null;          // { phrase, t, dur, opened }
+
+        // Currently active drift offsets (computed in draw, reused by hover detect)
+        let _ambGX = 0, _ambGY = 0, _sepX = 0, _sepY = 0;
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            const loadingEl = container.querySelector('.loading');
+            if (loadingEl) loadingEl.remove();
+            cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('EB Garamond');
+            textStyle(NORMAL);
+            noStroke();
+            relayout();
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+            relayout();
+        }
+
+        // Lay out the Quixote text across the canvas, wrapping to width.
+        // We tile the source until the available height is filled, so the
+        // canvas is never empty — the manuscript breathes across it.
+        function relayout() {
+            const isMobile = width < 720;
+            baseTextSize = isMobile ? 16 : (width < 1100 ? 19 : 22);
+            lineHeight = Math.round(baseTextSize * 1.7);
+            driftAmp = isMobile ? DRIFT_AMP_MOBILE : DRIFT_AMP_DESKTOP;
+
+            textFont('EB Garamond');
+            textStyle(NORMAL);
+            textSize(baseTextSize);
+            textAlign(LEFT, BASELINE);
+
+            const padX = isMobile ? 20 : Math.max(72, Math.round(width * 0.07));
+            const padTop = isMobile ? 130 : 150;
+            const padBottom = isMobile ? 220 : 200;
+            const availTop = padTop;
+            const availBottom = Math.max(availTop + lineHeight * 3, height - padBottom);
+
+            const words = QUIXOTE_TEXT.split(/\s+/).filter(Boolean);
+            const sp = textWidth(' ');
+
+            layoutWords = [];
+            let x = padX, y = availTop + baseTextSize;
+            let i = 0;
+            let safety = 0;
+            while (y < availBottom && safety < 6000) {
+                const w = words[i % words.length];
+                const ww = textWidth(w);
+                if (x + ww > width - padX) {
+                    x = padX;
+                    y += lineHeight;
+                    if (y > availBottom) break;
+                }
+                layoutWords.push({
+                    text: w,
+                    cleanText: w.replace(/^[¡¿"'(\[.,;:]+/, '').replace(/[.,;:!?"'\)\]]+$/g, ''),
+                    x: x, y: y, w: ww, h: baseTextSize
+                });
+                x += ww + sp;
+                i++;
+                safety++;
+            }
+        }
+
+        // Find the layout word whose nominal bounding box (offset by current
+        // ambient global drift only — NOT by the cursor-driven separation)
+        // contains the cursor. The vermillion layer is rendered at this
+        // position, so hover follows the cursor 1:1, while the parchment and
+        // indigo layers drift around it as visual response.
+        function findHoverWord(mx, my) {
+            for (const wo of layoutWords) {
+                const px = wo.x + _ambGX;
+                const py = wo.y + _ambGY;
+                if (mx >= px - 2 && mx <= px + wo.w + 2 &&
+                    my >= py - baseTextSize * 0.85 && my <= py + baseTextSize * 0.18) {
+                    return { word: wo, renderX: px, renderY: py };
+                }
+            }
+            return null;
+        }
+
+        function draw() {
+            background(12, 10, 8);
+
+            // ── Compute drift offsets ──
+            let cx = (mouseX - width / 2) / (width / 2);
+            let cy = (mouseY - height / 2) / (height / 2);
+            const insideX = mouseX >= 0 && mouseX <= width;
+            const insideY = mouseY >= 0 && mouseY <= height;
+            if (!insideX || !insideY) { cx = 0; cy = 0; }
+            cx = constrain(cx, -1, 1);
+            cy = constrain(cy, -1, 1);
+            const dist = Math.min(1, Math.hypot(cx, cy));
+
+            ambientPhase += 0.0035;
+            const ambGX = (noise(ambientPhase, 7.3) - 0.5) * 2 * AMBIENT_GLOBAL;
+            const ambGY = (noise(ambientPhase + 50, 7.3) - 0.5) * 2 * AMBIENT_GLOBAL;
+            const ambSepX = Math.sin(ambientPhase * 0.9) * AMBIENT_SEP;
+            const ambSepY = Math.cos(ambientPhase * 1.1) * AMBIENT_SEP;
+            const sepX = cx * driftAmp + ambSepX;
+            const sepY = cy * driftAmp + ambSepY;
+
+            _ambGX = ambGX; _ambGY = ambGY;
+            _sepX = sepX; _sepY = sepY;
+
+            // ── Layer 1 — Cervantes (parchment) at +sep ──
+            push();
+            translate(ambGX + sepX, ambGY + sepY);
+            textFont('EB Garamond');
+            textStyle(NORMAL);
+            textSize(baseTextSize);
+            textAlign(LEFT, BASELINE);
+            fill(236, 220, 188, 175);
+            for (const wo of layoutWords) text(wo.text, wo.x, wo.y);
+            pop();
+
+            // ── Layer 2 — Menard (indigo) at -sep ──
+            push();
+            translate(ambGX - sepX, ambGY - sepY);
+            textFont('EB Garamond');
+            textStyle(NORMAL);
+            textSize(baseTextSize);
+            textAlign(LEFT, BASELINE);
+            fill(122, 144, 192, 175);
+            for (const wo of layoutWords) text(wo.text, wo.x, wo.y);
+            pop();
+
+            // ── Layer 3 — Rubricated vermillion (offset 0, alpha = (1-dist)^1.6) ──
+            // The "perfect register" layer: when the cursor is at canvas center,
+            // the two authors fall into identity and the doubled text rubricates.
+            const alignment = Math.max(0, 1 - dist);
+            const verAlpha = Math.pow(alignment, 1.55) * 220;
+            if (verAlpha > 4) {
+                push();
+                translate(ambGX, ambGY);
+                textFont('EB Garamond');
+                textStyle(NORMAL);
+                textSize(baseTextSize);
+                textAlign(LEFT, BASELINE);
+                fill(226, 106, 79, verAlpha);
+                for (const wo of layoutWords) text(wo.text, wo.x, wo.y);
+                pop();
+            }
+
+            // ── Hover indicator on the nominal (vermillion) layer ──
+            if (!openWord && !invocation) {
+                const hit = findHoverWord(mouseX, mouseY);
+                hoverWord = hit;
+                if (hit) {
+                    const px = hit.renderX;
+                    const py = hit.renderY;
+                    const ww = hit.word.w;
+                    push();
+                    // Rubricated underline beneath the word
+                    stroke(226, 106, 79, 220);
+                    strokeWeight(1.3);
+                    line(px, py + 4, px + ww, py + 4);
+                    // Click hint, monospace
+                    noStroke();
+                    textFont('IBM Plex Mono');
+                    textStyle(NORMAL);
+                    textSize(9);
+                    textAlign(CENTER, TOP);
+                    fill(232, 216, 183, 165);
+                    text('CLICK TO READ', px + ww / 2, py + 14);
+                    pop();
+                }
+            } else {
+                hoverWord = null;
+            }
+
+            // ── Invocation animation — phrase rubricates across the canvas ──
+            if (invocation) {
+                invocation.t += deltaTime;
+                const k = constrain(invocation.t / invocation.dur, 0, 1);
+                push();
+                noStroke();
+                fill(12, 10, 8, 150 * k);
+                rect(0, 0, width, height);
+                const fadeIn = constrain(k * 1.4, 0, 1);
+                const phraseSize = Math.min(width * 0.058, 54);
+                textFont('Cormorant Garamond');
+                textStyle(ITALIC);
+                textSize(phraseSize);
+                textAlign(CENTER, CENTER);
+                // Parchment + sep
+                fill(236, 220, 188, 200 * fadeIn);
+                text(invocation.phrase, width / 2 + sepX * 1.6, height / 2 + sepY * 1.6);
+                // Indigo - sep
+                fill(122, 144, 192, 200 * fadeIn);
+                text(invocation.phrase, width / 2 - sepX * 1.6, height / 2 - sepY * 1.6);
+                // Vermillion centered
+                const verm = Math.pow(fadeIn, 1.4) * 240;
+                fill(226, 106, 79, verm);
+                text(invocation.phrase, width / 2, height / 2);
+                textStyle(NORMAL);
+                pop();
+            }
+        }
+
+        // ── Mouse / touch events ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav') || t.closest('.scroll-indicator') || t.closest('.gallery-nav-side'))) return;
+            if (invocation || openWord) return;
+            const hit = findHoverWord(mouseX, mouseY);
+            if (hit) openWordView(hit.word);
+        }
+
+        let isTouchDragging = false;
+        let touchStart = null;
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav') || t.closest('.scroll-indicator') || t.closest('.gallery-nav-side'))) return;
+            isTouchDragging = false;
+            touchStart = { x: mouseX, y: mouseY, time: millis() };
+            return false;
+        }
+        function touchMoved() {
+            if (!touchStart) return;
+            const dx = mouseX - touchStart.x;
+            const dy = mouseY - touchStart.y;
+            if (!isTouchDragging && (Math.abs(dx) + Math.abs(dy) > 8)) isTouchDragging = true;
+            return false;
+        }
+        function touchEnded() {
+            if (touchStart && !isTouchDragging && !invocation && !openWord) {
+                const hit = findHoverWord(mouseX, mouseY);
+                if (hit) openWordView(hit.word);
+            }
+            touchStart = null;
+            return false;
+        }
+
+        // ── Overlay (drill / invoke views) ──
+        const overlay = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle = document.getElementById('book-title');
+        const elCatSource = document.getElementById('cat-source');
+        const elCatDelta = document.getElementById('cat-delta');
+        const elCat1605 = document.getElementById('cat-frame-1605');
+        const elCat1934 = document.getElementById('cat-frame-1934');
+        const elCatFound = document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function openWordView(wordObj) {
+            openWord = wordObj;
+            const word = wordObj.cleanText || wordObj.text;
+            const m = meaningsForWord(word);
+
+            elTitle.innerHTML = '<span class="menard-title">' + escapeHtml(word) + '</span>';
+            elCatSource.textContent = 'Don Quixote · Part I, Ch. 1';
+            elCatDelta.textContent = '329 years (1605 → 1934)';
+            elCat1605.textContent = m.tag1605;
+            elCat1934.textContent = m.tag1934;
+
+            elExcerpt.innerHTML =
+                '<div class="meaning-block is-1605">' +
+                    '<span class="meaning-year">1605 · Cervantes</span>' +
+                    '<span class="meaning-text">In the seventeenth century, <mark>' + escapeHtml(word) + '</mark> names ' + escapeHtml(m.f1605) + '.</span>' +
+                '</div>' +
+                '<div class="meaning-block is-1934">' +
+                    '<span class="meaning-year">1934 · Menard</span>' +
+                    '<span class="meaning-text">In the twentieth century, the same word names ' + escapeHtml(m.f1934) + '.</span>' +
+                '</div>';
+
+            elEyebrow.textContent = '‖  A single word, twice authored';
+            overlay.classList.remove('invoked');
+            overlay.classList.add('open');
+        }
+
+        function openInvocationView(phrase) {
+            openWord = { text: phrase, invoked: true };
+            const m = meaningsForPhrase(phrase);
+
+            elTitle.innerHTML = '<span class="menard-title">' + escapeHtml(phrase) + '</span>';
+            elCatSource.textContent = 'Your invocation';
+            elCatDelta.textContent = '329 years (1605 → 1934)';
+            elCat1605.textContent = m.tag1605;
+            elCat1934.textContent = m.tag1934;
+            elCatFound.textContent = 'parchment + indigo, centered';
+
+            elExcerpt.innerHTML =
+                '<div class="meaning-block is-1605">' +
+                    '<span class="meaning-year">1605 · Cervantes</span>' +
+                    '<span class="meaning-text">' + escapeHtml(m.f1605) + '</span>' +
+                '</div>' +
+                '<div class="meaning-block is-1934">' +
+                    '<span class="meaning-year">1934 · Menard</span>' +
+                    '<span class="meaning-text">' + escapeHtml(m.f1934) + '</span>' +
+                '</div>';
+
+            elEyebrow.textContent = '‖  The phrase has been doubled';
+            overlay.classList.add('invoked');
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            openWord = null;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+            if (overlay.classList.contains('open')) closeBook();
+            invocation = { phrase: phrase, t: 0, dur: 1500 };
+            setTimeout(() => {
+                openInvocationView(phrase);
+                invocation = null;
+            }, 1700);
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>

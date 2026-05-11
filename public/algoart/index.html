@@ -418,6 +418,45 @@
       margin-bottom: 1rem;
     }
 
+    /* ── Companion gallery banner ── */
+    .companion {
+      max-width: 620px;
+      margin: 0 auto 4rem;
+      padding: 1rem 1.5rem;
+      border: 1px solid rgba(201, 165, 90, 0.18);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      text-decoration: none;
+      transition: border-color 0.3s ease;
+    }
+    .companion:hover { border-color: rgba(201, 165, 90, 0.5); }
+    .companion-label {
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      color: rgba(253, 252, 248, 0.4);
+      text-transform: uppercase;
+    }
+    .companion-link {
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: #c9a55a;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .companion:hover .companion-link { color: #d4af6a; }
+
+    @media (max-width: 720px) {
+      .companion { flex-direction: column; gap: 0.5rem; text-align: center; padding: 0.9rem 1rem; }
+      .companion-label, .companion-link { font-size: 0.72rem; }
+    }
+
     .footer-links {
       display: flex;
       justify-content: center;
@@ -627,6 +666,11 @@
     </a>
 
   </section>
+
+  <a href="/ficciones/" class="companion" style="display: flex; max-width: 620px; margin: 1rem auto 4rem;">
+    <span class="companion-label">Companion Gallery</span>
+    <span class="companion-link">Ficciones — Borges' algorithms  →</span>
+  </a>
 
   <footer class="footer">
     <div class="divider"></div>

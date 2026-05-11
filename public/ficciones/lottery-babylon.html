@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Lotería en Babilonia — Ficciones</title>
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' Lottery in Babylon — a Markov field of 600 cells whose fates are decreed by an invisible Company of chance and rule.">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0c0a08;
+            --bg-2: #14110d;
+            --parchment: #ecdcbc;
+            --parchment-dim: rgba(236, 220, 188, 0.78);
+            --parchment-faint: rgba(236, 220, 188, 0.55);
+            --brass: #c69654;
+            --brass-bright: #e0b478;
+            --brass-faint: rgba(198, 150, 84, 0.28);
+            --indigo: #3a4e7a;
+            --indigo-bright: #7a90c0;
+            --vermillion: #c54a30;
+            --vermillion-bright: #e26a4f;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: var(--bg);
+            color: var(--parchment);
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 1 · The Exhibition Space
+           ───────────────────────────────────────── */
+
+        .exhibition-space {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Aged-paper vignette */
+        .exhibition-space::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(184, 136, 74, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 90%, rgba(58, 78, 122, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at center, transparent 30%, var(--bg) 95%);
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #canvas-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        #canvas-container canvas {
+            display: block;
+        }
+
+        /* ── Back navigation (top-left) ── */
+        .back-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .back-nav a, .back-nav span {
+            pointer-events: auto;
+        }
+
+        .back-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.85;
+            transition: opacity 0.3s, color 0.3s;
+            text-transform: uppercase;
+        }
+        .back-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        .back-nav .site-mark {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Oracle bar (top-center) — THE INVOKE ── */
+        .oracle {
+            position: absolute;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 22px;
+            background: rgba(12, 10, 8, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            min-width: 580px;
+            max-width: calc(100vw - 64px);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
+            opacity: 0;
+            animation: oracleFadeIn 2s 1.2s forwards;
+        }
+
+        @keyframes oracleFadeIn {
+            to { opacity: 1; }
+        }
+
+        .oracle:hover, .oracle:focus-within {
+            border-color: rgba(184, 136, 74, 0.6);
+            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
+            background: rgba(12, 10, 8, 0.92);
+        }
+
+        .oracle-glyph {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: var(--brass);
+            line-height: 1;
+            user-select: none;
+        }
+
+        .oracle-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--parchment);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            padding: 2px 0;
+        }
+
+        .oracle-input::placeholder {
+            color: var(--parchment-faint);
+            font-style: italic;
+            animation: oraclePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes oraclePulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.95; }
+        }
+
+        .oracle-hint {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        /* ── Placard (bottom-center) ── */
+        .placard {
+            position: absolute;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 8;
+            opacity: 0;
+            animation: oracleFadeIn 1.8s 1.6s forwards;
+            pointer-events: none;
+        }
+
+        .placard-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.95;
+        }
+
+        .placard-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--parchment);
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .placard-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+        }
+
+        /* ── Education panel (right) ── */
+        .education-panel {
+            position: absolute;
+            right: 32px;
+            top: 130px;
+            width: 280px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            z-index: 9;
+            opacity: 0;
+            animation: oracleFadeIn 1.5s 2.4s forwards;
+            scrollbar-width: thin;
+            scrollbar-color: var(--brass) transparent;
+            background: rgba(12, 10, 8, 0.76);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--brass-faint);
+            padding: 4px 18px 14px;
+        }
+
+        .education-panel::-webkit-scrollbar { width: 2px; }
+        .education-panel::-webkit-scrollbar-track { background: transparent; }
+        .education-panel::-webkit-scrollbar-thumb { background: var(--brass); }
+
+        .edu-section { margin-bottom: 4px; }
+
+        .edu-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 1.8px;
+            color: var(--brass);
+            text-transform: uppercase;
+            cursor: pointer;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--brass-faint);
+            transition: color 0.3s, border-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edu-header:hover {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.5);
+        }
+
+        .edu-icon {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            color: var(--brass);
+        }
+
+        .edu-header.active .edu-icon { transform: rotate(180deg); }
+
+        .edu-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            padding: 0 6px;
+        }
+
+        .edu-content.active {
+            max-height: 700px;
+            padding: 14px 6px 18px;
+        }
+
+        .edu-content p { margin-bottom: 12px; }
+        .edu-content p:last-child { margin-bottom: 0; }
+        .edu-content strong { color: var(--brass-bright); font-weight: 500; }
+        .edu-content em { color: var(--indigo-bright); font-style: italic; }
+
+        /* ── Book overlay (drill view) ── */
+        .book-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(8, 6, 4, 0.78);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .book-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .book-card {
+            background:
+                radial-gradient(ellipse at 25% 15%, rgba(198, 150, 84, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 85%, rgba(197, 74, 48, 0.06) 0%, transparent 50%),
+                linear-gradient(165deg, #1c1813 0%, #14110d 100%);
+            border: 1px solid var(--brass-faint);
+            padding: 52px 56px 40px;
+            max-width: 600px;
+            width: calc(100% - 48px);
+            position: relative;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+            transform: translateY(20px) scale(0.96);
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .book-overlay.open .book-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid rgba(198, 150, 84, 0.14);
+            pointer-events: none;
+        }
+
+        .book-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.95;
+        }
+
+        /* When opened via an oracle invocation, switch the eyebrow accent */
+        .book-overlay.invoked .book-eyebrow {
+            color: var(--vermillion-bright);
+        }
+
+        .book-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.35;
+            letter-spacing: 0.5px;
+            margin-bottom: 26px;
+            min-height: 68px;
+        }
+
+        .book-catalog {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment-dim);
+            margin-bottom: 26px;
+            padding: 16px 0;
+            border-top: 1px solid var(--brass-faint);
+            border-bottom: 1px solid var(--brass-faint);
+        }
+
+        .book-catalog .label {
+            color: var(--brass);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            min-width: 76px;
+            display: inline-block;
+        }
+
+        .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
+
+        /* The "phrase located" row, only visible when invoked via oracle */
+        .book-catalog .row.found {
+            display: none;
+        }
+        .book-overlay.invoked .book-catalog .row.found {
+            display: flex;
+        }
+        .book-catalog .row.found .label {
+            color: var(--vermillion-bright);
+        }
+        .book-catalog .row.found .value {
+            color: var(--parchment);
+        }
+
+        .book-excerpt {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.95;
+            color: var(--parchment);
+            margin-bottom: 22px;
+            text-align: left;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        .book-excerpt .ellipsis {
+            color: var(--parchment-faint);
+            margin: 0 2px;
+        }
+
+        /* Highlighted phrase that the user invoked — rubricated in vermillion */
+        .book-excerpt mark {
+            background: transparent;
+            color: var(--vermillion-bright);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
+            padding: 0 1px;
+        }
+
+        .book-close {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--parchment-faint);
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        .book-close kbd {
+            font-family: inherit;
+            padding: 2px 6px;
+            border: 1px solid var(--brass-faint);
+            background: rgba(198, 150, 84, 0.08);
+            color: var(--brass);
+            margin: 0 4px;
+        }
+
+        /* ── Scroll indicator ── */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border: 1px solid var(--brass-faint);
+            border-radius: 1px;
+            background: rgba(12, 10, 8, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            opacity: 0;
+            animation: oracleFadeIn 1.2s 3.0s forwards, scrollPulse 2.8s ease-in-out 3.0s infinite;
+            transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--brass);
+            background: rgba(12, 10, 8, 0.85);
+            transform: translateX(-50%) translateY(-2px);
+            animation-play-state: paused;
+            opacity: 1 !important;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .scroll-indicator .scroll-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+        }
+
+        .scroll-indicator:hover .scroll-label {
+            color: var(--brass-bright);
+        }
+
+        .scroll-arrow {
+            color: var(--brass-bright);
+            font-size: 18px;
+            line-height: 1;
+            animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+
+        @keyframes scrollBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(5px); }
+        }
+
+        /* ── Loading ── */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--brass);
+            opacity: 0.6;
+            z-index: 2;
+        }
+
+        /* ─────────────────────────────────────────
+           Room 2 · The Article
+           ───────────────────────────────────────── */
+
+        .article-section {
+            background: var(--bg);
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 96px 40px 80px;
+            position: relative;
+        }
+
+        .ornamental-divider {
+            text-align: center;
+            margin-bottom: 64px;
+            position: relative;
+        }
+
+        .ornamental-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--brass);
+            opacity: 0.25;
+        }
+
+        .ornamental-divider span {
+            position: relative;
+            background: var(--bg);
+            padding: 0 24px;
+            color: var(--brass);
+            font-size: 18px;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .article-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: var(--brass);
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .article-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 46px;
+            font-weight: 400;
+            color: var(--parchment);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .article-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 20px;
+            font-weight: 300;
+            color: var(--brass);
+            text-align: center;
+            margin-bottom: 52px;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
+        .article-epigraph {
+            border-left: 2px solid var(--vermillion);
+            padding: 16px 28px;
+            margin: 0 0 48px 0;
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            line-height: 1.85;
+            color: var(--parchment);
+        }
+
+        .article-epigraph cite {
+            display: block;
+            margin-top: 14px;
+            font-style: normal;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .article-body p {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.85;
+            color: rgba(236, 220, 188, 0.92);
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+
+        /* Rubricated drop-cap */
+        .article-body > p:first-of-type::first-letter {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 64px;
+            font-weight: 400;
+            color: var(--vermillion-bright);
+            float: left;
+            line-height: 0.9;
+            margin: 8px 12px 0 0;
+            padding: 0;
+        }
+
+        /* The Literary Heart — Borgesian sibling of AlgoArt's math-box */
+        .literary-heart {
+            border: 1px solid rgba(184, 136, 74, 0.25);
+            padding: 32px 30px;
+            margin: 48px 0;
+            position: relative;
+            background:
+                radial-gradient(ellipse at top right, rgba(184, 136, 74, 0.04) 0%, transparent 50%),
+                rgba(20, 17, 13, 0.4);
+        }
+
+        .literary-heart::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(184, 136, 74, 0.08);
+            pointer-events: none;
+        }
+
+        .literary-heart-header {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 3.5px;
+            color: var(--brass);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            opacity: 0.95;
+        }
+
+        .literary-heart-quote-es {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 22px;
+            font-weight: 400;
+            line-height: 1.55;
+            color: var(--parchment);
+            margin-bottom: 14px;
+        }
+
+        .literary-heart-quote-en {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--parchment-dim);
+            margin-bottom: 24px;
+        }
+
+        .literary-heart-formula {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            color: var(--brass-bright);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .literary-heart-description {
+            font-family: 'EB Garamond', serif;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--parchment-dim);
+        }
+
+        .article-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 64px;
+            padding-top: 32px;
+            border-top: 1px solid var(--brass-faint);
+        }
+
+        .article-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: var(--brass);
+            text-decoration: none;
+            opacity: 0.9;
+            text-transform: uppercase;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .article-nav a:hover { opacity: 1; color: var(--brass-bright); }
+
+        /* ─────────────────────────────────────────
+           Responsive
+           ───────────────────────────────────────── */
+
+        @media (max-width: 1400px) {
+            .education-panel { width: 220px; right: 18px; }
+        }
+
+        @media (max-width: 1200px) {
+            .education-panel { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .back-nav { padding: 10px 16px; }
+            .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
+            .back-nav .site-mark { display: none; }
+
+            /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
+               and the oracle + scroll indicator stack at the bottom — no overlap. */
+            .placard {
+                top: 56px;
+                bottom: auto;
+                width: calc(100% - 32px);
+            }
+            .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
+            .placard-title { font-size: 22px; margin-bottom: 2px; }
+            .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
+
+            .oracle {
+                top: auto;
+                bottom: 76px;
+                min-width: 0;
+                width: calc(100% - 32px);
+                padding: 10px 16px;
+                gap: 10px;
+            }
+            .oracle-hint { display: none; }
+            .oracle-input { font-size: 13px; }
+
+            .scroll-indicator {
+                padding: 7px 18px;
+                bottom: 14px;
+                gap: 4px;
+            }
+            .scroll-indicator .scroll-label { font-size: 10px; letter-spacing: 2px; }
+            .scroll-indicator .scroll-arrow { font-size: 15px; }
+
+            .article-section { padding: 64px 22px 60px; }
+            .article-title { font-size: 34px; }
+            .article-subtitle { font-size: 17px; }
+            .article-epigraph { font-size: 16px; padding: 14px 22px; }
+            .article-body p { font-size: 17px; }
+            .article-body > p:first-of-type::first-letter { font-size: 50px; }
+            .literary-heart { padding: 24px 20px; }
+            .literary-heart-quote-es { font-size: 18px; }
+            .literary-heart-quote-en { font-size: 15px; }
+            .literary-heart-formula { font-size: 14px; }
+            .literary-heart-description { font-size: 14px; }
+
+            .book-card { padding: 40px 26px 32px; max-height: 88vh; overflow-y: auto; }
+            .book-title { font-size: 22px; min-height: 0; margin-bottom: 20px; }
+            .book-catalog { font-size: 12px; }
+            .book-catalog .label { min-width: 64px; font-size: 9px; }
+            .book-excerpt { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="back-nav">
+        <a href="/ficciones/">← Back to Gallery</a>
+        <span class="site-mark">Vladimir Bichev · Ficciones</span>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 1 · The Exhibition Space
+         ────────────────────────────────────────── -->
+    <section class="exhibition-space" id="exhibit">
+
+        <!-- The Oracle (Invoke) -->
+        <form class="oracle" id="oracle" autocomplete="off">
+            <span class="oracle-glyph">⊞</span>
+            <input
+                type="text"
+                class="oracle-input"
+                id="oracle-input"
+                placeholder="cast a phrase as a lottery ticket…"
+                maxlength="80"
+                aria-label="Cast a phrase as a lottery ticket into the Babylonian field"
+            />
+            <span class="oracle-hint">↵ Enter</span>
+        </form>
+
+        <!-- Canvas -->
+        <div id="canvas-container">
+            <div class="loading">DRAWING THE LOTS…</div>
+        </div>
+
+        <!-- Education Panel -->
+        <aside class="education-panel">
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>From Game to Government</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The lottery in Babylon began as a <strong>commercial trifle</strong>. Vendors sold lots of equal price; the prizes were modest, the losses stipulated, and a man could play or not play as he chose.</p>
+                    <p>Within a generation it had absorbed the courts, the marriage bed, the hour of one's death. By Borges' narrator's time, <em>every event in a Babylonian's life</em> had to be read as either chance or decree — and the two had stopped being distinguishable.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>The Secret Company</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The lottery is administered by an unnamed <strong>Company</strong>, whose officers, methods, and even existence are the subject of competing theological treatises.</p>
+                    <p>Some claim the Company has not existed for centuries; others, that it is the only thing that does. The Company's silence is itself one of its decrees. <em>Every cell of your civic life is touched by a rule you cannot see.</em></p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Markov Chains &amp; Cellular Fate</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The grid above is a <strong>Markov random field</strong>: 30×20 = 600 cells, each in one of four states — parchment, brass, indigo, or vermillion.</p>
+                    <p>At every tick, each cell's next state is a function of three things: <em>its current state</em>, <em>the states of its four neighbours</em>, and a <em>deterministic dice roll</em> drawn from <code>hash(col, row, tick)</code>.</p>
+                    <p>The roll is reproducible — replay the same tick and the same cells flip the same way — but to the cell, indistinguishable from chance.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Free Will vs Decree</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>A Babylonian who is exiled cannot tell whether the exile was issued by the Company or fell on him by accident. A Babylonian who inherits a vineyard cannot tell whether the inheritance was decreed or merely permitted.</p>
+                    <p>Borges' joke is that, at sufficient saturation, <strong>the two regimes become operationally identical</strong>. Free will is what we call the rolls we have not yet traced back to their hash.</p>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <div class="edu-header" onclick="toggleEdu(this)">
+                    <span>Why Babylon Stopped Asking</span>
+                    <span class="edu-icon">▼</span>
+                </div>
+                <div class="edu-content">
+                    <p>The story ends not with a revolt against the Company, but with a quiet resignation. Babylonians no longer ask "was this chance or decree?" because <strong>the question has dissolved</strong>.</p>
+                    <p>To accept the lottery's errors, the narrator says, is not to contradict chance: <em>it is to corroborate it</em>. The piece you just watched ends after sixty seconds in a field of vermillion — not because chaos won, but because the asking has been retired.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Placard -->
+        <div class="placard">
+            <div class="placard-eyebrow">⊞  La Lotería en Babilonia  ⊞</div>
+            <div class="placard-title">The Lottery in Babylon</div>
+            <div class="placard-meta">Jorge Luis Borges · 1941 · Ficciones</div>
+        </div>
+
+        <!-- Scroll indicator (clickable — jumps to article) -->
+        <a href="#article" class="scroll-indicator" aria-label="Continue reading the article below">
+            <span class="scroll-label">Read the Full Story</span>
+            <span class="scroll-arrow" aria-hidden="true">↓</span>
+        </a>
+
+    </section>
+
+    <!-- Book overlay (drill view) -->
+    <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
+        <article class="book-card">
+            <div class="book-eyebrow" id="book-eyebrow">⊞  A Lottery Decree</div>
+            <h3 class="book-title" id="book-title">—</h3>
+            <div class="book-catalog" id="book-catalog">
+                <div class="row"><span class="label">Cell</span><span class="value" id="cat-cell">—</span></div>
+                <div class="row"><span class="label">State</span><span class="value" id="cat-state">—</span></div>
+                <div class="row"><span class="label">Decree</span><span class="value" id="cat-decree">—</span></div>
+                <div class="row"><span class="label">Last tick</span><span class="value" id="cat-tick">—</span></div>
+                <div class="row found"><span class="label">Cast at</span><span class="value" id="cat-found">—</span></div>
+            </div>
+            <p class="book-excerpt" id="book-excerpt">—</p>
+            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+        </article>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         Room 2 · The Article
+         ────────────────────────────────────────── -->
+    <section class="article-section" id="article">
+        <div class="ornamental-divider"><span>⊞</span></div>
+
+        <p class="article-eyebrow">⊞  Ficciones · 02  ⊞</p>
+        <h1 class="article-title">The Decree You Cannot See</h1>
+        <p class="article-subtitle">On Babylon's lottery, and the question that dissolved itself</p>
+
+        <blockquote class="article-epigraph">
+            "Como todos los hombres de Babilonia, he sido procónsul; como todos, esclavo;
+            también he conocido la omnipotencia, el oprobio, las cárceles."
+            <cite>— Jorge Luis Borges, La lotería en Babilonia (1941)</cite>
+        </blockquote>
+
+        <div class="article-body">
+            <p>The lottery in Babylon began as commerce. Vendors sold lots of equal price; the prizes were modest, the losses stipulated, and a man could play or not play as he chose. Within a generation an unnamed Company assumed the lottery's administration and added — silently — losses among the prizes, then losses without a corresponding ticket, and at last beneficial decrees that fell on no one in particular and on every body. The lottery widened until it touched the magistracy, the marriage bed, the hour of one's death. By the time Borges' narrator describes it, every event in a Babylonian's life — a stoning, a poisoning, an unexpected appointment to the priesthood — must be read as either chance or decree, and the narrator confesses that no one can any longer tell the difference.</p>
+
+            <p>The mathematical sibling of this story is the <em>Markov random field</em>. In such a field every cell's next state is determined by its current state, the states of its neighbours, and a roll of dice. The grid above this paragraph is exactly such a field: thirty columns by twenty rows of Babylonians, each in one of four conditions — parchment (untouched), brass (favoured), indigo (chastised), or vermillion (overwritten by the chaos of recent decrees). At every tick the field re-rolls. A cell's hash plus the tick number selects its fate; its neighbours pull it toward their colours. Within a minute the parchment vanishes, and there is no district of the city the Company has not stamped with one mark or another.</p>
+
+            <p>Borges anticipated, in 1941, what we now call algorithmic governance. The Company is a faceless system that issues decrees affecting every aspect of every life — career, marriage, sentence, death — and whose mechanisms are deliberately opaque. Modern bureaucratic infrastructures, credit scores, recommender engines, content rankings, and autonomous decision pipelines all share the Company's two essential properties: comprehensive reach and structural invisibility. Each cell of your civic existence is touched by a decree you cannot see, issued by a process you cannot audit. The Babylonian's question — was this chance, or was it decreed? — is the same question we now ask of every algorithm that brushes up against our lives, and we receive, like the Babylonian, no answer that does not also implicate the asker.</p>
+
+            <p>Borges' final move is the most disquieting. After cataloguing the lottery in exhaustive detail, the narrator confesses that <em>no Babylonian still asks the question</em>. The distinction between chance and decree, once it has been thoroughly blurred by an institution that operates at every scale of life, ceases to mean anything operational. The lottery becomes the city, and the city becomes the lottery. To "corroborate" chance, in the story's famous formulation, is to consent to a world in which the difference no longer matters. The piece above ends, after sixty seconds, in a field of vermillion: not because chaos has won, but because the Babylonians have at last understood that asking which cells are chance and which are decree is itself a question the Company has long since retired.</p>
+        </div>
+
+        <div class="literary-heart">
+            <div class="literary-heart-header">⊞  The Literary Heart</div>
+            <p class="literary-heart-quote-es">"La Lotería es una interpolación del azar en el orden del mundo y aceptar errores no es contradecir el azar: es corroborarlo."</p>
+            <p class="literary-heart-quote-en">"The Lottery is an interpolation of chance into the world's order, and to accept errors is not to contradict chance: it is to corroborate it."</p>
+            <p class="literary-heart-formula">Markov field over (rows × cols) cells × 4 states × hash(coords, tick) → fate</p>
+            <p class="literary-heart-description">Six hundred Babylonians arranged on a grid; four possible fates per Babylonian — untouched, favoured, chastised, overwritten. Each tick the Company rolls a deterministic die against every cell, and the field migrates toward saturation. The dice are reproducible. The fate is not negotiable. The distinction between the two has been allowed to lapse.</p>
+        </div>
+
+        <nav class="article-nav">
+            <a href="#exhibit">↑ Return to Exhibit</a>
+            <a href="/ficciones/">← Back to Gallery</a>
+        </nav>
+    </section>
+
+    <script src="/ficciones/gallery-nav.js"></script>
+
+    <!-- ──────────────────────────────────────────
+         The Sketch
+         ────────────────────────────────────────── -->
+    <script>
+        // ── Education panel accordion ──
+        function toggleEdu(header) {
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // ── Deterministic hash & RNG (FNV-1a 32-bit + Mulberry32) ──
+        function hashString(s) {
+            let h = 0x811c9dc5 >>> 0;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193) >>> 0;
+            }
+            return h >>> 0;
+        }
+        function mixInt(h, v) {
+            const a = (v << 1) ^ (v >> 31);
+            h ^= a & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 8) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 16) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            h ^= (a >>> 24) & 0xff; h = Math.imul(h, 0x01000193) >>> 0;
+            return h >>> 0;
+        }
+        function hashCoords(c, r) {
+            let h = 0x811c9dc5 >>> 0;
+            h = mixInt(h, c);
+            h = mixInt(h, r);
+            return h >>> 0;
+        }
+        function hashCellTick(c, r, t) {
+            let h = 0x811c9dc5 >>> 0;
+            h = mixInt(h, c);
+            h = mixInt(h, r);
+            h = mixInt(h, t);
+            return h >>> 0;
+        }
+        function rng(seed) {
+            let s = seed >>> 0;
+            return function() {
+                s = (s + 0x6D2B79F5) >>> 0;
+                let t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // ── Borgesian decree corpus ──
+        // Composed from openings, an act-pool, and codas. Each cell's decree is
+        // a deterministic function of hashCoords(col,row), so the same cell always
+        // returns the same paragraph.
+        const DECREE_OPENINGS = [
+            'This citizen shall ',
+            'The dweller of this lot is to ',
+            'He whose name was drawn on this square shall ',
+            'She who occupies this cell must ',
+            'The bearer of this number shall ',
+            'This proconsul (and slave) is appointed to ',
+            'This Babylonian must ',
+            'The body of this lot shall ',
+        ];
+
+        const DECREE_VERBS = [
+            'inherit a vineyard above the lower river',
+            'marry a daughter of the southern caravans',
+            'father seven sons and one unnamed',
+            'discover a buried amphora of indigo dye',
+            'be granted the office of scribe of measures',
+            'be elected procurator of the brass ward',
+            'translate a tablet no one had read in three centuries',
+            'befriend a leopard kept in the western menagerie',
+            'memorise the pseudo-genealogy of the fourteenth dynasty',
+            'wander the ziggurat barefoot at dusk',
+            'witness an eclipse from a tower not yet built',
+            'be mistaken for the ambassador from Elam',
+            'hold the office of executioner for a single afternoon',
+            'lose a finger to the gears of the public press',
+            'be denounced for a heresy he did not invent',
+            'receive a sealed letter and never open it',
+            'be exiled to the salt-flats beyond Khabur',
+            'spend forty days as a slave to a slave',
+            'drink a measured portion of black hellebore',
+            'be tortured by means undocumented in any catalogue',
+            'betray his brother for a sum already spent',
+            'be executed by stoning under the new moon',
+            'vanish into a numbered street and not return',
+            'be forgotten by the Company and remembered only by the dust',
+            'be canonised in error by a sect that did not exist last year',
+            'mistake a dream for a decree, and a decree for a dream',
+            'lose a name and gain three',
+            'be granted, then refused, then granted again, the title of magus',
+            'recite the false catalogue to the true librarian',
+            'be both juror and judgment in a trial that never convened',
+        ];
+
+        const DECREE_CODAS = [
+            'during the festival of measures',
+            'in the third hour after the noon prayer',
+            'before the new comet has been named',
+            'while the river runs backwards above Borsippa',
+            'on the day the priests forget which god is being praised',
+            'when the next census is read aloud in the market',
+            'during the eclipse the Company has not yet announced',
+            'on the seventh day of the month of canals',
+            'beneath a moon the calendar has not assigned a colour to',
+        ];
+
+        function generateDecree(seed) {
+            const r = rng(seed);
+            const opening = DECREE_OPENINGS[Math.floor(r() * DECREE_OPENINGS.length)];
+            const numActs = 3 + Math.floor(r() * 3); // 3-5
+            const acts = [];
+            const used = new Set();
+            // Bias the first act to a "favourable" verb (indices 0-11) and the last
+            // to a calamitous one (indices 12-29) so each decree feels Borgesian:
+            // a quiet beginning that tilts toward catastrophe.
+            const firstIdx = Math.floor(r() * 12);
+            acts.push(DECREE_VERBS[firstIdx]); used.add(firstIdx);
+            while (acts.length < numActs - 1) {
+                const i = Math.floor(r() * DECREE_VERBS.length);
+                if (used.has(i)) continue;
+                used.add(i);
+                acts.push(DECREE_VERBS[i]);
+            }
+            // Final calamity
+            let lastIdx;
+            for (let tries = 0; tries < 30; tries++) {
+                const cand = 12 + Math.floor(r() * (DECREE_VERBS.length - 12));
+                if (!used.has(cand)) { lastIdx = cand; break; }
+            }
+            if (lastIdx === undefined) lastIdx = 12;
+            acts.push(DECREE_VERBS[lastIdx]);
+            const useCoda = r() < 0.65;
+            const coda = useCoda ? DECREE_CODAS[Math.floor(r() * DECREE_CODAS.length)] : '';
+            return { opening, acts, coda };
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Convert decree → HTML, optionally splicing the user's invoked phrase as one
+        // of the acts (highlighted in vermillion via <mark>).
+        function decreeToHtml(decree, invokedPhrase) {
+            const escaped = decree.acts.map(escapeHtml);
+            let invokedAt = -1;
+            if (invokedPhrase) {
+                invokedAt = Math.max(1, Math.floor(escaped.length / 2));
+                escaped.splice(invokedAt, 0, '<mark>' + escapeHtml(invokedPhrase) + '</mark>');
+            }
+            let body = escaped[0];
+            for (let i = 1; i < escaped.length; i++) {
+                body += ', then ' + escaped[i];
+            }
+            const coda = decree.coda ? ' ' + escapeHtml(decree.coda) : '';
+            return { html: escapeHtml(decree.opening) + body + coda + '.', invokedAt };
+        }
+
+        // The "title" of a decree: a short, catalogue-like phrase derived from
+        // the seed. Used as the book-title in the overlay.
+        function decreeTitle(seed) {
+            const r = rng(seed ^ 0xa1b2c3d4);
+            const adjectives = ['Brass', 'Indigo', 'Lesser', 'Greater', 'Hidden', 'Reversed', 'Numbered', 'Unsealed', 'Apocryphal', 'Posthumous', 'Vermillion', 'Supplementary'];
+            const nouns = ['Decree', 'Lot', 'Sentence', 'Adjudication', 'Edict', 'Ticket', 'Codicil', 'Amendment', 'Bulletin', 'Schedule'];
+            const ofs = ['of the Eastern Ward', 'of the Salt-Gate', 'of the Brass Hour', 'of the Tower of Borsippa', 'of the Indigo Quarter', 'of the Forgotten Magistrate', 'of the Twelfth Census', 'of the New Moon', 'of the Backward River', 'of the Unannounced Eclipse'];
+            const adj = adjectives[Math.floor(r() * adjectives.length)];
+            const noun = nouns[Math.floor(r() * nouns.length)];
+            const of = ofs[Math.floor(r() * ofs.length)];
+            return `The ${adj} ${noun} ${of}`;
+        }
+
+        // ── Catalog formatting ──
+        const STATE_NAMES = ['Parchment (untouched)', 'Brass (favoured)', 'Indigo (chastised)', 'Vermillion (overwritten)'];
+
+        function decreeNumberFor(c, r) {
+            const h = hashCoords(c, r);
+            const id = h.toString(16).padStart(8, '0').toUpperCase();
+            return `№ ${id.slice(0,4)}-${id.slice(4)}`;
+        }
+
+        function cellLabel(c, r) {
+            return `(col ${c}, row ${r})`;
+        }
+
+        // ─────────────────────────────────────────
+        //           The Markov Field
+        // ─────────────────────────────────────────
+        const STATE_PARCHMENT  = 0;
+        const STATE_BRASS      = 1;
+        const STATE_INDIGO     = 2;
+        const STATE_VERMILLION = 3;
+
+        // Cell colours (RGB). The Markov field draws each cell with its current
+        // colour lerped toward the target over a short transition.
+        const CELL_COLORS = [
+            [236, 220, 188],  // parchment
+            [198, 150, 84],   // brass
+            [58,  78,  122],  // indigo
+            [197, 74,  48],   // vermillion
+        ];
+
+        // Grid configuration
+        const GRID_COLS = 30;
+        const GRID_ROWS = 20;
+        const CELL_GAP  = 1.5;            // px between cells (visual separation)
+        const TICK_MS   = 220;            // Markov tick interval
+        const ANIM_MS   = 380;            // colour transition between states
+        const COMPANY_COL = 0;            // top-left corner — the Company
+        const COMPANY_ROW = 0;
+        const CHAOS_DELAY = 5000;         // ms quiet at start
+        const CHAOS_RAMP  = 55000;        // ms over which chaos saturates
+
+        // Cell state arrays (flat for cache locality)
+        let cellState = new Array(GRID_COLS * GRID_ROWS).fill(STATE_PARCHMENT);
+        let cellPrev  = new Array(GRID_COLS * GRID_ROWS).fill(STATE_PARCHMENT);
+        let cellChangeMs = new Array(GRID_COLS * GRID_ROWS).fill(0);
+        let cellChangeTick = new Array(GRID_COLS * GRID_ROWS).fill(0);
+
+        function idx(c, r) { return r * GRID_COLS + c; }
+
+        // Decree-wave queue. Each wave: { cx, cy, born, dur, target, ttl }
+        const waves = [];
+
+        // Cursor bias — last cursor cell (in grid coords). Drift is the cursor's
+        // position pulling the next decree wave's origin toward the user.
+        let cursorBiasCol = COMPANY_COL;
+        let cursorBiasRow = COMPANY_ROW;
+
+        // Hover & invocation state
+        let hoverCell = null;            // { col, row }
+        let openCell  = null;            // { col, row } when overlay open
+        let invocationSeed = null;       // { col, row, until } — secondary chaos seed
+        let lastInvokeMs = -Infinity;
+
+        // Sketch start time for chaos calculation
+        let sketchStartMs = 0;
+        let lastTickAt = 0;
+        let currentTick = 0;
+        let lastWaveAt = 0;
+
+        // Camera offset (small pan during invocation)
+        let camOffsetX = 0, camOffsetY = 0;
+        let targetCamOffsetX = 0, targetCamOffsetY = 0;
+
+        function chaos() {
+            const t = millis() - sketchStartMs - CHAOS_DELAY;
+            return constrain(t / CHAOS_RAMP, 0, 1);
+        }
+
+        function setup() {
+            const container = document.getElementById('canvas-container');
+            container.querySelector('.loading')?.remove();
+            const cnv = createCanvas(window.innerWidth, window.innerHeight);
+            cnv.parent('canvas-container');
+            pixelDensity(min(2, window.devicePixelRatio || 1));
+            textFont('IBM Plex Mono');
+            noStroke();
+            sketchStartMs = millis();
+            lastTickAt = millis();
+            lastWaveAt = millis();
+            // Lock the Company corner-cell to BRASS so it always pulses as a source.
+            cellState[idx(COMPANY_COL, COMPANY_ROW)] = STATE_BRASS;
+            cellPrev[idx(COMPANY_COL, COMPANY_ROW)]  = STATE_BRASS;
+        }
+
+        function windowResized() {
+            resizeCanvas(window.innerWidth, window.innerHeight);
+        }
+
+        // ── Grid layout (recomputed each frame for responsiveness) ──
+        function gridLayout() {
+            // Reserve vertical space for placard (bottom) and oracle (top).
+            const padTop = 130;
+            const padBottom = 200;
+            const padX = 60;
+            const availW = width - padX * 2;
+            const availH = height - padTop - padBottom;
+            const cellW = (availW + CELL_GAP) / GRID_COLS - CELL_GAP;
+            const cellH = (availH + CELL_GAP) / GRID_ROWS - CELL_GAP;
+            const cellSize = Math.max(8, Math.min(cellW, cellH));
+            const gridW = cellSize * GRID_COLS + CELL_GAP * (GRID_COLS - 1);
+            const gridH = cellSize * GRID_ROWS + CELL_GAP * (GRID_ROWS - 1);
+            const ox = (width - gridW) / 2 + camOffsetX;
+            const oy = padTop + (availH - gridH) / 2 + camOffsetY;
+            return { ox, oy, cellSize, gridW, gridH };
+        }
+
+        function cellRect(layout, c, r) {
+            const x = layout.ox + c * (layout.cellSize + CELL_GAP);
+            const y = layout.oy + r * (layout.cellSize + CELL_GAP);
+            return { x, y, w: layout.cellSize, h: layout.cellSize };
+        }
+
+        function cellCenter(layout, c, r) {
+            const rect = cellRect(layout, c, r);
+            return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
+        }
+
+        // Map mouse → cell (or null)
+        function cellAtMouse(layout) {
+            if (mouseX < layout.ox || mouseY < layout.oy) return null;
+            const stride = layout.cellSize + CELL_GAP;
+            const c = Math.floor((mouseX - layout.ox) / stride);
+            const r = Math.floor((mouseY - layout.oy) / stride);
+            if (c < 0 || c >= GRID_COLS || r < 0 || r >= GRID_ROWS) return null;
+            // Reject gap clicks
+            const rect = cellRect(layout, c, r);
+            if (mouseX > rect.x + rect.w || mouseY > rect.y + rect.h) return null;
+            return { col: c, row: r };
+        }
+
+        // ── Markov tick ──
+        function neighborStates(c, r) {
+            // 4-neighbourhood (Von Neumann)
+            const counts = [0, 0, 0, 0];
+            let total = 0;
+            const offsets = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            for (const [dc, dr] of offsets) {
+                const nc = c + dc, nr = r + dr;
+                if (nc < 0 || nc >= GRID_COLS || nr < 0 || nr >= GRID_ROWS) continue;
+                counts[cellState[idx(nc, nr)]]++;
+                total++;
+            }
+            return { counts, total };
+        }
+
+        function nextStateFor(c, r, dice, ch) {
+            const cur = cellState[idx(c, r)];
+            const { counts, total } = neighborStates(c, r);
+            const nB = counts[STATE_BRASS]      / Math.max(1, total);
+            const nI = counts[STATE_INDIGO]     / Math.max(1, total);
+            const nV = counts[STATE_VERMILLION] / Math.max(1, total);
+
+            // Per-state transition vectors. Tweaked so chaos slowly migrates the
+            // field toward vermillion saturation while leaving room for surprises.
+            let probs;
+            if (cur === STATE_PARCHMENT) {
+                probs = [
+                    Math.max(0.02, 0.92 - 0.78 * ch),
+                    0.02 + 0.20 * nB + 0.04 * ch,
+                    0.02 + 0.20 * nI + 0.04 * ch,
+                    0.02 + 0.30 * nV + 0.30 * ch,
+                ];
+            } else if (cur === STATE_BRASS) {
+                probs = [
+                    0.04 - 0.03 * ch,
+                    Math.max(0.18, 0.62 - 0.30 * ch),
+                    0.10 + 0.15 * nI,
+                    0.10 + 0.20 * nV + 0.35 * ch,
+                ];
+            } else if (cur === STATE_INDIGO) {
+                probs = [
+                    0.04 - 0.03 * ch,
+                    0.10 + 0.15 * nB,
+                    Math.max(0.18, 0.62 - 0.30 * ch),
+                    0.10 + 0.20 * nV + 0.35 * ch,
+                ];
+            } else { // VERMILLION
+                probs = [
+                    0.02,
+                    0.04 + 0.05 * (1 - ch),
+                    0.04 + 0.05 * (1 - ch),
+                    Math.max(0.55, 0.86 + 0.04 * ch),
+                ];
+            }
+
+            // Wave bias: any active wave whose current radius brushes this cell
+            // pushes its next-state probability toward the wave.target.
+            for (const w of waves) {
+                const age = (millis() - w.born) / w.dur;
+                if (age < 0 || age > 1) continue;
+                const radius = age * w.maxR;
+                const dx = c - w.cx, dy = r - w.cy;
+                const dist = Math.hypot(dx, dy);
+                const front = Math.abs(dist - radius);
+                if (front < 1.6) {
+                    // Strong push inside the wavefront band
+                    const push = (1.6 - front) * 0.55 * w.intensity;
+                    probs = probs.map((p, i) => i === w.target ? p + push : p * (1 - push * 0.4));
+                }
+            }
+
+            // Invocation seed: if active and adjacent, push toward vermillion
+            if (invocationSeed && millis() < invocationSeed.until) {
+                const dx = c - invocationSeed.col, dy = r - invocationSeed.row;
+                const dist = Math.hypot(dx, dy);
+                if (dist < 4) {
+                    const push = (4 - dist) * 0.12;
+                    probs[STATE_VERMILLION] += push;
+                }
+            }
+
+            // Normalise & sample
+            for (let i = 0; i < 4; i++) probs[i] = Math.max(0, probs[i]);
+            const sum = probs[0] + probs[1] + probs[2] + probs[3];
+            if (sum <= 0) return cur;
+            const norm = probs.map(p => p / sum);
+            let acc = 0;
+            for (let i = 0; i < 4; i++) {
+                acc += norm[i];
+                if (dice < acc) return i;
+            }
+            return cur;
+        }
+
+        function runTick() {
+            currentTick++;
+            const ch = chaos();
+            const next = new Array(GRID_COLS * GRID_ROWS);
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    const dice = hashCellTick(c, r, currentTick) / 4294967296;
+                    next[idx(c, r)] = nextStateFor(c, r, dice, ch);
+                }
+            }
+            // The Company corner is locked to BRASS — it never decays.
+            next[idx(COMPANY_COL, COMPANY_ROW)] = STATE_BRASS;
+            // Apply
+            const now = millis();
+            for (let i = 0; i < next.length; i++) {
+                if (next[i] !== cellState[i]) {
+                    cellPrev[i] = cellState[i];
+                    cellState[i] = next[i];
+                    cellChangeMs[i] = now;
+                    cellChangeTick[i] = currentTick;
+                }
+            }
+        }
+
+        function maybeSpawnWave() {
+            const interval = 1700 - 800 * chaos(); // accelerate as chaos rises
+            if (millis() - lastWaveAt < interval) return;
+            lastWaveAt = millis();
+            // Origin: blend Company corner with cursor bias so cursor "drifts"
+            // the next decree's origin toward the user's region of attention.
+            const bias = 0.4;
+            const ox = lerp(COMPANY_COL, cursorBiasCol, bias) + (Math.random() - 0.5) * 0.6;
+            const oy = lerp(COMPANY_ROW, cursorBiasRow, bias) + (Math.random() - 0.5) * 0.6;
+            const c = chaos();
+            const roll = Math.random();
+            let target;
+            if (roll < 0.30 - 0.20 * c) target = STATE_BRASS;
+            else if (roll < 0.55 - 0.20 * c) target = STATE_INDIGO;
+            else target = STATE_VERMILLION;
+            const maxR = Math.hypot(GRID_COLS, GRID_ROWS) * 1.05;
+            waves.push({
+                cx: ox, cy: oy,
+                born: millis(),
+                dur: 3200 + Math.random() * 800,
+                target,
+                maxR,
+                intensity: 0.7 + 0.3 * Math.random(),
+            });
+            // Cap concurrent waves
+            while (waves.length > 5) waves.shift();
+        }
+
+        function pruneWaves() {
+            const now = millis();
+            for (let i = waves.length - 1; i >= 0; i--) {
+                if ((now - waves[i].born) / waves[i].dur > 1.05) waves.splice(i, 1);
+            }
+        }
+
+        // ── Cursor bias updates per-frame ──
+        function updateCursorBias(layout) {
+            // Only bias when cursor is over the canvas and not on UI chrome.
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const cell = cellAtMouse(layout);
+            if (cell) {
+                cursorBiasCol = cell.col;
+                cursorBiasRow = cell.row;
+            }
+        }
+
+        // ── Camera easing ──
+        function updateCamera() {
+            // If the overlay is closed and no invocation is active, decay back to 0
+            if (!openCell && (!invocationSeed || millis() > invocationSeed.until)) {
+                targetCamOffsetX = 0;
+                targetCamOffsetY = 0;
+            }
+            camOffsetX += (targetCamOffsetX - camOffsetX) * 0.06;
+            camOffsetY += (targetCamOffsetY - camOffsetY) * 0.06;
+        }
+
+        // ── Drawing ──
+        function draw() {
+            background(12, 10, 8);
+
+            updateCamera();
+            const layout = gridLayout();
+            updateCursorBias(layout);
+
+            // Hover (only when no overlay open)
+            hoverCell = openCell ? null : cellAtMouse(layout);
+
+            // Tick
+            if (millis() - lastTickAt >= TICK_MS) {
+                lastTickAt = millis();
+                runTick();
+                maybeSpawnWave();
+                pruneWaves();
+            } else {
+                maybeSpawnWave();
+                pruneWaves();
+            }
+
+            drawCells(layout);
+            drawWaves(layout);
+            drawCompany(layout);
+            if (invocationSeed && millis() < invocationSeed.until) drawInvocationSeed(layout);
+            if (hoverCell) drawHover(layout, hoverCell);
+
+            drawTickReadout();
+        }
+
+        function drawCells(layout) {
+            const now = millis();
+            const cs = layout.cellSize;
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    const i = idx(c, r);
+                    const sCur = cellState[i];
+                    const sPrev = cellPrev[i];
+                    const dt = constrain((now - cellChangeMs[i]) / ANIM_MS, 0, 1);
+                    const e = dt < 0.5 ? 4 * dt * dt * dt : 1 - Math.pow(-2 * dt + 2, 3) / 2;
+                    const cn = CELL_COLORS[sCur];
+                    const cp = CELL_COLORS[sPrev];
+                    // Per-cell aged-paper jitter (deterministic from coords)
+                    const seed = hashCoords(c, r);
+                    const j = ((seed & 0xff) / 255 - 0.5) * 14;
+                    const rr = lerp(cp[0], cn[0], e) + j;
+                    const gg = lerp(cp[1], cn[1], e) + j * 0.85;
+                    const bb = lerp(cp[2], cn[2], e) + j * 0.65;
+                    // Depth attenuation toward edges
+                    const cx = layout.ox + c * (cs + CELL_GAP) + cs / 2;
+                    const cy = layout.oy + r * (cs + CELL_GAP) + cs / 2;
+                    const dx = cx - width / 2, dy = cy - height / 2;
+                    const dist = Math.hypot(dx, dy);
+                    const maxDist = Math.hypot(width, height) * 0.55;
+                    const depth = constrain(dist / maxDist, 0, 1);
+                    const alpha = lerp(255, 200, depth);
+
+                    const x = layout.ox + c * (cs + CELL_GAP);
+                    const y = layout.oy + r * (cs + CELL_GAP);
+                    noStroke();
+                    fill(rr, gg, bb, alpha);
+                    rect(x, y, cs, cs);
+
+                    // Faint hairline border
+                    noFill();
+                    stroke(184, 136, 74, 40 * (1 - depth * 0.4));
+                    strokeWeight(0.6);
+                    rect(x + 0.3, y + 0.3, cs - 0.6, cs - 0.6);
+
+                    // Brief flash when a cell just changed
+                    if (dt < 0.45 && (sCur !== STATE_PARCHMENT || sPrev !== STATE_PARCHMENT)) {
+                        const flash = (1 - dt / 0.45) * 0.45;
+                        const fc = CELL_COLORS[sCur];
+                        noStroke();
+                        fill(fc[0] + 30, fc[1] + 30, fc[2] + 30, 180 * flash);
+                        rect(x + 1, y + 1, cs - 2, cs - 2);
+                    }
+                }
+            }
+        }
+
+        function drawWaves(layout) {
+            const cs = layout.cellSize;
+            const stride = cs + CELL_GAP;
+            for (const w of waves) {
+                const age = (millis() - w.born) / w.dur;
+                if (age < 0 || age > 1) continue;
+                const radius = age * w.maxR * stride;
+                const cx = layout.ox + w.cx * stride + cs / 2;
+                const cy = layout.oy + w.cy * stride + cs / 2;
+                const col = CELL_COLORS[w.target];
+                noFill();
+                const fade = (1 - age) * 0.85;
+                for (let g = 0; g < 3; g++) {
+                    stroke(col[0], col[1], col[2], 90 * fade / (g + 1));
+                    strokeWeight(1.6 + g * 1.4);
+                    ellipse(cx, cy, (radius - g * 4) * 2, (radius - g * 4) * 2);
+                }
+            }
+        }
+
+        function drawCompany(layout) {
+            const center = cellCenter(layout, COMPANY_COL, COMPANY_ROW);
+            const cs = layout.cellSize;
+            const pulse = 0.75 + 0.25 * Math.sin(millis() * 0.004);
+            push();
+            translate(center.x, center.y);
+            // Outer halo
+            noFill();
+            for (let g = 0; g < 5; g++) {
+                stroke(224, 180, 120, 50 * pulse / (g + 1));
+                strokeWeight(2 + g * 2);
+                rect(-cs / 2 - g * 1.2, -cs / 2 - g * 1.2, cs + g * 2.4, cs + g * 2.4);
+            }
+            // Inner brass with sigil
+            noStroke();
+            fill(220, 178, 118, 230);
+            rect(-cs / 2 + 1, -cs / 2 + 1, cs - 2, cs - 2);
+            // Cross-hair seal
+            stroke(74, 50, 22, 220);
+            strokeWeight(1.2);
+            line(-cs * 0.3, 0, cs * 0.3, 0);
+            line(0, -cs * 0.3, 0, cs * 0.3);
+            // Tiny "C" mark
+            noStroke();
+            fill(74, 50, 22, 240);
+            textFont('IBM Plex Mono');
+            textSize(Math.max(8, cs * 0.36));
+            textAlign(CENTER, CENTER);
+            text('C', 0, 1);
+            pop();
+
+            // "The Company" label below the cell
+            push();
+            const labelY = center.y + cs * 0.95;
+            translate(center.x, labelY);
+            textFont('IBM Plex Mono');
+            textSize(8);
+            textAlign(CENTER, TOP);
+            const label = 'THE COMPANY';
+            const tw = textWidth(label);
+            noStroke();
+            fill(12, 10, 8, 220);
+            rect(-tw / 2 - 6, -2, tw + 12, 14, 1);
+            stroke(184, 136, 74, 100);
+            strokeWeight(0.5);
+            noFill();
+            rect(-tw / 2 - 6, -2, tw + 12, 14, 1);
+            noStroke();
+            fill(224, 180, 120, 220);
+            text(label, 0, 1);
+            pop();
+        }
+
+        function drawInvocationSeed(layout) {
+            const center = cellCenter(layout, invocationSeed.col, invocationSeed.row);
+            const cs = layout.cellSize;
+            const remain = (invocationSeed.until - millis()) / invocationSeed.lifespan;
+            const pulse = 0.6 + 0.4 * Math.sin(millis() * 0.008);
+            push();
+            translate(center.x, center.y);
+            noFill();
+            for (let g = 0; g < 4; g++) {
+                stroke(226, 106, 79, 110 * pulse * remain / (g + 1));
+                strokeWeight(2 + g * 1.6);
+                rect(-cs / 2 - g * 1.4, -cs / 2 - g * 1.4, cs + g * 2.8, cs + g * 2.8);
+            }
+            // Crosshair
+            stroke(226, 106, 79, 220 * pulse);
+            strokeWeight(1.2);
+            const arm = cs * 0.7;
+            line(-arm, 0, -cs * 0.55, 0);
+            line(cs * 0.55, 0, arm, 0);
+            line(0, -arm, 0, -cs * 0.55);
+            line(0, cs * 0.55, 0, arm);
+            pop();
+        }
+
+        function drawHover(layout, cell) {
+            const rect0 = cellRect(layout, cell.col, cell.row);
+            const pulse = 0.8 + 0.2 * Math.sin(millis() * 0.006);
+            push();
+            // Outline
+            noFill();
+            stroke(224, 180, 120, 220 * pulse);
+            strokeWeight(1.6);
+            rect(rect0.x - 1.5, rect0.y - 1.5, rect0.w + 3, rect0.w + 3);
+            // Outer glow
+            for (let g = 0; g < 3; g++) {
+                stroke(224, 180, 120, 50 * pulse / (g + 1));
+                strokeWeight(2 + g * 2);
+                rect(rect0.x - 2 - g, rect0.y - 2 - g, rect0.w + 4 + g * 2, rect0.w + 4 + g * 2);
+            }
+            pop();
+
+            // Hover label
+            const center = cellCenter(layout, cell.col, cell.row);
+            const labelY = rect0.y + rect0.h + 18;
+            push();
+            translate(center.x, labelY);
+            textFont('IBM Plex Mono');
+            textSize(10);
+            textAlign(CENTER, CENTER);
+            const i = idx(cell.col, cell.row);
+            const stateName = ['parchment', 'brass', 'indigo', 'vermillion'][cellState[i]];
+            const label = `⊞  ${cellLabel(cell.col, cell.row)}  ·  ${stateName}`;
+            const tw = textWidth(label);
+            noStroke();
+            fill(12, 10, 8, 215);
+            rect(-tw / 2 - 12, -10, tw + 24, 20, 1);
+            stroke(184, 136, 74, 90);
+            strokeWeight(0.6);
+            noFill();
+            rect(-tw / 2 - 12, -10, tw + 24, 20, 1);
+            noStroke();
+            fill(184, 136, 74, 230);
+            text(label, 0, 0);
+            textSize(8);
+            fill(232, 216, 183, 130);
+            text('CLICK FOR DECREE', 0, 18);
+            pop();
+        }
+
+        function drawTickReadout() {
+            const c = chaos();
+            push();
+            textFont('IBM Plex Mono');
+            textSize(10);
+            textAlign(LEFT, TOP);
+            noStroke();
+            fill(184, 136, 74, 160);
+            const txt = `TICK ${String(currentTick).padStart(4, '0')}   ·   CHAOS ${(c * 100).toFixed(0).padStart(3)}%`;
+            text(txt, 32, height - 28);
+            pop();
+        }
+
+        // ── Mouse events ──
+        function mousePressed() {
+            if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            const layout = gridLayout();
+            const cell = cellAtMouse(layout);
+            if (cell) openDecreeFor(cell.col, cell.row);
+        }
+
+        // ── Touch (single-tap → drill, no drag — the field is fixed) ──
+        function touchStarted() {
+            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+            if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav'))) return;
+            return false;
+        }
+        function touchEnded() {
+            const layout = gridLayout();
+            const cell = cellAtMouse(layout);
+            if (cell) openDecreeFor(cell.col, cell.row);
+            return false;
+        }
+
+        // ── Decree overlay ──
+        const overlay   = document.getElementById('book-overlay');
+        const elEyebrow = document.getElementById('book-eyebrow');
+        const elTitle   = document.getElementById('book-title');
+        const elCatCell = document.getElementById('cat-cell');
+        const elCatState= document.getElementById('cat-state');
+        const elCatDecr = document.getElementById('cat-decree');
+        const elCatTick = document.getElementById('cat-tick');
+        const elCatFound= document.getElementById('cat-found');
+        const elExcerpt = document.getElementById('book-excerpt');
+
+        function openDecreeFor(col, row, invokedPhrase) {
+            openCell = { col, row };
+            const seed = hashCoords(col, row);
+            const decree = generateDecree(seed);
+            const title = decreeTitle(seed);
+            const i = idx(col, row);
+
+            elTitle.textContent = title;
+            elCatCell.textContent = cellLabel(col, row);
+            elCatState.textContent = STATE_NAMES[cellState[i]];
+            elCatDecr.textContent = decreeNumberFor(col, row);
+            elCatTick.textContent = `tick ${cellChangeTick[i] || 0}`;
+
+            const purified = (invokedPhrase || '').trim();
+            const out = decreeToHtml(decree, purified || null);
+            elExcerpt.innerHTML = '<span class="ellipsis">…</span>' + out.html + '<span class="ellipsis">…</span>';
+
+            if (purified) {
+                elCatFound.textContent = `act ${out.invokedAt + 1} of ${decree.acts.length + 1}`;
+                elEyebrow.innerHTML = '⊞  Your ticket has been drawn';
+                overlay.classList.add('invoked');
+            } else {
+                elEyebrow.innerHTML = '⊞  A Lottery Decree';
+                overlay.classList.remove('invoked');
+            }
+
+            overlay.classList.add('open');
+        }
+
+        function closeBook() {
+            overlay.classList.remove('open');
+            overlay.classList.remove('invoked');
+            openCell = null;
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeBook();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                e.preventDefault();
+                closeBook();
+            }
+        });
+
+        // ── Oracle (Invoke) ──
+        const oracleForm = document.getElementById('oracle');
+        const oracleInput = document.getElementById('oracle-input');
+
+        oracleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phrase = (oracleInput.value || '').trim();
+            if (!phrase) return;
+            const h = hashString(phrase.toLowerCase());
+            // Map to a deterministic cell within the grid.
+            const col = h % GRID_COLS;
+            const row = (Math.floor(h / GRID_COLS) % GRID_ROWS);
+            // Disallow landing exactly on the Company corner — bump by one.
+            const safeCol = (col === COMPANY_COL && row === COMPANY_ROW) ? 1 : col;
+
+            // Force the landing cell to vermillion immediately.
+            const i = idx(safeCol, row);
+            cellPrev[i] = cellState[i];
+            cellState[i] = STATE_VERMILLION;
+            cellChangeMs[i] = millis();
+            cellChangeTick[i] = currentTick;
+
+            // Register as a secondary chaos seed for ~10 seconds — it pushes
+            // adjacent cells toward vermillion and pulses with a vermillion crosshair.
+            const lifespan = 10000;
+            invocationSeed = {
+                col: safeCol, row,
+                until: millis() + lifespan,
+                lifespan,
+            };
+            lastInvokeMs = millis();
+
+            // "Pan" the field a touch so the landing cell drifts toward the centre.
+            const layout = gridLayout();
+            const target = cellCenter(layout, safeCol, row);
+            targetCamOffsetX = (width / 2 - target.x) * 0.45;
+            targetCamOffsetY = (height / 2 - target.y) * 0.45;
+
+            // Open the overlay shortly after so the pan is felt.
+            if (overlay.classList.contains('open')) closeBook();
+            setTimeout(() => openDecreeFor(safeCol, row, phrase), 700);
+
+            oracleInput.blur();
+        });
+    </script>
+</body>
+</html>
