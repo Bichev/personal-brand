@@ -65,6 +65,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+            touch-action: none;
         }
 
         #canvas-container canvas {
@@ -833,7 +834,7 @@
         }
 
         @media (max-width: 768px) {
-            .back-nav { padding: 10px 16px; }
+            .back-nav { padding: 10px 16px; pointer-events: auto; }
             .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
             .back-nav .site-mark { display: none; }
 
@@ -1805,18 +1806,13 @@
             if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
                       t.closest('.book-overlay') || t.closest('.back-nav') ||
                       t.closest('.scroll-indicator'))) return;
-            // Defer to mousePressed-style hit-test via touches[0]
-            return false;
         }
         function touchEnded() {
             const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
             if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
                       t.closest('.book-overlay') || t.closest('.back-nav') ||
                       t.closest('.scroll-indicator'))) return;
-            // Use the last touch position via mouseX/mouseY (p5 sets these on touchEnd)
-            // Reuse mousePressed logic
             mousePressed();
-            return false;
         }
     </script>
 </body>

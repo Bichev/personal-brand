@@ -65,6 +65,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+            touch-action: none;
         }
 
         #canvas-container canvas {
@@ -839,7 +840,7 @@
         }
 
         @media (max-width: 768px) {
-            .back-nav { padding: 10px 16px; }
+            .back-nav { padding: 10px 16px; pointer-events: auto; }
             .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
             .back-nav .site-mark { display: none; }
 
@@ -1657,7 +1658,6 @@
             if (t && (t.closest('.oracle') || t.closest('.education-panel') || t.closest('.book-overlay') || t.closest('.back-nav') || t.closest('.scroll-indicator'))) return;
             isTouchDragging = false;
             touchStart = { x: mouseX, y: mouseY, camX, t: millis() };
-            return false;
         }
 
         function touchMoved() {
@@ -1671,7 +1671,6 @@
                 camX = constrain(touchStart.camX - dx, width * 0.3, worldWidth - width * 0.3);
                 targetCamX = camX;
             }
-            return false;
         }
 
         function touchEnded() {
@@ -1679,7 +1678,6 @@
                 openOverlayFor(hoveredEvent);
             }
             touchStart = null;
-            return false;
         }
 
         // ── Overlay (drill view) ──

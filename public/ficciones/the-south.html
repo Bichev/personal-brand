@@ -65,6 +65,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+            touch-action: none;
         }
 
         #canvas-container canvas {
@@ -773,7 +774,7 @@
         }
 
         @media (max-width: 768px) {
-            .back-nav { padding: 10px 16px; }
+            .back-nav { padding: 10px 16px; pointer-events: auto; }
             .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
             .back-nav .site-mark { display: none; }
 
@@ -1549,9 +1550,8 @@
             if (overlay.classList.contains('open')) return;
             const eq = isAtEquilibrium();
             lastClickFeedback = { x: mouseX, y: mouseY, time: millis(), registered: eq };
-            if (!eq) return false;
+            if (!eq) return;
             openFragmentFor(mouseX, mouseY);
-            return false;
         }
 
         // ── Catalog helper ──

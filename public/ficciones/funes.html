@@ -65,6 +65,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+            touch-action: none;
         }
 
         #canvas-container canvas {
@@ -810,7 +811,7 @@
         }
 
         @media (max-width: 768px) {
-            .back-nav { padding: 10px 16px; }
+            .back-nav { padding: 10px 16px; pointer-events: auto; }
             .back-nav a { font-size: 10px; letter-spacing: 1.5px; }
             .back-nav .site-mark { display: none; }
 
@@ -1502,9 +1503,8 @@
             if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
                       t.closest('.book-overlay') || t.closest('.back-nav') ||
                       t.closest('.scroll-indicator') || t.closest('.hud'))) return;
-            return false;
         }
-        function touchMoved() { return false; }
+        function touchMoved() { }
         function touchEnded() {
             const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
             if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
@@ -1513,7 +1513,6 @@
             if (mouseX >= 0 && mouseY >= 0 && mouseX <= width && mouseY <= height) {
                 drillEvent(mouseX, mouseY);
             }
-            return false;
         }
 
         // ── Overlay close ──
