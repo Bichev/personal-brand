@@ -460,7 +460,12 @@
             text-transform: uppercase;
             text-align: center;
             margin-top: 18px;
+            cursor: pointer;
+            padding: 10px 12px;
+            transition: color 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
+        .book-close:hover, .book-close:focus { color: var(--brass); outline: none; }
 
         .book-close kbd {
             font-family: inherit;
@@ -469,6 +474,39 @@
             background: rgba(198, 150, 84, 0.08);
             color: var(--brass);
             margin: 0 4px;
+        }
+
+        .book-close-x {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(20, 17, 13, 0.78);
+            border: 1px solid var(--brass-faint);
+            color: var(--brass);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 0 3px 0;
+            z-index: 3;
+            transition: color 0.3s, border-color 0.3s, background 0.3s, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .book-close-x:hover, .book-close-x:focus {
+            color: var(--brass-bright);
+            border-color: rgba(198, 150, 84, 0.6);
+            background: rgba(28, 24, 19, 0.95);
+            outline: none;
+        }
+        .book-close-x:active { transform: scale(0.94); }
+
+        @media (max-width: 768px) {
+            .book-close-x { width: 44px; height: 44px; font-size: 26px; top: 10px; right: 10px; }
         }
 
         /* ── Scroll indicator ── */
@@ -935,6 +973,7 @@
     <!-- Book overlay (drill view) -->
     <div class="book-overlay" id="book-overlay" role="dialog" aria-modal="true" aria-labelledby="book-title">
         <article class="book-card">
+            <button type="button" class="book-close-x" aria-label="Close">×</button>
             <div class="book-eyebrow" id="book-eyebrow">⋔  A Branch of the Labyrinth</div>
             <h3 class="book-title" id="book-title">—</h3>
             <div class="book-catalog" id="book-catalog">
@@ -945,7 +984,7 @@
                 <div class="row found"><span class="label">Sprouted</span><span class="value" id="cat-found">—</span></div>
             </div>
             <p class="book-excerpt" id="book-excerpt">—</p>
-            <div class="book-close">Close · <kbd>Esc</kbd> or click outside</div>
+            <button type="button" class="book-close">Tap to close · <kbd>Esc</kbd></button>
         </article>
     </div>
 
@@ -1678,6 +1717,9 @@
 
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeBook();
+        });
+        document.querySelectorAll('.book-close, .book-close-x').forEach((btn) => {
+            btn.addEventListener('click', (ev) => { ev.stopPropagation(); closeBook(); });
         });
 
         document.addEventListener('keydown', (e) => {
