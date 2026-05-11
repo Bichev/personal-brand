@@ -1545,13 +1545,9 @@
         }
         function touchMoved() { }
         function touchEnded() {
-            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
-            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
-                      t.closest('.book-overlay') || t.closest('.back-nav') ||
-                      t.closest('.scroll-indicator') || t.closest('.hud'))) return;
-            if (mouseX >= 0 && mouseY >= 0 && mouseX <= width && mouseY <= height) {
-                drillEvent(mouseX, mouseY);
-            }
+            // Intentionally empty — p5 synthesizes a mouse click after touchend,
+            // which fires mousePressed() once. Performing drillEvent here would
+            // double-fire (one manual + one synthetic) and paint two stars.
         }
 
         // ── Overlay close ──

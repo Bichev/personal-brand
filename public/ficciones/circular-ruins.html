@@ -1850,11 +1850,9 @@
                       t.closest('.scroll-indicator'))) return;
         }
         function touchEnded() {
-            const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
-            if (t && (t.closest('.oracle') || t.closest('.education-panel') ||
-                      t.closest('.book-overlay') || t.closest('.back-nav') ||
-                      t.closest('.scroll-indicator'))) return;
-            mousePressed();
+            // Intentionally empty — p5 synthesizes a mouse click after touchend,
+            // which fires mousePressed() once. Calling it manually here would
+            // double-fire the drill (one manual + one synthetic).
         }
     </script>
 </body>
