@@ -1253,9 +1253,17 @@
 
             const hAlpha = currentHospitalAlpha;
             const pAlpha = 1 - hAlpha;
+            const eqClose = equilibriumCloseness();
 
-            drawPampas(pAlpha);
+            // Pampas without the figure — the figure is deferred so the
+            // equilibrium-knife sits behind it in z-order.
+            drawPampas(pAlpha, true);
             drawHospital(hAlpha);
+            drawTrain(hAlpha, pAlpha, eqClose);
+            drawEquilibriumKnife(eqClose);
+            // Dark figure on the horizon goes ON TOP of the knife: the gaucho
+            // stands beyond the offered blade.
+            drawPampasFigure(pAlpha);
             drawECG();
             drawInvokedMemory();
 
@@ -1268,7 +1276,10 @@
 
         // ── Layer B · the pampas ──
         // Horizon at dusk, dark figure on it, stars beginning to appear.
-        function drawPampas(alpha) {
+        // `skipFigure` lets the main draw() loop defer the dark figure so it
+        // can sit on top of the equilibrium-knife in z-order while the rest
+        // of the pampas remains beneath both the train and the knife.
+        function drawPampas(alpha, skipFigure) {
             if (alpha < 0.02) return;
             const horizonY = height * 0.55;
             push();
@@ -1318,14 +1329,27 @@
                 ellipse(s.xN * width, sy, s.sz, s.sz);
             }
             // Single dark figure standing on the horizon (Dahlmann's would-be self)
+            // Deferred when skipFigure is true so the equilibrium-knife can be
+            // rendered beneath the figure (the knife is "offered" — the figure
+            // stands beyond it, watching).
+            if (!skipFigure) drawPampasFigure(alpha);
+            pop();
+        }
+
+        // ── The dark figure on the horizon (extracted from drawPampas) ──
+        // Kept in its own function so the main draw() loop can render it after
+        // the equilibrium-knife. Behaviour is identical to the original inlined
+        // block when called with the same alpha.
+        function drawPampasFigure(alpha) {
+            if (alpha < 0.02) return;
+            const horizonY = height * 0.55;
+            push();
+            noStroke();
             fill(8, 6, 4, 245 * alpha);
             const fx = width * 0.62;
             const fy = horizonY;
-            // Body
             rect(fx - 2.5, fy - 28, 5, 28);
-            // Head
             ellipse(fx, fy - 32, 7, 7);
-            // Faint shadow on the ground
             fill(8, 6, 4, 110 * alpha);
             ellipse(fx, fy + 3, 16, 3);
             pop();
@@ -1385,6 +1409,301 @@
             strokeWeight(0.5);
             line(width * 0.92, height * 0.55, width * 0.92, height * 0.85);
             line(width * 0.08, height * 0.55, width * 0.08, height * 0.85);
+            pop();
+        }
+
+        // ── Equilibrium closeness ──
+        // 1.0 at perfect 50/50, falls to 0 at the edge of the existing
+        // equilibrium tolerance (the same tolerance that gates clicks).
+        // The user spec referenced |hAlpha - pAlpha|/0.13, but explicitly
+        // tied this to "the existing equilibrium tolerance" (which lives on
+        // |hAlpha - 0.5| < 0.13), so we normalize to the same gate.
+        function equilibriumCloseness() {
+            return constrain(1 - Math.abs(currentHospitalAlpha - 0.5) / 0.13, 0, 1);
+        }
+
+        // ── The train · the literal vehicle of the story ──
+        // A faint steam locomotive hauling 4 cars, crossing the canvas left to
+        // right with an ~80s period. Each piece of the train is painted in
+        // hospital-indigo if its centre is in the left half of the canvas, or
+        // in pampas-brass if its centre is in the right half — so the train
+        // physically traverses the boundary between the two endings.
+        function drawTrain(hAlpha, pAlpha, eqCloseness) {
+            const period = 80000;
+            const trainLen = width * 0.75;
+            const trainH = Math.max(36, height * 0.08);
+            const baseY = height * 0.50;
+
+            const cycle = (millis() % period) / period;
+            const totalSpan = width + 2 * trainLen;
+            // headX is the front (rightmost edge) of the locomotive.
+            const headX = -trainLen + cycle * totalSpan;
+
+            // Faint by default, brighter at equilibrium (both rooms acknowledge it).
+            const brightnessBoost = lerp(50, 110, eqCloseness);
+
+            // Wheel rotation tied to absolute headX so the wheels appear to roll
+            // realistically with the train's motion.
+            const wheelRotBase = headX * 0.012;
+
+            push();
+            noStroke();
+
+            // Layout: locomotive at the front (right), 4 cars trailing behind.
+            const locoLen = trainLen * 0.32;
+            const carCount = 4;
+            const carSpan = (trainLen - locoLen) / carCount;
+            const carGap = carSpan * 0.08;
+            const carLen = carSpan - carGap;
+
+            const locoRight = headX;
+            const locoLeft = locoRight - locoLen;
+
+            // ── Cars (drawn behind the locomotive, i.e., to its LEFT) ──
+            for (let i = 0; i < carCount; i++) {
+                const carRight = locoLeft - carGap - i * carSpan;
+                const carLeft = carRight - carLen;
+                if (carRight < -20 || carLeft > width + 20) continue;
+                const cx = (carLeft + carRight) / 2;
+                const carTop = baseY - trainH * 0.55;
+                const carBot = baseY + trainH * 0.10;
+                const carHeight = carBot - carTop;
+                const c = trainColor(cx, hAlpha, pAlpha);
+
+                // Body
+                fill(c.r, c.g, c.b, (120 + brightnessBoost) * c.layerAlpha);
+                rect(carLeft, carTop, carLen, carHeight);
+                // Roof rail (a touch darker)
+                fill(c.r * 0.65, c.g * 0.65, c.b * 0.65, (95 + brightnessBoost * 0.5) * c.layerAlpha);
+                rect(carLeft, carTop - 2, carLen, 2);
+                // Window strip
+                const winY = carTop + carHeight * 0.26;
+                const winH = carHeight * 0.34;
+                const winCount = 3;
+                fill(c.r + 32, c.g + 36, c.b + 40, (75 + brightnessBoost * 0.6) * c.layerAlpha);
+                for (let w = 0; w < winCount; w++) {
+                    const wx = carLeft + carLen * (0.14 + w * 0.30);
+                    const ww = carLen * 0.18;
+                    rect(wx, winY, ww, winH);
+                }
+                // Coupling
+                fill(c.r * 0.5, c.g * 0.5, c.b * 0.5, (110 + brightnessBoost * 0.4) * c.layerAlpha);
+                rect(carRight, baseY, carGap, 1.5);
+
+                // Two small wheels per car
+                const wheelR = trainH * 0.18;
+                const wheelY = carBot;
+                const w1x = carLeft + carLen * 0.20;
+                const w2x = carLeft + carLen * 0.80;
+                drawTrainWheel(w1x, wheelY, wheelR, wheelRotBase, hAlpha, pAlpha, brightnessBoost);
+                drawTrainWheel(w2x, wheelY, wheelR, wheelRotBase, hAlpha, pAlpha, brightnessBoost);
+            }
+
+            // ── Locomotive ──
+            if (locoRight > -20 && locoLeft < width + 20) {
+                const locoCx = (locoLeft + locoRight) / 2;
+                const boilerTop = baseY - trainH * 0.35;
+                const boilerBot = baseY + trainH * 0.10;
+                const boilerHeight = boilerBot - boilerTop;
+                const bodyW = locoLen * 0.78;
+                const c = trainColor(locoCx, hAlpha, pAlpha);
+
+                // Boiler
+                fill(c.r, c.g, c.b, (130 + brightnessBoost) * c.layerAlpha);
+                rect(locoLeft, boilerTop, bodyW, boilerHeight);
+                // Rounded front face
+                ellipse(locoLeft + bodyW, baseY - trainH * 0.12, boilerHeight * 0.7, boilerHeight);
+                // Headlamp dot at the front
+                fill(236, 220, 188, (140 + brightnessBoost) * c.layerAlpha);
+                ellipse(locoLeft + bodyW + 2, baseY - trainH * 0.10, 3, 3);
+
+                // Cab at the back (left side of the locomotive)
+                const cabW = locoLen * 0.22;
+                const cabH = trainH * 0.55;
+                const cabX = locoLeft;
+                const cabY = baseY - trainH * 0.50;
+                const cabC = trainColor(cabX + cabW / 2, hAlpha, pAlpha);
+                fill(cabC.r * 0.85, cabC.g * 0.85, cabC.b * 0.85, (135 + brightnessBoost) * cabC.layerAlpha);
+                rect(cabX, cabY, cabW, cabH);
+                // Cab window
+                fill(cabC.r + 50, cabC.g + 50, cabC.b + 50, (80 + brightnessBoost * 0.7) * cabC.layerAlpha);
+                rect(cabX + cabW * 0.18, cabY + cabH * 0.20, cabW * 0.64, cabH * 0.40);
+
+                // Chimney / smokestack
+                const chimX = locoLeft + locoLen * 0.62;
+                const chimW = trainH * 0.18;
+                const chimH = trainH * 0.55;
+                const chimY = boilerTop - chimH;
+                const chimCx = chimX + chimW / 2;
+                const chimC = trainColor(chimCx, hAlpha, pAlpha);
+                fill(chimC.r, chimC.g, chimC.b, (145 + brightnessBoost) * chimC.layerAlpha);
+                rect(chimX, chimY, chimW, chimH);
+                rect(chimX - chimW * 0.15, chimY, chimW * 1.30, chimH * 0.18);
+
+                // Two large driving wheels under the boiler
+                const lwheelR = trainH * 0.32;
+                const lwheelY = baseY + trainH * 0.10;
+                const lw1x = locoLeft + locoLen * 0.30;
+                const lw2x = locoLeft + locoLen * 0.62;
+                drawTrainWheel(lw1x, lwheelY, lwheelR, wheelRotBase, hAlpha, pAlpha, brightnessBoost);
+                drawTrainWheel(lw2x, lwheelY, lwheelR, wheelRotBase, hAlpha, pAlpha, brightnessBoost);
+
+                // ── Smoke trail ──
+                // Parchment-toned puffs, each larger / fainter / higher than
+                // the previous, drifting up and to the LEFT (behind the train).
+                const tMs = millis();
+                for (let p = 0; p < 5; p++) {
+                    const age = (p + 1) * 0.20;
+                    const dx = -(20 + age * 70);
+                    const dy = -(8 + age * 38 + Math.sin(tMs * 0.001 + p) * 4);
+                    const sx = chimCx + dx;
+                    const sy = chimY + dy;
+                    const sR = 6 + age * 22;
+                    const layerA = sx < width / 2 ? hAlpha : pAlpha;
+                    const sBaseA = (180 - age * 145) * layerA * (0.45 + 0.30 * eqCloseness);
+                    fill(236, 220, 188, sBaseA);
+                    ellipse(sx, sy, sR, sR);
+                }
+            }
+
+            pop();
+        }
+
+        // Helper · pick hospital-indigo or pampas-brass based on a piece's centre.
+        function trainColor(cx, hAlpha, pAlpha) {
+            if (cx < width / 2) {
+                return { r: 80, g: 100, b: 145, layerAlpha: hAlpha };
+            }
+            return { r: 198, g: 130, b: 78, layerAlpha: pAlpha };
+        }
+
+        // Helper · draw a wheel with 4 rotating spokes (renders as 8 visible
+        // half-spokes through the centre — the classic spinning-wheel look).
+        function drawTrainWheel(cx, cy, r, rotBase, hAlpha, pAlpha, brightnessBoost) {
+            const c = trainColor(cx, hAlpha, pAlpha);
+            push();
+            noStroke();
+            fill(c.r * 0.55, c.g * 0.55, c.b * 0.55, (160 + brightnessBoost) * c.layerAlpha);
+            ellipse(cx, cy, r * 2, r * 2);
+            // Hub
+            fill(c.r, c.g, c.b, (180 + brightnessBoost) * c.layerAlpha);
+            ellipse(cx, cy, r * 0.45, r * 0.45);
+            // 4 rotating spoke-lines through the centre
+            stroke(c.r * 0.4, c.g * 0.4, c.b * 0.4, (170 + brightnessBoost) * c.layerAlpha);
+            strokeWeight(0.9);
+            const spokeR = r * 0.85;
+            for (let i = 0; i < 4; i++) {
+                const a = rotBase + (i * Math.PI / 4);
+                line(
+                    cx + Math.cos(a) * spokeR, cy + Math.sin(a) * spokeR,
+                    cx - Math.cos(a) * spokeR, cy - Math.sin(a) * spokeR
+                );
+            }
+            pop();
+        }
+
+        // ── The equilibrium-knife · the moment of choice rendered ──
+        // A long, slightly curved vermillion blade swept across the canvas just
+        // below the horizon band. Visible only at equilibrium, fading in with
+        // closeness, pulsing ±10% over ~3s. The brass hilt sits on the LEFT
+        // (handle); the blade tapers to a sharp point on the RIGHT (tip).
+        function drawEquilibriumKnife(eqCloseness) {
+            if (eqCloseness <= 0) return;
+            const x1 = width * 0.15, y1 = height * 0.62;
+            const x2 = width * 0.85, y2 = height * 0.58;
+            const segments = 30;
+
+            const pulse = 1 + 0.10 * Math.sin(millis() * 0.00209);
+            const baseAlpha = 220 * eqCloseness * pulse;
+            const glowAlpha = 30 * eqCloseness * pulse;
+
+            // Generate blade points (slight perpendicular sine arc, max ~6px deflection)
+            const dxL = x2 - x1, dyL = y2 - y1;
+            const lenL = Math.hypot(dxL, dyL);
+            const perpX = -dyL / lenL;
+            const perpY = dxL / lenL;
+            const points = [];
+            for (let i = 0; i <= segments; i++) {
+                const t = i / segments;
+                const px = lerp(x1, x2, t);
+                const py = lerp(y1, y2, t);
+                const arc = Math.sin(t * Math.PI) * 6;
+                points.push({ x: px + perpX * arc, y: py + perpY * arc, t });
+            }
+
+            push();
+            // Outer glow — two wider strokes of vermillion, very faint
+            noFill();
+            stroke(197, 74, 48, glowAlpha);
+            strokeWeight(5);
+            beginShape();
+            for (const p of points) curveVertex(p.x, p.y);
+            endShape();
+            stroke(197, 74, 48, glowAlpha * 1.6);
+            strokeWeight(2.6);
+            beginShape();
+            for (const p of points) curveVertex(p.x, p.y);
+            endShape();
+
+            // Main blade — taper from handle (~2.0px) to tip (~0.4px)
+            for (let i = 0; i < points.length - 1; i++) {
+                const t = points[i].t;
+                const w = lerp(2.0, 0.4, t);
+                const segAlpha = baseAlpha * (0.85 + 0.15 * (1 - t));
+                stroke(197, 74, 48, segAlpha);
+                strokeWeight(w);
+                line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+            }
+
+            // Hilt at the LEFT (handle) — brass tones
+            const hiltCx = points[0].x;
+            const hiltCy = points[0].y;
+            const ang = Math.atan2(points[1].y - points[0].y, points[1].x - points[0].x);
+            push();
+            translate(hiltCx, hiltCy);
+            rotate(ang);
+            // Crossguard (perpendicular to blade), drawn first so the grip sits over its centre
+            noStroke();
+            fill(224, 180, 120, baseAlpha);
+            rect(-3, -10, 6, 20);
+            // Grip — 20×4 rectangle extending LEFT from the blade root
+            fill(198, 150, 84, baseAlpha);
+            rect(-20, -2, 20, 4);
+            // Pommel cap
+            fill(224, 180, 120, baseAlpha);
+            ellipse(-20, 0, 4.5, 4.5);
+            pop();
+
+            // Tooltip · "THE KNIFE IS OFFERED" near the centre of the blade.
+            // p5 has no native letter-spacing, so we render each glyph manually
+            // with a 1.8px tracking offset to honour the spec.
+            const cIdx = Math.floor(points.length / 2);
+            const cPt = points[cIdx];
+            push();
+            textFont('IBM Plex Mono');
+            textSize(10);
+            textAlign(LEFT, CENTER);
+            noStroke();
+            const label = 'THE KNIFE IS OFFERED';
+            const letterSp = 1.8;
+            const widths = [];
+            let totalW = 0;
+            for (let i = 0; i < label.length; i++) {
+                const w = textWidth(label[i]);
+                widths.push(w);
+                totalW += w + letterSp;
+            }
+            totalW -= letterSp;
+            const labelAlpha = 235 * eqCloseness;
+            fill(224, 180, 120, labelAlpha);
+            let cx = cPt.x - totalW / 2;
+            const cy = cPt.y - 18;
+            for (let i = 0; i < label.length; i++) {
+                text(label[i], cx, cy);
+                cx += widths[i] + letterSp;
+            }
+            pop();
+
             pop();
         }
 
@@ -1490,13 +1809,13 @@
             const mx = bx + bw * currentHospitalAlpha;
             fill(236, 220, 188, isAtEquilibrium() ? 245 : 150);
             rect(mx - 1, by - 4, 2, bh + 8);
-            // Status legend
+            // Status legend.
+            // At equilibrium the knife on the canvas itself carries the
+            // affordance ("THE KNIFE IS OFFERED" near its centre), so this
+            // line dims out instead of duplicating it here.
             textAlign(CENTER, CENTER);
             textSize(8);
-            if (isAtEquilibrium()) {
-                fill(212, 163, 102, 235);
-                text('EQUILIBRIUM · CLICK TO READ', bx + bw / 2, by + 18);
-            } else {
+            if (!isAtEquilibrium()) {
                 fill(232, 216, 183, 110);
                 text('seek equilibrium', bx + bw / 2, by + 18);
             }

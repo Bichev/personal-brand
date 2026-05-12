@@ -1227,29 +1227,34 @@
         // ── Scar parametric function ──
         // f(t) = parametric_curve(t): a sine-modulated arc whose endpoint
         // must, by construction, fall at the hook of a crescent moon.
-        const SQRT3 = Math.sqrt(3);
+        //
+        // The scar is now stored in FACE-LOCAL coords (origin at the face
+        // centre). The visible scar is drawn inside the face's translate +
+        // rotate transform, so the wound moves and turns with the face.
         const SCAR_RES = 800;
         let scarPath = [];
-        let scarLengths = [];   // cumulative arc lengths
+        let scarLengths = [];   // cumulative arc lengths in local space
         let scarTotalLen = 0;
 
-        function scarPoint(t) {
-            // Crescent geometry: an arc of ~210° opens to the LEFT,
-            // with subtle sine modulation along its length.
-            const arcCx = width * 0.42;
-            const arcCy = height * 0.50;
-            const baseR = Math.min(width, height) * 0.34;
+        function faceCenter() {
+            return { cx: width * 0.42, cy: height * 0.50 };
+        }
 
-            const startA = -Math.PI * 0.62;   // upper-right (the temple)
-            const endA   =  Math.PI * 0.62;   // lower-right (the hook of the moon)
+        function scarPoint(t) {
+            // Local coords (face-relative): an arc of ~210° that opens to
+            // the LEFT, with subtle sine modulation along its length —
+            // temple → cheekbone → corner of the jaw.
+            const baseR = Math.min(width, height) * 0.34;
+            const startA = -Math.PI * 0.62;   // the temple
+            const endA   =  Math.PI * 0.62;   // the hook of the moon
             const angle = startA + (endA - startA) * t;
 
             const radiusMod = baseR * 0.045 * Math.sin(t * Math.PI * 6 + 0.7);
             const radius = baseR + radiusMod;
 
             return {
-                x: arcCx + radius * Math.cos(angle),
-                y: arcCy + radius * Math.sin(angle),
+                x: radius * Math.cos(angle),
+                y: radius * Math.sin(angle),
             };
         }
 
@@ -1269,16 +1274,51 @@
             scarTotalLen = scarLengths[SCAR_RES];
         }
 
-        // Find the index/parameter of the closest scar point to (mx, my)
-        // Returns null if outside the considered (drawn) portion.
-        function nearestScarT(mx, my, maxT) {
+        // Inverse of the face's translate + rotate transform: turn a world
+        // mouse position into the face-local frame that scarPath lives in.
+        function mouseToFaceLocal() {
+            const { cx, cy } = faceCenter();
+            const dx = mouseX - cx;
+            const dy = mouseY - cy;
+            const c = Math.cos(-currentFaceAngle);
+            const s = Math.sin(-currentFaceAngle);
+            return { x: dx * c - dy * s, y: dx * s + dy * c };
+        }
+
+        // Lift a face-local scar point (selected by parameter t) into world
+        // coordinates, accounting for the current face rotation. Used for
+        // anchoring world-space UI (the drift fragment's tether line).
+        function scarWorldPoint(t) {
+            if (scarPath.length === 0) return { x: 0, y: 0 };
+            const idx = Math.max(0, Math.min(SCAR_RES, Math.floor(t * SCAR_RES)));
+            const p = scarPath[idx];
+            const { cx, cy } = faceCenter();
+            const c = Math.cos(currentFaceAngle);
+            const s = Math.sin(currentFaceAngle);
+            return { x: cx + p.x * c - p.y * s, y: cy + p.x * s + p.y * c };
+        }
+
+        // Rotation-invariant world position of a scar point (face at zero
+        // rotation). Used for catalog hashing so the same t always produces
+        // the same confession, regardless of the face's current tilt.
+        function scarReferencePoint(t) {
+            if (scarPath.length === 0) return { x: 0, y: 0 };
+            const idx = Math.max(0, Math.min(SCAR_RES, Math.floor(t * SCAR_RES)));
+            const p = scarPath[idx];
+            const { cx, cy } = faceCenter();
+            return { x: cx + p.x, y: cy + p.y };
+        }
+
+        // Find the index/parameter of the closest scar point to (lx, ly),
+        // where (lx, ly) is in FACE-LOCAL coordinates.
+        function nearestScarT(lx, ly, maxT) {
             if (scarPath.length === 0) return null;
             const lim = Math.max(2, Math.floor((maxT == null ? 1 : maxT) * SCAR_RES));
             let bestI = 0;
             let bestD = Infinity;
             for (let i = 0; i <= lim; i++) {
-                const dx = scarPath[i].x - mx;
-                const dy = scarPath[i].y - my;
+                const dx = scarPath[i].x - lx;
+                const dy = scarPath[i].y - ly;
                 const d = dx * dx + dy * dy;
                 if (d < bestD) { bestD = d; bestI = i; }
             }
@@ -1288,12 +1328,18 @@
         // ── p5.js sketch ──
         let cnv;
         let scarStartTime = 0;
-        const SCAR_DRAW_DURATION = 6000; // ms
-        let woundMarks = [];             // array of { t, seed }
+        const SCAR_DRAW_DURATION = 6000; // ms — total etching time
+        const BLADE_FADE_DURATION = 1400; // ms — blade ghost fade window
+        let woundMarks = [];             // array of { t, bornAt }
         let userPhrase = '';             // currently inscribed phrase
         let userPhraseT = 0;             // start position of that phrase along the curve
         let openWound = null;            // { t } when overlay open
         let invokeFlashUntil = 0;        // ms — short bright flash after invoke
+
+        // Face tilt — the head turns slowly AWAY from the cursor (negate the
+        // angle), as if avoiding the visitor's gaze. Lerped each frame at
+        // 0.04 toward the target. Max swing ≈ ±3.4° (0.06 rad).
+        let currentFaceAngle = 0;
 
         function setup() {
             const container = document.getElementById('canvas-container');
@@ -1322,7 +1368,8 @@
             return 0.70 + 0.30 * (0.5 + 0.5 * Math.sin(millis() * 0.0017));
         }
 
-        // ── Background: dark indigo gradient ──
+        // ── Background: dark indigo gradient, warmed toward sepia at the
+        //     very edges so the parchment-toned face has somewhere to land. ──
         function drawBackgroundGradient() {
             const ctx = drawingContext;
             const g = ctx.createRadialGradient(
@@ -1331,50 +1378,246 @@
             );
             g.addColorStop(0.00, '#1b2444');
             g.addColorStop(0.45, '#121a32');
-            g.addColorStop(1.00, '#08080f');
+            g.addColorStop(0.80, '#13110a');
+            g.addColorStop(1.00, '#1a1408');
             ctx.fillStyle = g;
             ctx.fillRect(0, 0, width, height);
         }
 
-        // ── The faint face silhouette (jawline curve) in lower-center ──
+        // ── Face tilt update — lerp toward target each frame ──
+        function updateFaceAngle() {
+            const targetAngle = -((mouseX / width) - 0.5) * 0.06;
+            currentFaceAngle += (targetAngle - currentFaceAngle) * 0.04;
+        }
+
+        // ── The portrait: a 3/4-view etching of a man's face. ──
+        // Layered strokes from background (dark hair mass) to foreground
+        // (eye catchlight). The cheek that bears the scar — the right side
+        // in our orientation — is the brightest plane of the face.
         function drawFaceSilhouette() {
-            const cx = width * 0.50;
-            const cy = height * 0.66;
-            const fw = Math.min(width, height) * 0.21;
-            const fh = Math.min(width, height) * 0.13;
+            const { cx, cy } = faceCenter();
+            const U = Math.min(width, height) * 0.01;
 
             push();
+            translate(cx, cy);
+            rotate(currentFaceAngle);
+
             noFill();
-            stroke(232, 216, 183, 36);
-            strokeWeight(1);
+            strokeJoin(ROUND);
+            strokeCap(ROUND);
+
+            // ── (a) Hair: dark cap brushed back over the cranium ──
+            stroke(34, 26, 18, 220);
+            strokeWeight(2.6);
             beginShape();
-            for (let i = 0; i <= 80; i++) {
-                const t = i / 80;
-                const angle = Math.PI + t * Math.PI; // PI → 2PI: lower semicircle (jaw)
-                // p5: y is downward; we want the chin to dip DOWN at t=0.5.
-                // sin(PI..2PI) goes 0 → -1 → 0, so we negate to get 0 → +1 → 0.
-                const x = cx + fw * Math.cos(angle);
-                const y = cy + fh * (-Math.sin(angle));
-                vertex(x, y);
+            curveVertex(-22 * U, -22 * U);
+            curveVertex(-22 * U, -22 * U);
+            curveVertex(-26 * U, -30 * U);
+            curveVertex(-20 * U, -38 * U);
+            curveVertex(-4 * U, -44 * U);
+            curveVertex(16 * U, -42 * U);
+            curveVertex(28 * U, -34 * U);
+            curveVertex(32 * U, -22 * U);
+            curveVertex(32 * U, -22 * U);
+            endShape();
+            // Coarse hair strands brushed back from the forehead
+            stroke(232, 216, 183, 125);
+            strokeWeight(0.95);
+            for (let i = 0; i < 9; i++) {
+                const u = i / 8;
+                const sx = lerp(-16 * U, 24 * U, u);
+                const sy = -36 * U + 1.8 * U * Math.sin(i * 1.7);
+                const ex = sx - 5 * U;
+                const ey = sy + 3 * U * (u - 0.4);
+                line(sx, sy, ex, ey);
             }
+            // A second layer of finer strands at slightly lower alpha
+            stroke(232, 216, 183, 90);
+            strokeWeight(0.6);
+            for (let i = 0; i < 11; i++) {
+                const u = i / 10;
+                const sx = lerp(-22 * U, 28 * U, u);
+                const sy = -33 * U + 1.4 * U * Math.cos(i * 2.3);
+                const ex = sx - 4 * U;
+                const ey = sy + 2 * U * (u - 0.5);
+                line(sx, sy, ex, ey);
+            }
+
+            // ── (b) Face contour (primary silhouette) ──
+            // 3/4 view: right cheek prominent, left side foreshortened.
+            stroke(236, 220, 188, 165);
+            strokeWeight(2.2);
+            beginShape();
+            curveVertex(-12 * U, -34 * U);   // top-left of forehead
+            curveVertex(-12 * U, -34 * U);
+            curveVertex(-22 * U, -26 * U);   // left temple
+            curveVertex(-26 * U, -8 * U);    // left cheek (back)
+            curveVertex(-22 * U, 10 * U);    // left jaw (back)
+            curveVertex(-12 * U, 26 * U);    // left jaw angle
+            curveVertex(2 * U, 36 * U);      // chin
+            curveVertex(20 * U, 30 * U);     // right jaw angle
+            curveVertex(30 * U, 16 * U);     // right jawline
+            curveVertex(36 * U, -4 * U);     // right cheekbone — outermost
+            curveVertex(34 * U, -22 * U);    // right temple
+            curveVertex(22 * U, -32 * U);    // top-right of forehead
+            curveVertex(22 * U, -32 * U);
             endShape();
 
-            // A second, even fainter brow/temple line above
-            stroke(232, 216, 183, 14);
-            strokeWeight(0.8);
+            // ── (c) Right-cheek illumination (highest alpha) ──
+            // The scarred cheek is the brightest, most-illuminated plane.
+            stroke(248, 232, 200, 200);
+            strokeWeight(1.7);
             beginShape();
-            for (let i = 0; i <= 40; i++) {
-                const t = i / 40;
-                const angle = Math.PI + t * Math.PI;
-                const x = cx + fw * 0.92 * Math.cos(angle);
-                const y = cy - fh * 1.55 + fh * 0.45 * (-Math.sin(angle));
-                vertex(x, y);
-            }
+            curveVertex(6 * U, -32 * U);
+            curveVertex(6 * U, -32 * U);
+            curveVertex(22 * U, -30 * U);
+            curveVertex(32 * U, -22 * U);
+            curveVertex(36 * U, -4 * U);
+            curveVertex(32 * U, 14 * U);
+            curveVertex(22 * U, 28 * U);
+            curveVertex(22 * U, 28 * U);
             endShape();
+            // Cheekbone shading just inside the right contour
+            stroke(236, 220, 188, 100);
+            strokeWeight(0.9);
+            beginShape();
+            curveVertex(20 * U, -10 * U);
+            curveVertex(20 * U, -10 * U);
+            curveVertex(26 * U, -4 * U);
+            curveVertex(28 * U, 6 * U);
+            curveVertex(24 * U, 14 * U);
+            curveVertex(24 * U, 14 * U);
+            endShape();
+
+            // ── (d) Brow line ──
+            stroke(236, 220, 188, 175);
+            strokeWeight(2.0);
+            beginShape();
+            curveVertex(-12 * U, -16 * U);
+            curveVertex(-12 * U, -16 * U);
+            curveVertex(-2 * U, -18 * U);
+            curveVertex(10 * U, -19 * U);
+            curveVertex(18 * U, -17 * U);
+            curveVertex(20 * U, -15 * U);
+            curveVertex(20 * U, -15 * U);
+            endShape();
+            // Faint secondary line just under the brow (eye-socket shading)
+            stroke(236, 220, 188, 115);
+            strokeWeight(0.9);
+            beginShape();
+            curveVertex(-10 * U, -13 * U);
+            curveVertex(-10 * U, -13 * U);
+            curveVertex(2 * U, -14 * U);
+            curveVertex(14 * U, -14 * U);
+            curveVertex(20 * U, -12 * U);
+            curveVertex(20 * U, -12 * U);
+            endShape();
+
+            // ── (e) Right eye — almond, looking aside ──
+            stroke(236, 220, 188, 180);
+            strokeWeight(1.7);
+            beginShape();
+            curveVertex(3 * U, -10 * U);
+            curveVertex(3 * U, -10 * U);
+            curveVertex(8 * U, -12 * U);
+            curveVertex(14 * U, -11.5 * U);
+            curveVertex(18 * U, -10 * U);
+            curveVertex(18 * U, -10 * U);
+            endShape();
+            stroke(236, 220, 188, 145);
+            strokeWeight(1.0);
+            beginShape();
+            curveVertex(3 * U, -10 * U);
+            curveVertex(3 * U, -10 * U);
+            curveVertex(8 * U, -7 * U);
+            curveVertex(14 * U, -7 * U);
+            curveVertex(18 * U, -10 * U);
+            curveVertex(18 * U, -10 * U);
+            endShape();
+            noStroke();
+            fill(40, 32, 24, 220);
+            circle(10 * U, -9.4 * U, 3.8 * U);
+            fill(18, 14, 10, 235);
+            circle(10 * U, -9.4 * U, 1.6 * U);
+            fill(248, 236, 210, 220);
+            circle(10.6 * U, -10.1 * U, 0.75 * U);
+
+            // Left (background) eye — much fainter, just a slit
+            stroke(236, 220, 188, 95);
+            strokeWeight(1.0);
+            line(-15 * U, -10 * U, -9 * U, -10 * U);
+            noStroke();
+            fill(40, 32, 24, 150);
+            circle(-12 * U, -10 * U, 1.6 * U);
+
+            // ── (f) Nose ridge ──
+            stroke(236, 220, 188, 160);
+            strokeWeight(1.5);
+            beginShape();
+            curveVertex(0 * U, -14 * U);
+            curveVertex(0 * U, -14 * U);
+            curveVertex(3 * U, -4 * U);
+            curveVertex(6 * U, 4 * U);
+            curveVertex(9 * U, 8 * U);
+            curveVertex(7 * U, 11 * U);
+            curveVertex(7 * U, 11 * U);
+            endShape();
+            stroke(236, 220, 188, 125);
+            strokeWeight(0.9);
+            line(6 * U, 10 * U, 10 * U, 10.5 * U);
+            stroke(236, 220, 188, 80);
+            strokeWeight(0.6);
+            line(2 * U, 12 * U, 8 * U, 12.5 * U);
+
+            // ── (g) Lip line (single closed mouth) ──
+            stroke(236, 220, 188, 170);
+            strokeWeight(1.7);
+            beginShape();
+            curveVertex(-2 * U, 17.5 * U);
+            curveVertex(-2 * U, 17.5 * U);
+            curveVertex(4 * U, 18 * U);
+            curveVertex(10 * U, 17.6 * U);
+            curveVertex(16 * U, 16.6 * U);
+            curveVertex(16 * U, 16.6 * U);
+            endShape();
+            stroke(236, 220, 188, 115);
+            strokeWeight(0.7);
+            line(4 * U, 17.5 * U, 5 * U, 16 * U);
+            line(5 * U, 16 * U, 7 * U, 17 * U);
+
+            // ── (h) Neck stub + collar ──
+            stroke(236, 220, 188, 150);
+            strokeWeight(1.8);
+            line(-8 * U, 36 * U, -6 * U, 50 * U);
+            line(18 * U, 32 * U, 14 * U, 50 * U);
+            stroke(34, 26, 18, 200);
+            strokeWeight(1.6);
+            beginShape();
+            curveVertex(-10 * U, 50 * U);
+            curveVertex(-10 * U, 50 * U);
+            curveVertex(4 * U, 53 * U);
+            curveVertex(18 * U, 50 * U);
+            curveVertex(18 * U, 50 * U);
+            endShape();
+
+            // ── (i) Ear hint on the visible (right) side ──
+            stroke(236, 220, 188, 115);
+            strokeWeight(1.0);
+            beginShape();
+            curveVertex(31 * U, -16 * U);
+            curveVertex(31 * U, -16 * U);
+            curveVertex(34 * U, -14 * U);
+            curveVertex(35 * U, -8 * U);
+            curveVertex(32 * U, -4 * U);
+            curveVertex(32 * U, -4 * U);
+            endShape();
+
             pop();
         }
 
-        // ── The scar: a parametric arc that draws stroke-by-stroke ──
+        // ── The scar: a parametric arc that draws stroke-by-stroke. ──
+        // Boosted alpha and weight so the wound reads as vermillion blood
+        // against the parchment cheek, with healed-puncture pigment dots.
         function drawScar() {
             if (scarPath.length === 0) return;
             const progress = getScarProgress();
@@ -1387,77 +1630,267 @@
                 ? (1 - (millis() - (invokeFlashUntil - 700)) / 700)
                 : 0;
 
+            const { cx, cy } = faceCenter();
             push();
-            // Soft outer glow — multiple offset strokes in vermillion
+            translate(cx, cy);
+            rotate(currentFaceAngle);
+
             noFill();
-            for (let g = 3; g >= 1; g--) {
-                stroke(197, 74, 48, (24 + 30 * flashBoost) / g * pulse);
-                strokeWeight(2.4 + g * 1.6);
+            strokeJoin(ROUND);
+            strokeCap(ROUND);
+
+            // ── Soft outer glow (vermillion) ──
+            for (let g = 4; g >= 1; g--) {
+                stroke(197, 74, 48, ((100 + 35 * flashBoost) / g) * pulse);
+                strokeWeight(2.6 + g * 2.4);
                 beginShape();
                 for (let i = 0; i <= lastIdx; i++) {
                     vertex(scarPath[i].x, scarPath[i].y);
                 }
                 endShape();
             }
-            // The crisp inner stroke
-            stroke(226, 106, 79, (200 + 55 * flashBoost) * pulse);
-            strokeWeight(1.6);
+
+            // ── Crisp inner stroke ──
+            stroke(226, 106, 79, (242 + 13 * flashBoost) * pulse);
+            strokeWeight(2.0);
             beginShape();
             for (let i = 0; i <= lastIdx; i++) {
                 vertex(scarPath[i].x, scarPath[i].y);
             }
             endShape();
 
-            // Etching tip: a small bright bead at the leading edge
+            // ── Bright centerline highlight (the still-wet ridge) ──
+            stroke(248, 200, 175, 170 * pulse);
+            strokeWeight(0.75);
+            beginShape();
+            for (let i = 0; i <= lastIdx; i++) {
+                vertex(scarPath[i].x, scarPath[i].y);
+            }
+            endShape();
+
+            // ── Pigment dots along its length — where the blade dwelt,
+            //     suggesting healed punctures. ──
+            const dotTs = [0.32, 0.55, 0.74];
+            noStroke();
+            for (const dt of dotTs) {
+                if (dt > progress) continue;
+                const di = Math.floor(dt * SCAR_RES);
+                const p = scarPath[di];
+                for (let g = 3; g >= 1; g--) {
+                    fill(150, 50, 36, (54 / g) * pulse);
+                    circle(p.x, p.y, 1.0 + g * 1.2);
+                }
+                fill(138, 46, 30, 230);
+                circle(p.x, p.y, 1.4);
+            }
+
+            // ── Etching tip — bead at the head of the current draw ──
             if (progress < 1) {
                 const head = scarPath[lastIdx];
-                const px = head.x;
-                const py = head.y;
-                noStroke();
                 for (let g = 4; g >= 1; g--) {
-                    fill(226, 106, 79, 28 / g);
-                    circle(px, py, 6 + g * 5);
-                }
-                fill(248, 220, 195, 230);
-                circle(px, py, 3.4);
-            }
-
-            pop();
-        }
-
-        // ── Wound marks (clicks the user has placed) ──
-        function drawWoundMarks() {
-            if (woundMarks.length === 0) return;
-            push();
-            noStroke();
-            for (const w of woundMarks) {
-                const idx = Math.floor(w.t * SCAR_RES);
-                if (idx < 0 || idx >= scarPath.length) continue;
-                const p = scarPath[idx];
-                const pulse = 0.7 + 0.3 * Math.sin(millis() * 0.004 + w.t * 9.7);
-                for (let g = 5; g >= 1; g--) {
-                    fill(226, 106, 79, (32 / g) * pulse);
-                    circle(p.x, p.y, 8 + g * 6);
+                    fill(226, 106, 79, 32 / g);
+                    circle(head.x, head.y, 6 + g * 5);
                 }
                 fill(248, 220, 195, 235);
-                circle(p.x, p.y, 3.6);
+                circle(head.x, head.y, 3.4);
+            }
+
+            pop();
+        }
+
+        // ── The blade ghost: a thin silver-blue saber-shaped form following
+        //     the same parametric path as the scar. Visible during the first
+        //     ~1.4 seconds of the etching, with a bright tip at the head of
+        //     the cut and a small spark trail behind. Makes the scar feel
+        //     INFLICTED by a blade, not simply drawn. ──
+        function drawBladeGhost() {
+            if (scarPath.length === 0) return;
+            const progress = getScarProgress();
+            if (progress >= 1) return;
+            const elapsed = millis() - scarStartTime;
+            if (elapsed > BLADE_FADE_DURATION) return;
+            const bladeAlpha = constrain(1 - elapsed / BLADE_FADE_DURATION, 0, 1);
+            const lastIdx = Math.floor(progress * SCAR_RES);
+            if (lastIdx < 2) return;
+
+            const { cx, cy } = faceCenter();
+            push();
+            translate(cx, cy);
+            rotate(currentFaceAngle);
+
+            noFill();
+            strokeJoin(ROUND);
+            strokeCap(ROUND);
+
+            // Cool outer halo
+            for (let g = 3; g >= 1; g--) {
+                stroke(150, 190, 230, (60 / g) * bladeAlpha);
+                strokeWeight(2.0 + g * 2.0);
+                beginShape();
+                for (let i = 0; i <= lastIdx; i++) {
+                    vertex(scarPath[i].x, scarPath[i].y);
+                }
+                endShape();
+            }
+            // Saber body
+            stroke(180, 210, 235, 210 * bladeAlpha);
+            strokeWeight(2.2);
+            beginShape();
+            for (let i = 0; i <= lastIdx; i++) {
+                vertex(scarPath[i].x, scarPath[i].y);
+            }
+            endShape();
+            // Bright centerline (the polished steel)
+            stroke(232, 240, 250, 230 * bladeAlpha);
+            strokeWeight(0.8);
+            beginShape();
+            for (let i = 0; i <= lastIdx; i++) {
+                vertex(scarPath[i].x, scarPath[i].y);
+            }
+            endShape();
+
+            // Bright tip at the head of the cut
+            const head = scarPath[lastIdx];
+            noStroke();
+            for (let g = 5; g >= 1; g--) {
+                fill(190, 220, 240, (50 / g) * bladeAlpha);
+                circle(head.x, head.y, 5 + g * 5);
+            }
+            fill(245, 250, 255, 245 * bladeAlpha);
+            circle(head.x, head.y, 4.0);
+            // A tiny spark trail behind the tip
+            for (let k = 1; k <= 5; k++) {
+                const j = lastIdx - k * 2;
+                if (j < 0) break;
+                const sp = scarPath[j];
+                fill(220, 235, 250, (50 / k) * bladeAlpha);
+                circle(sp.x, sp.y, 1.6);
+            }
+
+            pop();
+        }
+
+        // ── M · O · O · N : the surname hidden on the concave edge of the
+        //     scar. Tiny brass small-caps, evenly spaced from t=0.20 to
+        //     t=0.85, appearing once the etching is essentially complete.
+        //     Hidden while the user has inscribed their own phrase. ──
+        function drawHiddenName() {
+            if (scarPath.length === 0 || scarTotalLen === 0) return;
+            const progress = getScarProgress();
+            if (progress < 0.92) return;
+            if (userPhrase) return;
+
+            const glyphs = 'M·O·O·N'.split('');
+            const tStart = 0.20;
+            const tEnd   = 0.85;
+
+            const { cx, cy } = faceCenter();
+            push();
+            translate(cx, cy);
+            rotate(currentFaceAngle);
+
+            textFont('IBM Plex Mono');
+            textSize(9);
+            textAlign(CENTER, CENTER);
+            noStroke();
+
+            for (let i = 0; i < glyphs.length; i++) {
+                const t = tStart + (tEnd - tStart) * (i / (glyphs.length - 1));
+                const idx = Math.max(0, Math.min(SCAR_RES - 1, Math.floor(t * SCAR_RES)));
+                const p = scarPath[idx];
+                const pNext = scarPath[Math.min(SCAR_RES, idx + 2)];
+                const tan = Math.atan2(pNext.y - p.y, pNext.x - p.x);
+                // Inward normal: pick the perpendicular pointing toward the
+                // arc centre (face origin in local coords). That is the
+                // concave / inner side of the crescent.
+                const nx = -Math.sin(tan);
+                const ny =  Math.cos(tan);
+                const dot = nx * (-p.x) + ny * (-p.y);
+                const dir = dot > 0 ? 1 : -1;
+                const offset = 9.0;
+                const ox = p.x + nx * offset * dir;
+                const oy = p.y + ny * offset * dir;
+
+                push();
+                translate(ox, oy);
+                rotate(tan);
+                // Tiny shadow for legibility against the cheek
+                fill(8, 6, 14, 175);
+                text(glyphs[i], 0.5, 0.5);
+                const a = (glyphs[i] === '·') ? 115 : 132;
+                fill(198, 150, 84, a);
+                text(glyphs[i], 0, 0);
+                pop();
             }
             pop();
         }
 
-        // ── Drift fragment — text that appears near the cursor when close to the scar ──
+        // ── Wound marks (drilled clicks). ──
+        // Each mark now blooms a soft vermillion pigment stain — a radial
+        // gradient fading in over 600ms from alpha 40 → 0 across 18px —
+        // that remains as a permanent stain on the cheek.
+        function drawWoundMarks() {
+            if (woundMarks.length === 0) return;
+            const { cx, cy } = faceCenter();
+            const now = millis();
+
+            push();
+            translate(cx, cy);
+            rotate(currentFaceAngle);
+
+            const ctx = drawingContext;
+            // Pass 1: soft pigment blooms (radial gradient stains).
+            for (const w of woundMarks) {
+                if (w.bornAt == null) w.bornAt = now;
+                const idx = Math.max(0, Math.min(SCAR_RES, Math.floor(w.t * SCAR_RES)));
+                const p = scarPath[idx];
+                const age = now - w.bornAt;
+                const intensity = constrain(age / 600, 0, 1);
+                const r = 18;
+                const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+                grad.addColorStop(0.00, `rgba(197, 74, 48, ${0.157 * intensity})`);
+                grad.addColorStop(0.55, `rgba(197, 74, 48, ${0.078 * intensity})`);
+                grad.addColorStop(1.00, 'rgba(197, 74, 48, 0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Pass 2: bright vermillion drop on top of the bloom.
+            noStroke();
+            for (const w of woundMarks) {
+                const idx = Math.max(0, Math.min(SCAR_RES, Math.floor(w.t * SCAR_RES)));
+                const p = scarPath[idx];
+                const pulse = 0.7 + 0.3 * Math.sin(now * 0.004 + w.t * 9.7);
+                for (let g = 5; g >= 1; g--) {
+                    fill(226, 106, 79, (40 / g) * pulse);
+                    circle(p.x, p.y, 6 + g * 4);
+                }
+                fill(248, 220, 195, 240);
+                circle(p.x, p.y, 3.6);
+            }
+
+            pop();
+        }
+
+        // ── Drift fragment: a deterministic fragment of the betrayal
+        //     revealed when the cursor approaches the scar. Hit-tested in
+        //     face-local coords; the chip and tether are drawn in world
+        //     coords, anchored to the (rotated) world position of the
+        //     closest scar point. ──
         function drawDriftFragment() {
             if (openWound) return;
             if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
             const progress = getScarProgress();
             if (progress < 0.05) return;
-            const near = nearestScarT(mouseX, mouseY, progress);
+            const local = mouseToFaceLocal();
+            const near = nearestScarT(local.x, local.y, progress);
             if (!near) return;
 
             const PROXIMITY = 90;
             if (near.dist > PROXIMITY) return;
 
-            // Deterministic fragment from t (stable per cursor position)
             const idx = Math.floor(near.t * SCAR_FRAGMENTS.length * 1.7) % SCAR_FRAGMENTS.length;
             const fragment = SCAR_FRAGMENTS[idx];
             const fade = 1 - near.dist / PROXIMITY;
@@ -1468,45 +1901,45 @@
             textSize(13);
             textAlign(LEFT, BOTTOM);
             noStroke();
-            // Soft backdrop chip
             const tw = textWidth(fragment);
-            fill(12, 10, 8, 170 * fade);
+            fill(12, 10, 8, 175 * fade);
             rect(mouseX + 12, mouseY - 22, tw + 16, 20, 1);
-            stroke(197, 74, 48, 70 * fade);
+            stroke(197, 74, 48, 80 * fade);
             strokeWeight(0.6);
             noFill();
             rect(mouseX + 12, mouseY - 22, tw + 16, 20, 1);
             noStroke();
-            fill(232, 130, 110, 220 * fade);
+            fill(232, 130, 110, 225 * fade);
             text(fragment, mouseX + 20, mouseY - 7);
 
-            // A faint tether to the scar — short pale line from cursor toward the scar
-            const idx2 = near.idx;
-            const target = scarPath[idx2];
-            stroke(226, 106, 79, 60 * fade);
+            const tgt = scarWorldPoint(near.t);
+            stroke(226, 106, 79, 75 * fade);
             strokeWeight(0.6);
-            line(mouseX, mouseY, target.x, target.y);
+            line(mouseX, mouseY, tgt.x, tgt.y);
             pop();
         }
 
-        // ── User's invoked phrase, rendered along the scar curve ──
+        // ── User's invoked phrase, lettered along the scar curve. ──
+        // Drawn inside the face transform so the inscription tilts and
+        // moves with the face.
         function drawPhraseAlongScar() {
             if (!userPhrase || scarTotalLen === 0) return;
             const progress = getScarProgress();
             if (progress < 1) return;
 
+            const { cx, cy } = faceCenter();
             push();
+            translate(cx, cy);
+            rotate(currentFaceAngle);
+
             textFont('Cormorant Garamond');
             textStyle(ITALIC);
             textSize(15);
             noStroke();
-            fill(232, 216, 183, 230);
 
-            // Approximate total phrase length (sum of glyph widths)
             let phraseW = 0;
             for (let i = 0; i < userPhrase.length; i++) phraseW += textWidth(userPhrase[i]) + 0.4;
 
-            // Start so the centre of the phrase coincides with the user's wound
             let startDist = userPhraseT * scarTotalLen - phraseW / 2;
             const margin = 18;
             startDist = Math.max(margin, Math.min(scarTotalLen - phraseW - margin, startDist));
@@ -1519,7 +1952,6 @@
                 const target = cursor + cw / 2;
                 if (target > scarTotalLen - margin) break;
 
-                // Locate segment via binary-ish scan
                 let seg = 1;
                 while (seg < scarLengths.length && scarLengths[seg] < target) seg++;
                 if (seg >= scarLengths.length) break;
@@ -1536,10 +1968,9 @@
                 translate(x, y);
                 rotate(ang);
                 textAlign(CENTER, CENTER);
-                // Letter shadow for legibility on the indigo
-                fill(8, 6, 14, 200);
-                text(ch, 0, -16.4);
-                fill(248, 232, 200, 240);
+                fill(8, 6, 14, 215);
+                text(ch, 0.4, -15.6);
+                fill(248, 232, 200, 248);
                 text(ch, 0, -16);
                 pop();
 
@@ -1548,23 +1979,24 @@
             pop();
         }
 
-        // ── Hint label that follows the cursor when no fragment is close ──
+        // ── "Click to confess" hint when cursor is right on the scar. ──
         function drawHoverHint() {
             if (openWound) return;
             const progress = getScarProgress();
             if (progress < 1) return;
             if (mouseX < 0 || mouseX > width || mouseY < 0 || mouseY > height) return;
-            const near = nearestScarT(mouseX, mouseY, progress);
+            const local = mouseToFaceLocal();
+            const near = nearestScarT(local.x, local.y, progress);
             if (!near) return;
             const VERY_CLOSE = 30;
             if (near.dist > VERY_CLOSE) return;
-            // Show a faint "click to confess" hint
+
             push();
             textFont('IBM Plex Mono');
             textSize(9);
             textAlign(LEFT, TOP);
             noStroke();
-            fill(232, 216, 183, 130);
+            fill(232, 216, 183, 140);
             text('CLICK TO CONFESS', mouseX + 14, mouseY + 12);
             pop();
         }
@@ -1572,8 +2004,11 @@
         // ── Draw ──
         function draw() {
             drawBackgroundGradient();
+            updateFaceAngle();
             drawFaceSilhouette();
             drawScar();
+            drawBladeGhost();
+            drawHiddenName();
             drawPhraseAlongScar();
             drawWoundMarks();
             drawDriftFragment();
@@ -1588,7 +2023,8 @@
 
             const progress = getScarProgress();
             if (progress < 0.05) return;
-            const near = nearestScarT(mouseX, mouseY, progress);
+            const local = mouseToFaceLocal();
+            const near = nearestScarT(local.x, local.y, progress);
             if (!near) return;
             // Click must be reasonably close to the scar
             if (near.dist > 38) return;
@@ -1610,7 +2046,8 @@
             if (moved < 12) {
                 const progress = getScarProgress();
                 if (progress >= 0.05) {
-                    const near = nearestScarT(mouseX, mouseY, progress);
+                    const local = mouseToFaceLocal();
+                    const near = nearestScarT(local.x, local.y, progress);
                     if (near && near.dist <= 44) openWoundFor(near.t);
                 }
             }
@@ -1640,17 +2077,19 @@
             ensureScarComplete();
             openWound = { t };
 
-            // Place a persistent wound mark at this t (deduplicated by closeness)
+            // Place a persistent wound mark at this t (deduplicated by closeness).
+            // bornAt drives the 600ms pigment-bloom fade-in for the bleed.
             const exists = woundMarks.some(w => Math.abs(w.t - t) < 0.004);
-            if (!exists) woundMarks.push({ t });
+            if (!exists) woundMarks.push({ t, bornAt: millis() });
             // Cap the number of marks to keep the canvas readable
             if (woundMarks.length > 24) woundMarks.shift();
 
-            // Compute wound world position from t (used for catalog hashing)
-            const idx = Math.max(0, Math.min(SCAR_RES, Math.floor(t * SCAR_RES)));
-            const p = scarPath[idx];
+            // Rotation-invariant world position for catalog hashing — the
+            // confession at a given t must stay the same regardless of how
+            // the face happens to be tilted at click time.
+            const ref = scarReferencePoint(t);
 
-            const cat = catalogFromWound(t, p.x, p.y);
+            const cat = catalogFromWound(t, ref.x, ref.y);
             const title = generateTitle(cat.seed);
             const confession = generateConfession(cat.seed);
 

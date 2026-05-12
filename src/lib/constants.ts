@@ -154,8 +154,8 @@ export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'ficciones-gallery',
-    title: 'Ficciones: Borges\' Algorithms, Made Visible',
-    excerpt: 'A companion gallery to AlgoArt. Twelve stories from Borges\' Ficciones (1944) translated into interactive computational works — an infinite library, forking timelines, recursive dreams, a Tetragrammaton of murders. Each piece responds to drift, drill, and an invoked phrase.',
+    title: 'Ficciones: Jorge Luis Borges\' Stories, Made Visible',
+    excerpt: 'A companion gallery to AlgoArt. Twelve stories from Jorge Luis Borges\' Ficciones (1944) — a foundational work of Latin American magical realism — translated into interactive computational works: an infinite library, forking timelines, recursive dreams, a Tetragrammaton of murders. Each piece responds to drift, drill, and an invoked phrase.',
     content: '',
     date: '2026-05-11',
     readTime: '12 pieces',
