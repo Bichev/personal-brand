@@ -1299,9 +1299,9 @@
         function worldToScreenX(wx) { return wx - camX + width / 2; }
         function screenToWorldX(sx) { return sx - width / 2 + camX; }
 
-        function topBaseY() { return height * 0.34; }
-        function botBaseY() { return height * 0.66; }
-        function waveAmp() { return constrain(min(width, height) * 0.065, 36, 72); }
+        function topBaseY() { return height * 0.31; }
+        function botBaseY() { return height * 0.69; }
+        function waveAmp() { return constrain(min(width, height) * 0.090, 54, 100); }
 
         // ── The two phase-locked waveforms ──
         // baseline(xw, phaseOff, t) is uncorrelated between top and bottom (different freqs/phases).
@@ -1439,22 +1439,22 @@
             push();
             noStroke();
             textFont('IBM Plex Mono');
-            textSize(10);
+            textSize(12);
             textAlign(LEFT, TOP);
             if (leftSx > -100 && leftSx < width) {
-                const a = constrain(map(leftSx, -80, 180, 0, 130), 0, 130);
+                const a = constrain(map(leftSx, -80, 180, 0, 145), 0, 145);
                 fill(212, 163, 102, a);
-                text('◀  1599 · WILLIAM SHAKESPEARE', Math.max(leftSx + 12, 18), height * 0.18);
+                text('◀  1599 · WILLIAM SHAKESPEARE', Math.max(leftSx + 12, 18), height * 0.16);
                 fill(122, 144, 192, a);
-                text('◀  1824 · DUBLIN', Math.max(leftSx + 12, 18), height * 0.78);
+                text('◀  1824 · DUBLIN', Math.max(leftSx + 12, 18), height * 0.80);
             }
             if (rightSx > 0 && rightSx < width + 100) {
                 textAlign(RIGHT, TOP);
-                const a = constrain(map(rightSx, width + 80, width - 180, 0, 130), 0, 130);
+                const a = constrain(map(rightSx, width + 80, width - 180, 0, 145), 0, 145);
                 fill(212, 163, 102, a);
-                text('FUNERAL ORATION  ▶', Math.min(rightSx - 12, width - 18), height * 0.18);
+                text('FUNERAL ORATION  ▶', Math.min(rightSx - 12, width - 18), height * 0.16);
                 fill(122, 144, 192, a);
-                text('THE MARTYRED FUNERAL  ▶', Math.min(rightSx - 12, width - 18), height * 0.78);
+                text('THE MARTYRED FUNERAL  ▶', Math.min(rightSx - 12, width - 18), height * 0.80);
             }
             pop();
         }
@@ -1462,40 +1462,40 @@
         function drawHorizonAxis(topY, botY) {
             // Very faint horizontal grid lines for each timeline
             push();
-            stroke(198, 150, 84, 22);
-            strokeWeight(0.6);
+            stroke(198, 150, 84, 38);
+            strokeWeight(0.8);
             line(0, topY, width, topY);
-            stroke(122, 144, 192, 22);
+            stroke(122, 144, 192, 38);
             line(0, botY, width, botY);
             // Year-tick marks every fixed world unit
             noStroke();
             textFont('IBM Plex Mono');
-            textSize(8);
-            const tickSpacing = 220;
+            textSize(9);
+            const tickSpacing = 250;
             const startW = Math.floor((camX - width / 2) / tickSpacing) * tickSpacing;
             const endW = camX + width / 2 + tickSpacing;
             for (let wx = startW; wx <= endW; wx += tickSpacing) {
                 const sx = worldToScreenX(wx);
                 if (sx < -20 || sx > width + 20) continue;
-                stroke(198, 150, 84, 36);
-                strokeWeight(0.5);
-                line(sx, topY - 4, sx, topY + 4);
-                stroke(122, 144, 192, 36);
-                line(sx, botY - 4, sx, botY + 4);
+                stroke(198, 150, 84, 48);
+                strokeWeight(0.7);
+                line(sx, topY - 5, sx, topY + 5);
+                stroke(122, 144, 192, 48);
+                line(sx, botY - 5, sx, botY + 5);
             }
             pop();
         }
 
         function drawWaveform(baseY, amp, phaseOff, rgb, focusMul, t) {
             // Multi-pass: glow, then crisp line.
-            const alphaBase = 200 * focusMul;
+            const alphaBase = 215 * focusMul;
             push();
             noFill();
 
             // Outer glow (broad, low alpha)
             for (let g = 0; g < 3; g++) {
-                stroke(rgb[0], rgb[1], rgb[2], (32 + g * 6) * focusMul);
-                strokeWeight(5 - g * 1.2);
+                stroke(rgb[0], rgb[1], rgb[2], (40 + g * 8) * focusMul);
+                strokeWeight(7.5 - g * 1.6);
                 beginShape();
                 for (let sx = -6; sx <= width + 6; sx += 3) {
                     const wx = screenToWorldX(sx);
@@ -1507,7 +1507,7 @@
 
             // Crisp inner line
             stroke(rgb[0], rgb[1], rgb[2], alphaBase);
-            strokeWeight(1.4);
+            strokeWeight(2.1);
             beginShape();
             for (let sx = -6; sx <= width + 6; sx += 2) {
                 const wx = screenToWorldX(sx);
@@ -1517,12 +1517,12 @@
             endShape();
 
             // A subtle "shadow" trace below the line (a few px down, low alpha)
-            stroke(rgb[0], rgb[1], rgb[2], 50 * focusMul);
-            strokeWeight(0.8);
+            stroke(rgb[0], rgb[1], rgb[2], 60 * focusMul);
+            strokeWeight(1.0);
             beginShape();
             for (let sx = -6; sx <= width + 6; sx += 3) {
                 const wx = screenToWorldX(sx);
-                const y = baseY + amp * waveValue(wx, phaseOff, t) + 6;
+                const y = baseY + amp * waveValue(wx, phaseOff, t) + 8;
                 curveVertex(sx, y);
             }
             endShape();
@@ -1544,14 +1544,14 @@
             // Vermillion connector line
             push();
             const connRgb = isInvoked ? [226, 106, 79] : [197, 74, 48];
-            const connA = (isHover ? 200 : 120) * pulse;
+            const connA = (isHover ? 215 : 140) * pulse;
             stroke(connRgb[0], connRgb[1], connRgb[2], connA);
-            strokeWeight(isHover ? 1.6 : 0.95);
+            strokeWeight(isHover ? 2.3 : 1.4);
             line(sx, ty, sx, by);
 
             // Vertical pulse glow column (very faint)
-            stroke(connRgb[0], connRgb[1], connRgb[2], 22 * pulse);
-            strokeWeight(isHover ? 8 : 4);
+            stroke(connRgb[0], connRgb[1], connRgb[2], 28 * pulse);
+            strokeWeight(isHover ? 12 : 6);
             line(sx, ty, sx, by);
             pop();
 
@@ -1572,21 +1572,21 @@
                 push();
                 noStroke();
                 textFont('IBM Plex Mono');
-                textSize(8);
+                textSize(12);
                 textAlign(CENTER, CENTER);
-                const a = isHover ? 220 : 120;
+                const a = isHover ? 235 : 155;
                 fill(212, 163, 102, a);
-                text(romanNumeral(ev.index), sx, ty - 18);
+                text(romanNumeral(ev.index), sx, ty - 24);
                 pop();
             } else if (ev.kind === 'invoked') {
                 push();
                 noStroke();
                 textFont('IBM Plex Mono');
-                textSize(8);
+                textSize(12);
                 textAlign(CENTER, CENTER);
-                const a = isHover ? 230 : 150;
+                const a = isHover ? 240 : 175;
                 fill(226, 106, 79, a);
-                text('✦', sx, ty - 18);
+                text('✦', sx, ty - 24);
                 pop();
             }
         }
@@ -1598,24 +1598,24 @@
             // Glow halos
             noStroke();
             for (let g = 0; g < 3; g++) {
-                fill(ringRgb[0], ringRgb[1], ringRgb[2], (isHover ? 38 : 22) / (g + 1) * pulse);
-                circle(0, 0, (isHover ? 22 : 14) + g * 8);
+                fill(ringRgb[0], ringRgb[1], ringRgb[2], (isHover ? 46 : 28) / (g + 1) * pulse);
+                circle(0, 0, (isHover ? 30 : 20) + g * 10);
             }
             // Ring
             noFill();
-            stroke(ringRgb[0], ringRgb[1], ringRgb[2], 230 * pulse);
-            strokeWeight(isHover ? 1.6 : 1.1);
-            circle(0, 0, isHover ? 12 : 8.5);
+            stroke(ringRgb[0], ringRgb[1], ringRgb[2], 235 * pulse);
+            strokeWeight(isHover ? 2.0 : 1.4);
+            circle(0, 0, isHover ? 17 : 12);
             // Core
             noStroke();
-            fill(coreRgb[0], coreRgb[1], coreRgb[2], 240);
-            circle(0, 0, isHover ? 5.5 : 3.6);
+            fill(coreRgb[0], coreRgb[1], coreRgb[2], 245);
+            circle(0, 0, isHover ? 7.5 : 5.0);
             // Invoked nodes get a small outer vermillion mark
             if (isInvoked) {
                 noFill();
-                stroke(226, 106, 79, 200 * pulse);
-                strokeWeight(0.8);
-                circle(0, 0, isHover ? 18 : 14);
+                stroke(226, 106, 79, 215 * pulse);
+                strokeWeight(1.0);
+                circle(0, 0, isHover ? 24 : 19);
             }
             pop();
         }
@@ -1630,26 +1630,26 @@
             translate(sx, midY);
             noStroke();
             textFont('IBM Plex Mono');
-            textSize(10);
+            textSize(12);
             textAlign(CENTER, CENTER);
             const label = ev.kind === 'famous'
                 ? `⬡  SYNC ${romanNumeral(ev.index)}  ·  ${ev.syncTitle.toUpperCase()}`
                 : `⬡  SYNC ✦  ·  ${(ev.phrase || '').toUpperCase().slice(0, 36)}`;
             const tw = textWidth(label);
             // Backdrop
-            fill(12, 10, 8, 220);
-            rect(-tw / 2 - 14, -11, tw + 28, 22, 1);
-            stroke(ev.kind === 'invoked' ? 226 : 184, ev.kind === 'invoked' ? 106 : 136, ev.kind === 'invoked' ? 79 : 74, 110);
-            strokeWeight(0.6);
+            fill(12, 10, 8, 225);
+            rect(-tw / 2 - 16, -13, tw + 32, 26, 1);
+            stroke(ev.kind === 'invoked' ? 226 : 184, ev.kind === 'invoked' ? 106 : 136, ev.kind === 'invoked' ? 79 : 74, 130);
+            strokeWeight(0.7);
             noFill();
-            rect(-tw / 2 - 14, -11, tw + 28, 22, 1);
+            rect(-tw / 2 - 16, -13, tw + 32, 26, 1);
             noStroke();
-            fill(ev.kind === 'invoked' ? 230 : 212, ev.kind === 'invoked' ? 130 : 163, ev.kind === 'invoked' ? 100 : 102, 235);
+            fill(ev.kind === 'invoked' ? 230 : 212, ev.kind === 'invoked' ? 130 : 163, ev.kind === 'invoked' ? 100 : 102, 240);
             text(label, 0, 0);
             // Sub hint
-            textSize(8);
-            fill(232, 216, 183, 130);
-            text('CLICK TO OPEN', 0, 18);
+            textSize(9);
+            fill(232, 216, 183, 150);
+            text('CLICK TO OPEN', 0, 22);
             pop();
         }
 
