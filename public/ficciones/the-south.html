@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Sur — Ficciones</title>
-    <meta name="description" content="An interactive visualization of Jorge Luis Borges' El Sur — two endings superimposed on a single canvas, crossfading on the velocity of the cursor. Move fast and the hospital rises; sit still and the pampas comes for you.">
+    <meta name="description" content="An interactive visualization of Jorge Luis Borges' El Sur — two endings superimposed on a single canvas, crossfading on the velocity of the cursor. Move fast and the hospital rises; sit still and the pampas comes for you. Click at equilibrium to read a fragment that belongs to both rooms.">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -112,81 +112,8 @@
             text-transform: uppercase;
         }
 
-        /* ── Oracle bar (top-center) — THE INVOKE ── */
-        .oracle {
-            position: absolute;
-            top: 56px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 22px;
-            background: rgba(12, 10, 8, 0.78);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid var(--brass-faint);
-            border-radius: 1px;
-            min-width: 580px;
-            max-width: calc(100vw - 64px);
-            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s;
-            opacity: 0;
-            animation: oracleFadeIn 2s 1.2s forwards;
-        }
-
         @keyframes oracleFadeIn {
             to { opacity: 1; }
-        }
-
-        .oracle:hover, .oracle:focus-within {
-            border-color: rgba(184, 136, 74, 0.6);
-            box-shadow: 0 0 24px rgba(184, 136, 74, 0.08);
-            background: rgba(12, 10, 8, 0.92);
-        }
-
-        .oracle-glyph {
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-            font-size: 18px;
-            color: var(--brass);
-            line-height: 1;
-            user-select: none;
-        }
-
-        .oracle-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--parchment);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.4px;
-            padding: 2px 0;
-        }
-
-        .oracle-input::placeholder {
-            color: var(--parchment-faint);
-            font-style: italic;
-            animation: oraclePulse 4s ease-in-out infinite;
-        }
-
-        @keyframes oraclePulse {
-            0%, 100% { opacity: 0.55; }
-            50% { opacity: 0.95; }
-        }
-
-        .oracle-hint {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 10px;
-            font-weight: 400;
-            letter-spacing: 1.8px;
-            color: var(--parchment-faint);
-            text-transform: uppercase;
-            user-select: none;
-            white-space: nowrap;
         }
 
         /* ── Placard (bottom-center) ── */
@@ -371,11 +298,6 @@
             opacity: 0.95;
         }
 
-        /* When opened via an oracle invocation, switch the eyebrow accent */
-        .book-overlay.invoked .book-eyebrow {
-            color: var(--vermillion-bright);
-        }
-
         .book-title {
             font-family: 'Cormorant Garamond', serif;
             font-style: italic;
@@ -411,20 +333,6 @@
 
         .book-catalog .row { display: flex; align-items: baseline; gap: 8px; }
 
-        /* The "phrase located" row, only visible when invoked via oracle */
-        .book-catalog .row.found {
-            display: none;
-        }
-        .book-overlay.invoked .book-catalog .row.found {
-            display: flex;
-        }
-        .book-catalog .row.found .label {
-            color: var(--vermillion-bright);
-        }
-        .book-catalog .row.found .value {
-            color: var(--parchment);
-        }
-
         .book-excerpt {
             font-family: 'EB Garamond', serif;
             font-size: 15px;
@@ -440,15 +348,6 @@
         .book-excerpt .ellipsis {
             color: var(--parchment-faint);
             margin: 0 2px;
-        }
-
-        /* Highlighted phrase that the user invoked — rubricated in vermillion */
-        .book-excerpt mark {
-            background: transparent;
-            color: var(--vermillion-bright);
-            font-weight: 500;
-            border-bottom: 1px solid rgba(226, 106, 79, 0.45);
-            padding: 0 1px;
         }
 
         .book-close {
@@ -817,7 +716,7 @@
             .back-nav .site-mark { display: none; }
 
             /* On mobile, placard moves to the TOP of the canvas region (under back-nav)
-               and the oracle + scroll indicator stack at the bottom — no overlap. */
+               and the scroll indicator sits at the bottom — no overlap. */
             .placard {
                 top: 56px;
                 bottom: auto;
@@ -826,17 +725,6 @@
             .placard-eyebrow { margin-bottom: 6px; font-size: 9px; letter-spacing: 2.5px; }
             .placard-title { font-size: 22px; margin-bottom: 2px; }
             .placard-meta { font-size: 9px; letter-spacing: 1.5px; }
-
-            .oracle {
-                top: auto;
-                bottom: 76px;
-                min-width: 0;
-                width: calc(100% - 32px);
-                padding: 10px 16px;
-                gap: 10px;
-            }
-            .oracle-hint { display: none; }
-            .oracle-input { font-size: 13px; }
 
             .scroll-indicator {
                 padding: 7px 18px;
@@ -904,21 +792,6 @@
             opacity: 0.75;
             margin-right: 6px;
         }
-        .book-excerpt .invoke-gloss {
-            color: var(--parchment);
-            font-style: italic;
-            display: block;
-        }
-        .book-excerpt .invoke-phrase {
-            display: block;
-            text-align: center;
-            margin: 4px 0 22px;
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-            font-size: 17px;
-        }
-        .book-excerpt .invoke-phrase .half-h { color: var(--indigo-bright); }
-        .book-excerpt .invoke-phrase .half-p { color: var(--brass-bright); }
     </style>
 </head>
 <body>
@@ -932,20 +805,6 @@
          Room 1 · The Exhibition Space
          ────────────────────────────────────────── -->
     <section class="exhibition-space" id="exhibit">
-
-        <!-- The Oracle (Invoke) -->
-        <form class="oracle" id="oracle" autocomplete="off">
-            <span class="oracle-glyph">✦</span>
-            <input
-                type="text"
-                class="oracle-input"
-                id="oracle-input"
-                placeholder="leave a memory at the boundary…"
-                maxlength="80"
-                aria-label="Leave a memory at the boundary between the two layers"
-            />
-            <span class="oracle-hint">↵ Enter</span>
-        </form>
 
         <!-- Canvas -->
         <div id="canvas-container">
@@ -1036,7 +895,6 @@
                 <div class="row"><span class="label">Click</span><span class="value" id="cat-gallery">—</span></div>
                 <div class="row"><span class="label">Balance</span><span class="value" id="cat-shelf">—</span></div>
                 <div class="row"><span class="label">Order</span><span class="value" id="cat-book">—</span></div>
-                <div class="row found"><span class="label">Found at</span><span class="value" id="cat-found">—</span></div>
             </div>
             <p class="book-excerpt" id="book-excerpt">—</p>
             <button type="button" class="book-close">Tap to close · <kbd>Esc</kbd></button>
@@ -1074,7 +932,7 @@
             <p class="literary-heart-quote-es">"A Dahlmann le pareció que esa Iliada de los pobres era el mismo poema que él, esa tarde, soñaba."</p>
             <p class="literary-heart-quote-en">"It seemed to Dahlmann that this Iliad of the poor was the same poem that he, that afternoon, was dreaming."</p>
             <p class="literary-heart-formula">opacity(A) + opacity(B) = 1</p>
-            <p class="literary-heart-description">Two scenes share one canvas; their opacities sum to one; the cursor's velocity decides which dominates. At velocity zero — sustained stillness — the pampas (B) reaches its full strength. At sustained motion, the hospital (A) does. Equilibrium — both layers at exactly one half — is the only moment the story will let you click, and the only place a typed memory can be inscribed along the boundary between the two.</p>
+            <p class="literary-heart-description">Two scenes share one canvas; their opacities sum to one; the cursor's velocity decides which dominates. At velocity zero — sustained stillness — the pampas (B) reaches its full strength. At sustained motion, the hospital (A) does. Equilibrium — both layers at exactly one half — is the only moment the story will let you click, and a fragment from both rooms is the only thing it will give you when you do.</p>
         </div>
 
         <nav class="article-nav">
@@ -1098,14 +956,6 @@
 
         // ── Deterministic hash & RNG (same approach as la-biblioteca-de-babel) ──
         // FNV-1a 32-bit
-        function hashString(s) {
-            let h = 0x811c9dc5 >>> 0;
-            for (let i = 0; i < s.length; i++) {
-                h ^= s.charCodeAt(i);
-                h = Math.imul(h, 0x01000193) >>> 0;
-            }
-            return h >>> 0;
-        }
         function hashCoords(q, r) {
             const a = (q << 1) ^ (q >> 31);
             const b = (r << 1) ^ (r >> 31);
@@ -1180,7 +1030,6 @@
         let smoothedV = 0;
         let hospitalState = 0.18;             // begin biased toward the pampas (no movement yet)
         let currentHospitalAlpha = 0.18;
-        let invokedMemory = null;             // {text, time, seed}
         let lastClickFeedback = null;         // {x, y, time, registered}
         let stars = [];                       // pre-generated star positions for the pampas sky
 
@@ -1255,17 +1104,11 @@
             const pAlpha = 1 - hAlpha;
             const eqClose = equilibriumCloseness();
 
-            // Pampas without the figure — the figure is deferred so the
-            // equilibrium-knife sits behind it in z-order.
             drawPampas(pAlpha, true);
             drawHospital(hAlpha);
             drawTrain(hAlpha, pAlpha, eqClose);
-            drawEquilibriumKnife(eqClose);
-            // Dark figure on the horizon goes ON TOP of the knife: the gaucho
-            // stands beyond the offered blade.
             drawPampasFigure(pAlpha);
             drawECG();
-            drawInvokedMemory();
 
             if (!overlayOpen) {
                 drawClickFeedback();
@@ -1338,8 +1181,8 @@
 
         // ── The dark figure on the horizon (extracted from drawPampas) ──
         // Kept in its own function so the main draw() loop can render it after
-        // the equilibrium-knife. Behaviour is identical to the original inlined
-        // block when called with the same alpha.
+        // the train. Behaviour is identical to the original inlined block when
+        // called with the same alpha.
         function drawPampasFigure(alpha) {
             if (alpha < 0.02) return;
             const horizonY = height * 0.55;
@@ -1602,111 +1445,6 @@
             pop();
         }
 
-        // ── The equilibrium-knife · the moment of choice rendered ──
-        // A long, slightly curved vermillion blade swept across the canvas just
-        // below the horizon band. Visible only at equilibrium, fading in with
-        // closeness, pulsing ±10% over ~3s. The brass hilt sits on the LEFT
-        // (handle); the blade tapers to a sharp point on the RIGHT (tip).
-        function drawEquilibriumKnife(eqCloseness) {
-            if (eqCloseness <= 0) return;
-            const x1 = width * 0.15, y1 = height * 0.62;
-            const x2 = width * 0.85, y2 = height * 0.58;
-            const segments = 30;
-
-            const pulse = 1 + 0.10 * Math.sin(millis() * 0.00209);
-            const baseAlpha = 220 * eqCloseness * pulse;
-            const glowAlpha = 30 * eqCloseness * pulse;
-
-            // Generate blade points (slight perpendicular sine arc, max ~6px deflection)
-            const dxL = x2 - x1, dyL = y2 - y1;
-            const lenL = Math.hypot(dxL, dyL);
-            const perpX = -dyL / lenL;
-            const perpY = dxL / lenL;
-            const points = [];
-            for (let i = 0; i <= segments; i++) {
-                const t = i / segments;
-                const px = lerp(x1, x2, t);
-                const py = lerp(y1, y2, t);
-                const arc = Math.sin(t * Math.PI) * 6;
-                points.push({ x: px + perpX * arc, y: py + perpY * arc, t });
-            }
-
-            push();
-            // Outer glow — two wider strokes of vermillion, very faint
-            noFill();
-            stroke(197, 74, 48, glowAlpha);
-            strokeWeight(5);
-            beginShape();
-            for (const p of points) curveVertex(p.x, p.y);
-            endShape();
-            stroke(197, 74, 48, glowAlpha * 1.6);
-            strokeWeight(2.6);
-            beginShape();
-            for (const p of points) curveVertex(p.x, p.y);
-            endShape();
-
-            // Main blade — taper from handle (~2.0px) to tip (~0.4px)
-            for (let i = 0; i < points.length - 1; i++) {
-                const t = points[i].t;
-                const w = lerp(2.0, 0.4, t);
-                const segAlpha = baseAlpha * (0.85 + 0.15 * (1 - t));
-                stroke(197, 74, 48, segAlpha);
-                strokeWeight(w);
-                line(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
-            }
-
-            // Hilt at the LEFT (handle) — brass tones
-            const hiltCx = points[0].x;
-            const hiltCy = points[0].y;
-            const ang = Math.atan2(points[1].y - points[0].y, points[1].x - points[0].x);
-            push();
-            translate(hiltCx, hiltCy);
-            rotate(ang);
-            // Crossguard (perpendicular to blade), drawn first so the grip sits over its centre
-            noStroke();
-            fill(224, 180, 120, baseAlpha);
-            rect(-3, -10, 6, 20);
-            // Grip — 20×4 rectangle extending LEFT from the blade root
-            fill(198, 150, 84, baseAlpha);
-            rect(-20, -2, 20, 4);
-            // Pommel cap
-            fill(224, 180, 120, baseAlpha);
-            ellipse(-20, 0, 4.5, 4.5);
-            pop();
-
-            // Tooltip · "THE KNIFE IS OFFERED" near the centre of the blade.
-            // p5 has no native letter-spacing, so we render each glyph manually
-            // with a 1.8px tracking offset to honour the spec.
-            const cIdx = Math.floor(points.length / 2);
-            const cPt = points[cIdx];
-            push();
-            textFont('IBM Plex Mono');
-            textSize(10);
-            textAlign(LEFT, CENTER);
-            noStroke();
-            const label = 'THE KNIFE IS OFFERED';
-            const letterSp = 1.8;
-            const widths = [];
-            let totalW = 0;
-            for (let i = 0; i < label.length; i++) {
-                const w = textWidth(label[i]);
-                widths.push(w);
-                totalW += w + letterSp;
-            }
-            totalW -= letterSp;
-            const labelAlpha = 235 * eqCloseness;
-            fill(224, 180, 120, labelAlpha);
-            let cx = cPt.x - totalW / 2;
-            const cy = cPt.y - 18;
-            for (let i = 0; i < label.length; i++) {
-                text(label[i], cx, cy);
-                cx += widths[i] + letterSp;
-            }
-            pop();
-
-            pop();
-        }
-
         // ── ECG line · always present, pulses across both layers ──
         function drawECG() {
             push();
@@ -1810,51 +1548,18 @@
             fill(236, 220, 188, isAtEquilibrium() ? 245 : 150);
             rect(mx - 1, by - 4, 2, bh + 8);
             // Status legend.
-            // At equilibrium the knife on the canvas itself carries the
-            // affordance ("THE KNIFE IS OFFERED" near its centre), so this
-            // line dims out instead of duplicating it here.
             textAlign(CENTER, CENTER);
-            textSize(8);
-            if (!isAtEquilibrium()) {
+            textSize(8.5);
+            if (isAtEquilibrium()) {
+                // Stable, visible affordance: pulsing brass-bright tooltip
+                // beneath the seam. Replaces the older vermillion knife.
+                const pulse = 0.85 + 0.15 * Math.sin(millis() * 0.005);
+                fill(224, 180, 120, 235 * pulse);
+                text('CLICK ANYWHERE', bx + bw / 2, by + 18);
+            } else {
                 fill(232, 216, 183, 110);
                 text('seek equilibrium', bx + bw / 2, by + 18);
             }
-            pop();
-        }
-
-        // ── Invoked memory · written along the boundary, half indigo / half brass ──
-        function drawInvokedMemory() {
-            if (!invokedMemory) return;
-            const age = millis() - invokedMemory.time;
-            let alpha = 1;
-            if (age < 600) alpha = age / 600;
-            else if (age > 8000) alpha = constrain(1 - (age - 8000) / 2200, 0, 1);
-            if (alpha <= 0) { invokedMemory = null; return; }
-            push();
-            textFont('Cormorant Garamond');
-            textStyle(ITALIC);
-            const baseSize = constrain(width * 0.022, 18, 30);
-            textSize(baseSize);
-            textAlign(CENTER, CENTER);
-            const txt = invokedMemory.text;
-            const split = Math.ceil(txt.length / 2);
-            const left = txt.slice(0, split);
-            const right = txt.slice(split);
-            const leftW = textWidth(left);
-            const rightW = textWidth(right);
-            const totalW = leftW + rightW;
-            const startX = width / 2 - totalW / 2;
-            const y = height * 0.55;
-            // Soft underline glow showing the boundary the phrase straddles
-            noStroke();
-            fill(236, 220, 188, 35 * alpha);
-            rect(startX - 30, y + baseSize * 0.62, totalW + 60, 0.6);
-            // Hospital half (indigo)
-            fill(122, 144, 192, 240 * alpha);
-            text(left, startX + leftW / 2, y);
-            // Pampas half (brass)
-            fill(224, 180, 120, 240 * alpha);
-            text(right, startX + leftW + rightW / 2, y);
             pop();
         }
 
@@ -1883,7 +1588,6 @@
             if (mouseX < 0 || mouseY < 0 || mouseX > width || mouseY > height) return;
             const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
             if (t && (
-                t.closest('.oracle') ||
                 t.closest('.education-panel') ||
                 t.closest('.book-overlay') ||
                 t.closest('.back-nav') ||
@@ -1899,7 +1603,6 @@
         function touchStarted() {
             const t = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
             if (t && (
-                t.closest('.oracle') ||
                 t.closest('.education-panel') ||
                 t.closest('.book-overlay') ||
                 t.closest('.back-nav') ||
@@ -1941,37 +1644,6 @@
             return lines;
         }
 
-        // ── Procedural Borgesian gloss for an invoked memory ──
-        function buildBorgesianGloss(seed, phrase) {
-            const r = rng(seed);
-            const intros = [
-                'In the catalogue of all possible ends',
-                'In the small library of his last hour',
-                'On the index of remembered and unremembered things',
-                'In the brief inventory between the two rooms',
-                'Among the unassigned pages of the south'
-            ];
-            const middles = [
-                'this memory occupies coordinate',
-                'this phrase has been waiting under coordinate',
-                'this sentence is filed at coordinate',
-                'this fragment is bound to coordinate',
-                'this utterance was already shelved at coordinate'
-            ];
-            const closings = [
-                '. It belongs neither to the hospital nor to the pampas — both rooms claim it, and neither will release it.',
-                ". It is true beneath the operating lamp and equally true beneath the southern stars; like Dahlmann's death, it has two addresses and only one body.",
-                '. Spoken under fluorescent light or under the open sky, it would be the same sentence — and yet, in each, it would mean something the other could not.',
-                '. Borges would have called this a point of irreconcilable belonging: a memory whose two homes are jealous of each other, and equally entitled.',
-                '. The librarian would file it twice. The gaucho would say it once and turn away. Both would be right.'
-            ];
-            const intro = intros[Math.floor(r() * intros.length)];
-            const middle = middles[Math.floor(r() * middles.length)];
-            const closing = closings[Math.floor(r() * closings.length)];
-            const coord = (seed >>> 16).toString(16).toUpperCase().padStart(4, '0');
-            return `${intro}, ${middle} ${coord}${closing}`;
-        }
-
         // ── Overlay management ──
         const overlay = document.getElementById('book-overlay');
         const elEyebrow = document.getElementById('book-eyebrow');
@@ -1980,7 +1652,6 @@
         const elCatGallery = document.getElementById('cat-gallery');
         const elCatShelf = document.getElementById('cat-shelf');
         const elCatBook = document.getElementById('cat-book');
-        const elCatFound = document.getElementById('cat-found');
         const elExcerpt = document.getElementById('book-excerpt');
 
         function escapeHtml(s) {
@@ -2004,41 +1675,11 @@
             }).join('');
             elExcerpt.innerHTML = html;
             elEyebrow.innerHTML = '✦  A fragment from both rooms';
-            overlay.classList.remove('invoked');
-            overlay.classList.add('open');
-        }
-
-        function openInvocationFor(phrase) {
-            const seed = hashString(phrase.toLowerCase());
-            const gloss = buildBorgesianGloss(seed, phrase);
-            const hexId = seed.toString(16).padStart(8, '0').toUpperCase();
-
-            elTitle.textContent = 'A memory belonging to neither and both';
-            elCatHex.textContent = `${hexId.slice(0,4)}-${hexId.slice(4)}`;
-            elCatGallery.textContent = 'Boundary · between layers';
-            elCatShelf.textContent = 'Hospital indigo · Pampas brass';
-            elCatBook.textContent = `${phrase.length} characters · split at ${Math.ceil(phrase.length / 2)}`;
-            elCatFound.textContent = 'Inscribed on the seam';
-
-            // Render the user's phrase in two halves (matching the canvas inscription),
-            // then the procedurally generated gloss.
-            const split = Math.ceil(phrase.length / 2);
-            const left = escapeHtml(phrase.slice(0, split));
-            const right = escapeHtml(phrase.slice(split));
-            elExcerpt.innerHTML =
-                `<span class="invoke-phrase">` +
-                    `<span class="half-h">${left}</span><span class="half-p">${right}</span>` +
-                `</span>` +
-                `<span class="invoke-gloss">${escapeHtml(gloss)}</span>`;
-
-            elEyebrow.innerHTML = '✦  A memory belonging to neither and both';
-            overlay.classList.add('invoked');
             overlay.classList.add('open');
         }
 
         function closeBook() {
             overlay.classList.remove('open');
-            overlay.classList.remove('invoked');
         }
 
         overlay.addEventListener('click', (e) => {
@@ -2053,26 +1694,6 @@
                 e.preventDefault();
                 closeBook();
             }
-        });
-
-        // ── Invoke · the oracle bar ──
-        const oracleForm = document.getElementById('oracle');
-        const oracleInput = document.getElementById('oracle-input');
-
-        oracleForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const phrase = (oracleInput.value || '').trim();
-            if (!phrase) return;
-            // First inscribe the phrase along the boundary on the canvas,
-            // then a moment later open the overlay with the Borgesian gloss.
-            invokedMemory = {
-                text: phrase,
-                time: millis(),
-                seed: hashString(phrase.toLowerCase())
-            };
-            if (overlay.classList.contains('open')) closeBook();
-            setTimeout(() => openInvocationFor(phrase), 1100);
-            oracleInput.blur();
         });
     </script>
 </body>
