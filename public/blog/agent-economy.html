@@ -23,8 +23,8 @@
             --bg-secondary: #12121a;
             --bg-card: #1a1a24;
             --text-primary: #e8e6e3;
-            --text-secondary: #9d9a95;
-            --text-muted: #6b6860;
+            --text-secondary: #aaa7a1;
+            --text-muted: #84817a;
             --accent: #c9a227;
             --accent-glow: rgba(201, 162, 39, 0.15);
             --border: rgba(201, 162, 39, 0.2);
@@ -182,9 +182,14 @@
             margin-bottom: 12px;
             margin-top: 20px;
         }
-        p { color: var(--text-secondary); margin-bottom: 16px; font-size: 15px; }
+        p { color: var(--text-secondary); margin-bottom: 18px; font-size: 16.5px; }
         p strong { color: var(--text-primary); }
         a { color: var(--accent); }
+
+        /* editorial measure: cap prose at ~80ch while visuals span the full container */
+        section > p, section > h2, section > h3, section > .section-label, blockquote {
+            max-width: 700px;
+        }
 
         blockquote {
             border-left: 2px solid var(--accent);
@@ -276,7 +281,7 @@
         .score.na { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-subtle); }
 
         ul, ol { color: var(--text-secondary); margin: 16px 0; padding-left: 24px; }
-        li { margin-bottom: 8px; font-size: 14px; }
+        li { margin-bottom: 8px; font-size: 15px; }
         li::marker { color: var(--accent); }
 
         .framework-box {
@@ -361,7 +366,7 @@
         }
         figcaption {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
             padding: 10px 4px;
             line-height: 1.6;
@@ -493,7 +498,7 @@
         }
         .dollar-cell .src {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 9px;
+            font-size: 10px;
             color: var(--text-muted);
             display: block;
             margin-top: 8px;
