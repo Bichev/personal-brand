@@ -153,6 +153,19 @@ export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: 'agent-economy',
+    title: 'Anatomy of a Gold Rush: Three Months Inside the AI Agent Economy',
+    excerpt: 'x402, ERC-8004, and what the on-chain data says about who\'s making money. An investigative long-read from inside the machine-payment economy: real volumes vs. headline numbers, a gateway that pays itself, mint-spam by the thousands, $4.5M honeypots — and the honest ledger of building a trust oracle that earned exactly $0. With animated system diagrams and interactive payment flows.',
+    content: '',
+    date: '2026-07-09',
+    readTime: '25 min read',
+    tags: ['AI Agents', 'x402', 'ERC-8004', 'Web3', 'Interactive', 'Investigation'],
+    published: true,
+    source: 'internal',
+    localPath: '/blog/agent-economy.html',
+    featured: true,
+  },
+  {
     id: 'ficciones-gallery',
     title: 'Ficciones: Jorge Luis Borges\' Stories, Made Visible',
     excerpt: 'A companion gallery to AlgoArt. Twelve stories from Jorge Luis Borges\' Ficciones (1944) — a foundational work of Latin American magical realism — translated into interactive computational works: an infinite library, forking timelines, recursive dreams, a Tetragrammaton of murders. Each piece responds to drift, drill, and an invoked phrase.',
