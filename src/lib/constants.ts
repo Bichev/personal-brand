@@ -155,7 +155,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'fat-tails',
     title: 'Fat Tails: The Hidden Shape of Risk',
-    excerpt: 'A bell curve says an 8-sigma day in the S&P 500 arrives once every 216 ages of the universe. I measured 8,437 trading days and found one every 5.6 years. Power laws, self-organised criticality and contagion, measured across 186 crypto pairs, 180 stocks and 33 years of index data, with four interactive visuals you can play with. Includes the part where I tried to trade it and the market said no.',
+    excerpt: 'A bell curve says an 8-sigma day in the S&P 500 arrives once every 216 ages of the universe. I measured 8,437 trading days and found one every 5.6 years. Power laws, self-organised criticality and contagion, measured across 186 crypto pairs, 180 stocks and 33 years of index data, with five interactive visuals you can play with. Includes the part where I tried to trade it and the market said no.',
     content: '',
     date: '2026-08-10',
     readTime: '18 min read',

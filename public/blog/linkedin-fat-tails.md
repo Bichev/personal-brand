@@ -22,7 +22,7 @@ Crash probability really does quadruple when my signals arm. The average path af
 
 So I went looking for an edge and came back with a ruler. The ruler is genuinely useful, mostly for deciding how large a position can be before a single day ends you.
 
-I wrote it up with four things you can actually play with in the browser: a sampler that shows why one billionaire breaks an average and one tall person does not, the real tail plot with 33 years of data, a forest fire that organises itself into a power law from two rules, and a contagion model where two lanes fire the same number of times and only one of them bankrupts you.
+I wrote it up with five things you can actually play with in the browser: a sampler that shows why one billionaire breaks an average and one tall person does not, the real tail plot with 33 years of data, a forest fire that organises itself into a power law from two rules, a contagion model where two lanes fire the same number of times and only one of them bankrupts you, and all 366 assets on a single ruler, where the entire half of the chart that risk models assume you live in is empty.
 
 Before the equation, the phenomenon. That has been the rule for everything I build.
 

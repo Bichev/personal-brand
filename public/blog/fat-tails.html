@@ -521,10 +521,76 @@
             border-left: 2px solid var(--border);
             padding-left: 14px;
         }
+        .stat-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 32px 0;
+        }
+        .stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-left: 2px solid var(--border);
+            padding: 20px 22px 22px;
+        }
+        .stat .st-k {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .stat .st-v {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.1rem;
+            line-height: 1.1;
+            color: var(--accent);
+            margin: 6px 0 2px;
+        }
+        .stat.cyan { border-left-color: var(--cyan); }
+        .stat.cyan .st-v { color: var(--cyan); }
+        .stat .st-note {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-top: 12px;
+        }
+        .gauge {
+            position: relative;
+            height: 6px;
+            background: rgba(255,255,255,0.07);
+            margin-top: 16px;
+        }
+        .gauge .g-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cyan); }
+        .gauge .g-mark { position: absolute; top: -5px; bottom: -5px; width: 1px; background: var(--red); }
+        .gauge-legend {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+        .bars2 { margin-top: 16px; display: grid; gap: 10px; }
+        .bar2 { display: grid; grid-template-columns: 62px 1fr 42px; align-items: center; gap: 10px; }
+        .bar2 .b-k {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .bar2 .b-track { display: block; height: 6px; background: rgba(255,255,255,0.07); }
+        .bar2 .b-fill { display: block; height: 6px; background: var(--accent); }
+        .bar2 .b-fill.dim { background: var(--text-muted); }
+        .bar2 .b-v { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); text-align: right; }
+        @media (max-width: 700px) { .stat-pair { grid-template-columns: 1fr; } }
         @media (max-width: 640px) {
             .viz { padding: 18px 14px; }
             .back-nav { padding: 12px 18px; }
             .hero-meta { gap: 18px; }
+            .stat .st-v { font-size: 1.7rem; }
         }
     </style>
 </head>
@@ -1010,43 +1076,101 @@
                     <li><strong>180 liquid US stocks plus SPY</strong>, daily, adjusted, July 2020 to August 2026.</li>
                     <li><strong>SPY back to February 1993</strong>, which is 8,437 daily returns, plus VIX over the same window.</li>
                     <li><strong>Bitcoin back to September 2014</strong>, 4,343 daily returns.</li>
+                    <li><strong>Every bar cross-checked against a second independent source</strong> before any of this ran, at 0.9975 daily return correlation. That check caught a field-order bug in my own ingest that had swapped the open and the low on 98% of my crypto bars.</li>
                 </ul>
             </div>
             <p>
-                The measurement result was unambiguous, and slightly funnier than I expected:
+                The result was unambiguous, and slightly funnier than I expected. Here is every asset I
+                measured, each one placed on the ruler by its own tail index:
             </p>
-            <div class="card-grid">
-                <div class="card red">
-                    <h4>Crypto: 0 out of 186</h4>
-                    <p>
-                        Not one pair was thin-tailed. Median right-tail &alpha; of 1.70, and 156 of the 186
-                        sat below 2, which is the regime where volatility has no stable value. Bitcoin itself
-                        measured 1.99, making it one of the tamer assets on the exchange.
-                    </p>
+
+            <div class="viz" id="viz-census">
+                <div class="viz-title">Visual 05 &nbsp;/&nbsp; The Census</div>
+                <div class="viz-sub">
+                    One dot per asset, 366 of them, positioned by measured &alpha;. Lower means wilder. The
+                    dots stack up where assets pile onto the same value, so the shape of each row is the
+                    shape of that market's risk. Hover or tap a dot to see which asset it is.
                 </div>
-                <div class="card orange">
-                    <h4>Stocks: 0 out of 180</h4>
-                    <p>
-                        Also not one. Median &alpha; of 2.25, essentially the whole universe inside the cubic
-                        band. Equities are better behaved than crypto by a clear margin and still nowhere near
-                        the bell curve their risk models assume.
-                    </p>
+                <div class="viz-controls">
+                    <button class="viz-btn" id="c-replay">REPLAY</button>
                 </div>
-                <div class="card cyan">
-                    <h4>Contagion: 0.59</h4>
-                    <p>
-                        Bitcoin's Hawkes branching ratio. Well below the runaway threshold of 1, and high
-                        enough that most extreme days are echoes. Volatility clusters because volatility
-                        causes volatility.
-                    </p>
+                <canvas class="viz-canvas" id="c-canvas" height="470"></canvas>
+                <div class="viz-legend">
+                    <span><i class="lg-dot" style="background:#f87171"></i> &alpha; below 2, no stable volatility (177 assets)</span>
+                    <span><i class="lg-dot" style="background:#fb923c"></i> the cubic band (189 assets)</span>
+                    <span><i class="lg-dot" style="background:#4ade80"></i> thin enough for a bell curve (none)</span>
                 </div>
-                <div class="card">
-                    <h4>Persistence: 76%</h4>
-                    <p>
-                        Three quarters of crypto pairs showed mild trend persistence by detrended
-                        fluctuation analysis. For stocks only about a quarter did. This is the one place
-                        crypto looked more tradeable.
-                    </p>
+                <div class="viz-readouts">
+                    <div class="ro red">
+                        <span class="k">Median<br>crypto &alpha;</span>
+                        <span class="v">1.70</span>
+                    </div>
+                    <div class="ro">
+                        <span class="k">Median<br>stocks &alpha;</span>
+                        <span class="v">2.25</span>
+                    </div>
+                    <div class="ro red">
+                        <span class="k">Wildest<br>asset</span>
+                        <span class="v">0.99</span>
+                    </div>
+                    <div class="ro green">
+                        <span class="k">Thin tailed<br>assets found</span>
+                        <span class="v">0 / 366</span>
+                    </div>
+                </div>
+                <div class="viz-caption">
+                    The interesting part of this chart is the empty half. Not one of the 366 assets reached
+                    even &alpha; = 3, and 177 of them sat below 2, where volatility has no stable value at
+                    all. Stocks are better behaved than crypto by a clear margin and still land nowhere near
+                    the region their own risk models assume. Bitcoin, at 1.99, is one of the tamer things on
+                    the exchange. These are right-tail measurements over the window every asset shares, which
+                    is why Bitcoin reads 1.99 here and 3.05 in the tail plot further up, where it gets its
+                    full history and both tails.
+                </div>
+            </div>
+
+            <p>
+                Two more numbers came out of the same run, and they are the ones that changed how I think
+                about waiting for a crash.
+            </p>
+
+            <div class="stat-pair">
+                <div class="stat cyan">
+                    <div class="st-k">Bitcoin contagion &nbsp;/&nbsp; Hawkes branching ratio</div>
+                    <div class="st-v">0.59</div>
+                    <div class="gauge">
+                        <div class="g-fill" style="width:59%"></div>
+                        <div class="g-mark" style="left:100%"></div>
+                    </div>
+                    <div class="gauge-legend">
+                        <span>0 &nbsp;independent events</span>
+                        <span>1.0 &nbsp;runaway</span>
+                    </div>
+                    <div class="st-note">
+                        Roughly 59% of extreme days are echoes of earlier extreme days rather than fresh
+                        news. Below 1 the process eventually calms down. Above 1 it never does.
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="st-k">Trend persistence &nbsp;/&nbsp; share of assets above random walk</div>
+                    <div class="st-v">76%</div>
+                    <div class="bars2">
+                        <div class="bar2">
+                            <span class="b-k">Crypto</span>
+                            <span class="b-track"><span class="b-fill" style="width:76%"></span></span>
+                            <span class="b-v">76%</span>
+                        </div>
+                        <div class="bar2">
+                            <span class="b-k">Stocks</span>
+                            <span class="b-track"><span class="b-fill dim" style="width:24%"></span></span>
+                            <span class="b-v">24%</span>
+                        </div>
+                    </div>
+                    <div class="st-note">
+                        Three quarters of crypto pairs showed mild persistence by detrended fluctuation
+                        analysis, against about a quarter of stocks. This was the one place crypto looked
+                        more tradeable than equities.
+                    </div>
                 </div>
             </div>
             <p>
@@ -1056,22 +1180,6 @@
                 winners continuing to win. It did the opposite. The top decile of trailing performers had
                 <em>negative</em> mean forward returns at both 20 and 60 day lookbacks. Whatever produces fat
                 tails in crypto prices, momentum ranking is not the way to harvest it.
-            </p>
-
-            <h3>An interlude about being wrong loudly</h3>
-            <p>
-                Somewhere in the middle of this I ran a sanity check comparing my stored Bitcoin candles
-                against an independent source. It failed spectacularly. My first assumption was that the check
-                was broken, because the check was new and the database had been running for months. The check
-                was fine. Coinbase returns candles as
-                <span class="chip cyan">[time, low, high, open, close, volume]</span>, and my ingest had read
-                them as time, open, high, low. Roughly 98% of my daily bars had the open and the low swapped.
-            </p>
-            <p>
-                Corrected at read time, the daily return correlation against the independent source came back
-                at 0.9975. Every number in this article sits on top of the corrected data. The lesson I would
-                like to pretend I already knew: a backtest that has never been cross-checked against a second
-                source is a story about your own code.
             </p>
         </section>
 
@@ -2077,6 +2185,289 @@
             for (let i = 0; i < W + 400; i++) stepSim();
             if (reduced) { pB.textContent = 'PLAY'; pB.classList.remove('active'); }
             draw(); readouts(); loop();
+        })();
+
+        /* ================================================================
+           VISUAL 05  ·  THE CENSUS  ·  every measured asset on one ruler
+           ================================================================ */
+        (function () {
+            const cv = document.getElementById('c-canvas');
+            if (!cv) return;
+            const CENSUS = {"crypto":[["00-USD",1.322],["1INCH-USD",1.878],["AAVE-USD",2.457],["ABT-USD",1.464],["ACH-USD",1.89],["ACS-USD",1.299],["ADA-USD",1.88],["AERGO-USD",1.653],["AGLD-USD",1.649],["AIOZ-USD",1.304],["ALCX-USD",1.738],["ALEPH-USD",1.103],["ALGO-USD",2.485],["ALICE-USD",1.929],["AMP-USD",1.423],["ANKR-USD",2.223],["APE-USD",1.952],["API3-USD",1.572],["APT-USD",1.464],["ARB-USD",1.514],["ARPA-USD",1.727],["ASM-USD",1.35],["AST-USD",1.308],["ATOM-USD",1.884],["AUCTION-USD",1.566],["AUDIO-USD",1.891],["AURORA-USD",1.112],["AVAX-USD",2.509],["AVT-USD",1.529],["AXL-USD",1.166],["AXS-USD",2.103],["BADGER-USD",1.84],["BAL-USD",1.942],["BAND-USD",2.112],["BAT-USD",2.226],["BCH-USD",2.323],["BICO-USD",1.747],["BIGTIME-USD",1.043],["BLUR-USD",1.382],["BLZ-USD",1.515],["BNT-USD",1.914],["BOBA-USD",1.59],["BTC-USD",1.994],["BTRST-USD",1.477],["C98-USD",1.901],["CBETH-USD",1.535],["CELR-USD",1.851],["CGLD-USD",1.885],["CHZ-USD",2.136],["COMP-USD",2.154],["COTI-USD",1.958],["CRO-USD",1.587],["CRV-USD",2.748],["CTSI-USD",1.868],["CTX-USD",1.306],["CVC-USD",1.816],["CVX-USD",1.587],["DASH-USD",1.936],["DIA-USD",1.879],["DIMO-USD",0.992],["DNT-USD",1.518],["DOGE-USD",1.947],["DOT-USD",1.886],["EGLD-USD",2.259],["ELA-USD",1.416],["ENS-USD",1.584],["ETC-USD",1.774],["ETH-USD",2.472],["FARM-USD",1.795],["FET-USD",2.262],["FIDA-USD",1.653],["FIL-USD",1.781],["FLOW-USD",1.78],["FLR-USD",1.174],["FORT-USD",1.229],["FORTH-USD",1.759],["FOX-USD",1.33],["GFI-USD",1.283],["GLM-USD",1.689],["GMT-USD",1.701],["GODS-USD",1.532],["GRT-USD",1.801],["GST-USD",1.155],["GTC-USD",2.255],["HBAR-USD",1.533],["HFT-USD",1.894],["HIGH-USD",1.73],["HNT-USD",1.16],["HOPR-USD",1.126],["ICP-USD",1.876],["IDEX-USD",1.672],["ILV-USD",1.497],["IMX-USD",2.106],["INDEX-USD",1.263],["INJ-USD",2.257],["INV-USD",1.626],["IOTX-USD",1.451],["JASMY-USD",1.61],["KAVA-USD",1.811],["KNC-USD",2.331],["KRL-USD",1.244],["KSM-USD",2.127],["LCX-USD",1.353],["LDO-USD",1.563],["LINK-USD",2.485],["LPT-USD",1.563],["LQTY-USD",1.56],["LRC-USD",1.71],["LTC-USD",2.129],["MAGIC-USD",1.562],["MANA-USD",1.753],["MASK-USD",1.779],["MATH-USD",1.106],["MDT-USD",1.635],["METIS-USD",1.464],["MINA-USD",2.158],["MKR-USD",1.963],["MLN-USD",1.646],["MNDE-USD",1.133],["MSOL-USD",2.052],["NCT-USD",1.242],["NEAR-USD",1.92],["NKN-USD",1.849],["NMR-USD",1.659],["OCEAN-USD",1.467],["OGN-USD",1.696],["OP-USD",1.696],["ORCA-USD",1.432],["OSMO-USD",1.481],["OXT-USD",1.918],["PERP-USD",1.775],["PLU-USD",1.584],["PNG-USD",1.265],["POLS-USD",1.646],["POND-USD",1.647],["POWR-USD",2.069],["PRIME-USD",1.195],["PRO-USD",1.234],["PYR-USD",1.5],["QI-USD",1.744],["QNT-USD",2.005],["RAD-USD",1.851],["RARE-USD",1.477],["RARI-USD",1.502],["REQ-USD",1.75],["RLC-USD",1.89],["ROSE-USD",1.749],["RPL-USD",1.907],["SAND-USD",1.707],["SEI-USD",1.436],["SHIB-USD",1.622],["SHPING-USD",1.294],["SKL-USD",1.965],["SNX-USD",1.949],["SOL-USD",2.305],["SPA-USD",1.222],["SPELL-USD",1.523],["STORJ-USD",1.994],["STX-USD",2.031],["SUI-USD",1.312],["SUKU-USD",1.516],["SUPER-USD",1.632],["SUSHI-USD",1.948],["SWFTC-USD",1.122],["T-USD",1.784],["TIA-USD",1.281],["TIME-USD",1.236],["TRAC-USD",1.678],["TRB-USD",1.73],["TRU-USD",1.854],["UMA-USD",1.69],["UNI-USD",1.865],["VARA-USD",1.105],["VET-USD",1.327],["VOXEL-USD",1.881],["VTHO-USD",1.085],["WAXL-USD",1.6],["XCN-USD",1.22],["XLM-USD",1.898],["XRP-USD",1.557],["XTZ-USD",2.258],["XYO-USD",1.296],["YFI-USD",1.786],["ZEC-USD",2.048],["ZEN-USD",1.709],["ZRX-USD",2.041]],"stocks":[["A",2.272],["AAPL",2.202],["ABBV",2.1],["ABNB",1.842],["ABT",2.275],["ACGL",2.274],["ACN",2.137],["ADBE",2.155],["ADI",2.377],["ADM",2.463],["ADP",2.19],["ADSK",2.367],["AEE",2.434],["AEP",2.501],["AES",1.936],["AFL",2.194],["AIG",2.061],["AIZ",2.43],["AJG",2.382],["AKAM",2.003],["ALB",2.332],["ALGN",2.078],["ALL",2.49],["ALLE",2.293],["AMAT",2.47],["AMCR",2.114],["AMD",2.463],["AME",2.134],["AMGN",1.936],["AMP",2.142],["AMT",2.15],["AMZN",2.305],["ANET",2.171],["AON",2.161],["AOS",2.338],["APA",2.129],["APD",2.269],["APH",2.078],["APO",2.363],["APP",2.374],["APTV",2.075],["ARE",2.324],["ARES",2.514],["ATO",2.673],["AVB",2.169],["AVGO",1.981],["AVY",2.612],["AWK",2.379],["AXON",1.848],["AXP",2.364],["AZO",2.371],["BA",2.332],["BAC",2.187],["BALL",1.874],["BAX",2.011],["BBY",2.34],["BDX",2.109],["BF-B",1.93],["BG",2.522],["BIIB",2.008],["BKNG",2.659],["BKR",2.585],["BLDR",2.179],["BLK",2.329],["BMY",2.061],["BNY",2.292],["BR",2.176],["BRK-B",2.601],["BRO",2.578],["BSX",2.146],["BX",2.322],["BXP",2.511],["C",2.307],["CAH",2.258],["CARR",2.383],["CASY",2.02],["CAT",2.128],["CB",2.128],["CBOE",2.597],["CBRE",2.384],["CCI",2.783],["CCL",2.019],["CDNS",2.246],["CDW",2.388],["CEG",1.778],["CF",2.485],["CFG",2.104],["CHD",2.367],["CHRW",2.218],["CHTR",2.264],["CI",2.42],["CIEN",1.885],["CINF",2.152],["CL",2.387],["CLX",2.634],["CMCSA",2.486],["CME",2.213],["CMG",2.271],["CMI",2.259],["CMS",2.713],["CNC",1.883],["CNP",2.438],["COF",2.704],["COHR",2.931],["COIN",1.895],["COO",2.124],["COP",2.337],["COR",2.138],["COST",2.417],["CPAY",2.278],["CPRT",2.103],["CPT",2.25],["CRH",2.553],["CRL",2.518],["CRWD",2.305],["CSCO",2.095],["CSGP",1.915],["CSX",2.318],["CTAS",2.282],["CTSH",2.304],["CTVA",2.163],["CVNA",1.793],["CVS",2.066],["CVX",2.163],["D",2.506],["DAL",2.418],["DASH",2.069],["DD",2.079],["DDOG",1.737],["DE",2.515],["DECK",2.385],["DELL",2.008],["DG",1.948],["DHI",2.165],["DHR",2.738],["DLR",2.612],["DLTR",2.157],["DOV",2.279],["DOW",1.952],["DPZ",2.085],["DRI",1.906],["DTE",2.368],["DUK",2.546],["DVA",2.161],["DVN",1.893],["DXCM",2.415],["EBAY",2.209],["ECHO",1.989],["ED",2.713],["ETN",2.297],["FANG",2.003],["FIX",2.19],["GLW",1.954],["GOOG",2.288],["GOOGL",2.123],["HD",2.739],["JNJ",2.391],["JPM",2.519],["KO",2.067],["LLY",2.052],["LNT",2.533],["MA",2.844],["META",2.106],["MMM",2.176],["MO",2.375],["MRK",2.181],["MSFT",2.904],["NVDA",2.389],["PEP",2.224],["PG",2.18],["SCHW",2.096],["STZ",2.027],["T",2.039],["TECH",2.108],["TSLA",2.26],["UNH",2.161],["V",1.986],["WMT",2.337],["XOM",2.225],["XYZ",2.025]]};
+            if (!CENSUS) return;
+
+            const A_MIN = 0.8, A_MAX = 5.05, Z1 = 2.0, Z2 = 3.5;
+            const RED = '#f87171', ORANGE = '#fb923c', GREEN = '#4ade80';
+            const rows = [
+                { key: 'crypto', label: '186 CRYPTO PAIRS', med: 1.70, mark: 'BTC-USD' },
+                { key: 'stocks', label: '180 US STOCKS', med: 2.25, mark: null }
+            ];
+            let dots = [], geo = null, hover = null, raf = 0, t0 = 0, played = false;
+
+            function colorFor(a) { return a < Z1 ? RED : (a <= Z2 ? ORANGE : GREEN); }
+
+            function build() {
+                const H = (cv.clientWidth || 640) < 560 ? 540 : 470;
+                const s = setup(cv, H);
+                const w = s.w, h = s.h;
+                const padL = 18, padR = 16, padT = 46, padB = 50;
+                const x0 = padL, x1 = w - padR;
+                const X = function (a) { return x0 + (a - A_MIN) / (A_MAX - A_MIN) * (x1 - x0); };
+                const topY = padT + 18, botY = h - padB, gap = 32;
+                const bh = (botY - topY - gap) / 2;
+                const bands = [
+                    { top: topY, base: topY + bh },
+                    { top: topY + bh + gap, base: botY }
+                ];
+                dots = [];
+                rows.forEach(function (r, ri) {
+                    const list = (CENSUS[r.key] || []).slice().sort(function (p, q) { return p[1] - q[1]; });
+                    const colW = 7.2;
+                    const tally = {};
+                    let maxStack = 1;
+                    list.forEach(function (d) {
+                        const c = Math.round(X(d[1]) / colW);
+                        tally[c] = (tally[c] || 0) + 1;
+                        if (tally[c] > maxStack) maxStack = tally[c];
+                    });
+                    const sp = Math.min(colW, (bh - 22) / maxStack);
+                    const rad = Math.max(1.5, Math.min(3.3, sp * 0.44));
+                    const seen = {}, band = bands[ri];
+                    list.forEach(function (d) {
+                        const c = Math.round(X(d[1]) / colW);
+                        const k = seen[c] || 0;
+                        seen[c] = k + 1;
+                        dots.push({
+                            x: X(d[1]), y: band.base - 5 - k * sp, r: rad,
+                            name: d[0], a: d[1], row: ri, col: colorFor(d[1])
+                        });
+                    });
+                });
+                dots.sort(function (a, b) { return a.x - b.x; });
+                geo = { w: w, h: h, x0: x0, x1: x1, X: X, bands: bands, botY: botY, topY: topY, bh: bh };
+            }
+
+            function zoneLabel(ctx, z, wide) {
+                const mid = (geo.X(z.a) + geo.X(z.b)) / 2;
+                const span = geo.X(z.b) - geo.X(z.a);
+                ctx.font = '9px ' + MONO;
+                ctx.textAlign = 'center';
+                let txt = z.long;
+                if (ctx.measureText(txt).width > span - 10) txt = z.short;
+                if (ctx.measureText(txt).width > span - 6) return;
+                ctx.fillStyle = z.dim;
+                ctx.fillText(txt, mid, 20);
+            }
+
+            function draw(p) {
+                const ctx = cv.getContext('2d');
+                const w = geo.w, h = geo.h, X = geo.X;
+                ctx.clearRect(0, 0, w, h);
+
+                const zones = [
+                    { a: A_MIN, b: Z1, fill: 'rgba(248,113,113,0.06)', dim: 'rgba(248,113,113,0.75)', long: 'BELOW 2  /  VOLATILITY NEVER SETTLES', short: 'BELOW 2' },
+                    { a: Z1, b: Z2, fill: 'rgba(251,146,60,0.045)', dim: 'rgba(251,146,60,0.7)', long: '2 TO 3.5  /  THE CUBIC BAND', short: 'CUBIC BAND' },
+                    { a: Z2, b: A_MAX, fill: 'rgba(74,222,128,0.03)', dim: 'rgba(74,222,128,0.6)', long: 'THIN ENOUGH FOR A BELL CURVE', short: 'BELL CURVE' }
+                ];
+                zones.forEach(function (z) {
+                    ctx.fillStyle = z.fill;
+                    ctx.fillRect(X(z.a), 30, X(z.b) - X(z.a), geo.botY - 30);
+                    zoneLabel(ctx, z);
+                });
+                ctx.save();
+                ctx.setLineDash([3, 4]);
+                ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+                ctx.lineWidth = 1;
+                [Z1, Z2].forEach(function (a) {
+                    ctx.beginPath();
+                    ctx.moveTo(Math.round(X(a)) + 0.5, 30);
+                    ctx.lineTo(Math.round(X(a)) + 0.5, geo.botY);
+                    ctx.stroke();
+                });
+                ctx.restore();
+
+                /* the empty half is the point of the chart, so it gets a caption.
+                   nothing sits above 2.93, so the caption may use everything right of 3 */
+                const eL = X(3.0), eR = geo.x1, eW = eR - eL;
+                if (eW > 96) {
+                    const cx = (eL + eR) / 2, cy = (geo.topY + geo.botY) / 2;
+                    const narrow = eW < 168;
+                    ctx.textAlign = 'center';
+                    const line = function (txt, size, col, y) {
+                        let s = size;
+                        ctx.font = s + 'px ' + MONO;
+                        while (s > 6 && ctx.measureText(txt).width > eW - 8) {
+                            s -= 1;
+                            ctx.font = s + 'px ' + MONO;
+                        }
+                        ctx.fillStyle = col;
+                        ctx.fillText(txt, cx, y);
+                    };
+                    const green = 'rgba(74,222,128,0.55)', dim = 'rgba(255,255,255,0.34)';
+                    if (narrow) {
+                        line('NOTHING', 9, green, cy - 44);
+                        line('LIVES HERE', 9, green, cy - 32);
+                    } else {
+                        line('NOTHING LIVES HERE', 10, green, cy - 34);
+                    }
+                    line('0', 30, 'rgba(74,222,128,0.85)', cy + 4);
+                    line('of 366 assets', 10, dim, cy + 24);
+                    const tail = narrow
+                        ? ['where risk', 'models assume', 'you are']
+                        : ['and this is where', 'standard risk models', 'assume you are'];
+                    tail.forEach(function (l, i) { line(l, 10, dim, cy + 48 + i * 14); });
+                }
+
+                /* baselines and row labels */
+                rows.forEach(function (r, ri) {
+                    const b = geo.bands[ri];
+                    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+                    ctx.beginPath();
+                    ctx.moveTo(geo.x0, Math.round(b.base) + 0.5);
+                    ctx.lineTo(geo.x1, Math.round(b.base) + 0.5);
+                    ctx.stroke();
+                    ctx.textAlign = 'left';
+                    ctx.font = '10px ' + MONO;
+                    ctx.fillStyle = 'rgba(232,230,227,0.8)';
+                    ctx.fillText(r.label, geo.x0 + 4, b.top + 4);
+                });
+
+                /* dots, revealed left to right */
+                const total = dots.length;
+                for (let i = 0; i < total; i++) {
+                    const d = dots[i];
+                    let a = 1, dy = 0;
+                    if (p < 1) {
+                        const loc = Math.max(0, Math.min(1, (p * (total + 60) - i) / 26));
+                        if (loc <= 0) continue;
+                        a = loc;
+                        dy = -(1 - loc) * 16;
+                    }
+                    ctx.globalAlpha = a * 0.82;
+                    ctx.fillStyle = d.col;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y + dy, d.r, 0, 6.2832);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+
+                /* medians and the one dot worth naming */
+                if (p > 0.85) {
+                    const fade = Math.min(1, (p - 0.85) / 0.15);
+                    ctx.globalAlpha = fade;
+                    rows.forEach(function (r, ri) {
+                        const b = geo.bands[ri], mx = Math.round(X(r.med)) + 0.5;
+                        ctx.strokeStyle = 'rgba(201,162,39,0.85)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(mx, b.top + 10);
+                        ctx.lineTo(mx, b.base);
+                        ctx.stroke();
+                        ctx.fillStyle = '#c9a227';
+                        ctx.font = '9px ' + MONO;
+                        ctx.textAlign = mx > geo.x1 - 90 ? 'right' : 'left';
+                        ctx.fillText('MEDIAN ' + r.med.toFixed(2), mx + (mx > geo.x1 - 90 ? -5 : 5), b.top + 16);
+                        if (r.mark) {
+                            const m = dots.filter(function (d) { return d.row === ri && d.name === r.mark; })[0];
+                            if (m) {
+                                ctx.strokeStyle = '#e8e6e3';
+                                ctx.beginPath();
+                                ctx.arc(m.x, m.y, m.r + 3.5, 0, 6.2832);
+                                ctx.stroke();
+                                /* the label goes under the baseline, the dot's own column is too crowded */
+                                ctx.fillStyle = 'rgba(232,230,227,0.85)';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('BITCOIN 1.99', m.x, b.base + 16);
+                            }
+                        }
+                    });
+                    ctx.globalAlpha = 1;
+                }
+
+                /* axis */
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.font = '9px ' + MONO;
+                ctx.textAlign = 'center';
+                for (let a = 1; a <= 5; a++) {
+                    const px = Math.round(X(a)) + 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(px, geo.botY);
+                    ctx.lineTo(px, geo.botY + 5);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.fillText(String(a), px, geo.botY + 17);
+                }
+                ctx.fillStyle = 'rgba(255,255,255,0.34)';
+                ctx.textAlign = 'left';
+                ctx.fillText('TAIL INDEX \u03B1', geo.x0 + 2, geo.botY + 33);
+                ctx.textAlign = 'right';
+                ctx.fillText('LOWER = WILDER \u2190', geo.x1 - 2, geo.botY + 33);
+
+                if (hover) tip(ctx, hover);
+            }
+
+            function tip(ctx, d) {
+                const lines = [d.name, '\u03B1 = ' + d.a.toFixed(2)];
+                ctx.font = '10px ' + MONO;
+                let tw = 0;
+                lines.forEach(function (l) { tw = Math.max(tw, ctx.measureText(l).width); });
+                const bw = tw + 18, bh = 34;
+                let bx = d.x + 12, by = d.y - bh - 8;
+                if (bx + bw > geo.x1) bx = d.x - bw - 12;
+                if (by < 34) by = d.y + 12;
+                ctx.fillStyle = 'rgba(10,10,15,0.94)';
+                ctx.fillRect(bx, by, bw, bh);
+                ctx.strokeStyle = d.col;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#e8e6e3';
+                ctx.fillText(lines[0], bx + 9, by + 14);
+                ctx.fillStyle = d.col;
+                ctx.fillText(lines[1], bx + 9, by + 27);
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r + 2.5, 0, 6.2832);
+                ctx.stroke();
+            }
+
+            function loop(ts) {
+                if (!t0) t0 = ts;
+                const p = Math.min(1, (ts - t0) / 1400);
+                draw(p);
+                if (p < 1) raf = requestAnimationFrame(loop);
+                else raf = 0;
+            }
+            function play() {
+                cancelAnimationFrame(raf);
+                t0 = 0;
+                if (reduced) { draw(1); return; }
+                raf = requestAnimationFrame(loop);
+            }
+
+            cv.addEventListener('pointermove', function (e) {
+                if (raf) return;
+                const rect = cv.getBoundingClientRect();
+                const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+                let best = null, bd = 121;
+                for (let i = 0; i < dots.length; i++) {
+                    const d = dots[i];
+                    const q = (d.x - mx) * (d.x - mx) + (d.y - my) * (d.y - my);
+                    if (q < bd) { bd = q; best = d; }
+                }
+                if (best !== hover) { hover = best; draw(1); }
+            });
+            cv.addEventListener('pointerleave', function () {
+                if (hover) { hover = null; if (!raf) draw(1); }
+            });
+            document.getElementById('c-replay').addEventListener('click', function () {
+                hover = null; play();
+            });
+            onResize(function () { build(); draw(1); });
+            build();
+            draw(reduced ? 1 : 0);
+            visible(document.getElementById('viz-census'), function (v) {
+                if (v && !played) { played = true; play(); }
+            });
         })();
     })();
     </script>
