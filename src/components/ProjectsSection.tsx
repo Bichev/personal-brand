@@ -100,8 +100,9 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                className="h-full"
               >
-                <Card padding="none" className="overflow-hidden group">
+                <Card padding="none" className="overflow-hidden group h-full flex flex-col">
                   <div className={`relative h-48 bg-gradient-to-r ${project.color || 'from-gray-700 to-gray-800'}`}>
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                       <div className="text-white text-center">
@@ -111,7 +112,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                     </div>
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-grow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       {project.title}
                     </h3>
@@ -204,9 +205,10 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                className="h-full"
               >
-                <Card padding="none" className="overflow-hidden group">
-                  <div className="relative h-48">
+                <Card padding="none" className="overflow-hidden group h-full flex flex-col">
+                  <div className="relative h-48 flex-shrink-0">
                     {project.image ? (
                       <>
                         <Image
@@ -232,7 +234,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                     )}
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-6 flex flex-col flex-grow">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                       {project.title}
                     </h3>
@@ -251,7 +253,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                       ))}
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 mt-auto">
                       {project.githubUrl && (
                         <Button variant="outline" size="sm" href={project.githubUrl} external>
                           <FaGithub className="mr-2" size={14} />
