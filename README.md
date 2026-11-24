@@ -66,6 +66,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 - `npm run dev` — start the dev server (Turbopack)
 - `npm run build` — production build
 - `npm run start` — serve the production build
+- `npm run lint` — run ESLint
 - `node scripts/generate-pdf.mjs` — render the promo flyer (with a QR code to the site) to `public/blog/vladbichev-blog-promo.pdf` using Puppeteer
 
 ## Adding content

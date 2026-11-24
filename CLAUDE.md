@@ -13,7 +13,7 @@ Personal site for Vladimir Bichev, live at https://vladbichev.com. Next.js 16 (A
 
 - `npm run dev` — dev server with Turbopack, http://localhost:3000
 - `npm run build` — production build (run before pushing changes to `src/`)
-- `npm run lint` — currently broken: `next lint` was removed in Next.js 16 and `eslint.config.mjs` has not been migrated. Use `npm run build` as the type and compile check until it is fixed.
+- `npm run lint` — ESLint (flat config in `eslint.config.mjs`; `public/` is ignored because the standalone pages are not part of the React app)
 - `node scripts/generate-pdf.mjs` — regenerates `public/blog/vladbichev-blog-promo.pdf` (Puppeteer + QR code)
 
 There is no test suite. Verify changes by loading the page in the browser, including a phone-width viewport; the galleries have had several mobile-only bugs.
