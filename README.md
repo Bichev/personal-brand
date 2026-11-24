@@ -1,195 +1,101 @@
-# Vladimir Bichev - Personal Brand Website
+# Vladimir Bichev — Personal Site
 
-A modern, responsive personal website built with Next.js 15, TypeScript, and Tailwind CSS, showcasing AI/LLM development expertise and thought leadership.
+Source for [vladbichev.com](https://vladbichev.com): a personal site, a long-form blog, and two galleries of interactive computational art.
 
-## ✨ Features
+## What's here
 
-- **Modern Design**: Clean, professional UI with dark/light mode toggle
-- **Responsive Layout**: Mobile-first design that works on all devices
-- **Smooth Animations**: Framer Motion animations and transitions
-- **Accessible**: Built with semantic HTML and ARIA labels
-- **SEO Optimized**: Comprehensive meta tags and structured data
-- **TypeScript**: Full type safety throughout the application
-- **Performance**: Optimized for Core Web Vitals
+The repo has two layers.
 
-## 🚀 Sections
+**1. The Next.js shell (`src/`)** — a single-page site with a dark editorial look, light/dark toggle, and these sections: Hero, About, Projects, Blog ("Latest Insights"), Interests, Contact. Nearly all copy and data comes from one file, `src/lib/constants.ts`.
 
-1. **Hero Section**: Name, tagline, photo, and social links
-2. **About Me**: Career story, highlights, and technical skills
-3. **Featured Projects**: Showcase of AI/LLM projects with live demos
-4. **Blog/Insights**: Latest articles and thought leadership content
-5. **Contact**: Multiple ways to connect and collaborate
+**2. Standalone pages (`public/`)** — self-contained HTML files with inline CSS and JS, served as static assets with no build step:
 
-## 🛠 Tech Stack
+| Path | What it is |
+| --- | --- |
+| `/algoart/` | **AlgoArt** — 12 interactive algorithmic art pieces (Lorenz attractor, boids, reaction-diffusion, L-systems, Game of Life and more), each with a write-up of the mathematics |
+| `/ficciones/` | **Ficciones** — 12 interactive pieces based on the stories in Jorge Luis Borges' *Ficciones* |
+| `/blog/*.html` | Long-form articles: *Fat Tails*, *Anatomy of a Gold Rush*, *Soul as Interface*, *Humans vs AI Agents*, *The Prince & The AI Revolution* (plus its flowchart) |
 
-- **Framework**: Next.js 15 (App Router)
+## Tech stack
+
+- **Framework**: Next.js 16 (App Router, Turbopack in dev), React 19
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
-- **Animations**: Framer Motion
+- **Animation**: Framer Motion
 - **Icons**: React Icons
-- **Font**: Inter (Google Fonts)
-- **Deployment**: Vercel-ready
+- **Fonts**: Inter, Cormorant Garamond, JetBrains Mono (via `next/font`)
+- **Hosting**: Vercel
 
-## 📁 Project Structure
+## Project structure
 
 ```
 personal-brand/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── globals.css         # Global styles
-│   │   ├── layout.tsx          # Root layout
-│   │   └── page.tsx            # Main page
-│   ├── components/             # React components
-│   │   ├── ThemeProvider.tsx   # Dark/light mode context
-│   │   ├── Navigation.tsx      # Navigation component
-│   │   ├── HeroSection.tsx     # Hero section
-│   │   ├── AboutSection.tsx    # About section
-│   │   ├── ProjectsSection.tsx # Projects showcase
-│   │   ├── BlogSection.tsx     # Blog/insights section
-│   │   ├── ContactSection.tsx  # Contact section
-│   │   ├── Button.tsx          # Reusable button component
-│   │   └── Card.tsx            # Reusable card component
-│   ├── lib/                    # Utility functions
-│   │   ├── constants.ts        # App constants and data
-│   │   └── utils.ts            # Helper functions
-│   └── types/                  # TypeScript types
-│       └── index.ts            # Type definitions
-├── public/                     # Static assets
-│   └── profile-photo.jpg       # Profile photo
-├── package.json                # Dependencies
-└── README.md                   # This file
+│   ├── app/                 # layout.tsx (metadata, fonts), page.tsx, globals.css
+│   ├── components/          # Navigation, *Section components, Card, Button, ThemeProvider
+│   ├── hooks/               # useActiveSection
+│   ├── lib/
+│   │   ├── constants.ts     # all site content: bio, projects, blog list, nav, contacts
+│   │   └── utils.ts
+│   └── types/index.ts       # Project, BlogPost, ContactInfo, ...
+├── public/
+│   ├── algoart/             # gallery index, 12 pieces, gallery-nav.js
+│   ├── ficciones/           # gallery index, 12 pieces, gallery-nav.js
+│   ├── blog/                # article HTML, per-article asset folders, LinkedIn drafts
+│   ├── projects/            # project card images
+│   └── interests/           # interests section photos
+├── scripts/
+│   └── generate-pdf.mjs     # builds the one-page blog promo PDF
+├── next.config.ts           # rewrites for /algoart and /ficciones
+└── vercel.json
 ```
 
-## 🎨 Design Features
+## Getting started
 
-- **Color Scheme**: Professional blue and gray palette
-- **Typography**: Inter font with improved readability
-- **Components**: Reusable, accessible UI components
-- **Animations**: Smooth hover effects and scroll animations
-- **Responsive**: Mobile-first approach with breakpoints
-- **Theme Support**: System preference detection with manual toggle
-
-## 📊 Content Highlights
-
-### Featured Projects
-- **AssetRadars.com**: Cryptocurrency market analysis platform
-- **Ask Reddit AI**: AI-powered Reddit discussion analyzer
-- **Coinbase MCP**: Model Context Protocol integration
-- **AI Automation Suite**: Productivity automation tools
-
-### Technical Skills
-- JavaScript/TypeScript, React/Next.js, Node.js
-- AI/LLM Integration, OpenAI API
-- Database technologies (MongoDB, PostgreSQL)
-- Cloud platforms and DevOps
-- Technical leadership and architecture
-
-## 🚀 Getting Started
-
-1. **Clone the repository**
 ```bash
-git clone https://github.com/vladimirbi/personal-brand.git
+git clone https://github.com/Bichev/personal-brand.git
 cd personal-brand
-```
-
-2. **Install dependencies**
-```bash
 npm install
-```
-
-3. **Run the development server**
-```bash
 npm run dev
 ```
 
-4. **Open in browser**
-Visit [http://localhost:3000](http://localhost:3000)
+Then open [http://localhost:3000](http://localhost:3000).
 
-## 📝 Customization
+## Scripts
 
-### Personal Information
-Edit `src/lib/constants.ts` to update:
-- Personal details and bio
-- Project information
-- Blog posts and articles
-- Social media links
-- Contact information
+- `npm run dev` — start the dev server (Turbopack)
+- `npm run build` — production build
+- `npm run start` — serve the production build
+- `node scripts/generate-pdf.mjs` — render the promo flyer (with a QR code to the site) to `public/blog/vladbichev-blog-promo.pdf` using Puppeteer
 
-### Styling
-- Modify `src/app/globals.css` for global styles
-- Update Tailwind classes in components
-- Customize color scheme in CSS variables
+## Adding content
 
-### Content
-- Replace `public/profile-photo.jpg` with your photo
-- Update project descriptions and links
-- Add your own blog posts and articles
-- Modify social media profiles
+### Site copy, projects, navigation
 
-## 🔧 Scripts
+Edit `src/lib/constants.ts`. The matching types are in `src/types/index.ts`.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+### A blog article
 
-## 📊 Performance
+1. Add the article as a self-contained HTML file in `public/blog/` (for example `public/blog/my-post.html`). Put its images in a sibling folder such as `public/blog/my-post-assets/`.
+2. Add an entry at the top of `BLOG_POSTS` in `src/lib/constants.ts` with `source: 'internal'` and `localPath: '/blog/my-post.html'`. Cards appear in array order.
 
-- **Core Web Vitals**: Optimized for LCP, FID, and CLS
-- **Image Optimization**: Next.js Image component
-- **Font Loading**: Optimized Google Fonts integration
-- **Bundle Size**: Minimized with tree shaking
+Posts published elsewhere (LinkedIn) use `url` instead of `localPath`.
 
-## 🌐 SEO Features
+### A gallery piece
 
-- Comprehensive meta tags
-- Open Graph and Twitter Card support
-- Structured data for rich snippets
-- Sitemap and robots.txt ready
-- Semantic HTML structure
+1. Add the piece's HTML file to `public/algoart/` or `public/ficciones/`.
+2. Add it to the `GALLERY` array in that folder's `gallery-nav.js` (this drives previous/next navigation).
+3. Add a card for it in that folder's `index.html`.
 
-## 📱 Responsive Design
+A new top-level static section needs its own rewrite in `next.config.ts` so the bare path resolves to its `index.html`.
 
-- Mobile-first approach
-- Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
-- Touch-friendly interface
-- Optimized for all screen sizes
+## Deployment
 
-## 🔒 Accessibility
+The site is deployed on Vercel. Pushing to `main` deploys to production.
 
-- WCAG 2.1 AA compliance
-- Keyboard navigation support
-- Screen reader compatibility
-- High contrast ratios
-- Focus indicators
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-### Other Platforms
-- Build: `npm run build`
-- Deploy the `out` folder to your hosting provider
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/vladimirbi/personal-brand/issues).
-
-## 📧 Contact
+## Contact
 
 - **Email**: vl.bichev@gmail.com
-- **LinkedIn**: [https://www.linkedin.com/in/vladimir-bichev-383b1525/](https://www.linkedin.com/in/vladimir-bichev-383b1525/)
-- **GitHub**: [https://github.com/Bichev](https://github.com/Bichev)
-- **Twitter**: [https://x.com/_bichevhttps://x.com/_bichev)
-
----
-
-**Built with ❤️ by Vladimir Bichev**
+- **LinkedIn**: [vladimir-bichev-383b1525](https://www.linkedin.com/in/vladimir-bichev-383b1525/)
+- **GitHub**: [Bichev](https://github.com/Bichev)
+- **X**: [@_bichev](https://x.com/_bichev)
