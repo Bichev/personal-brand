@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { 
   FaGithub, FaExternalLinkAlt, FaRocket, FaPlane, FaRobot, 
   FaTv, FaLink, FaPiggyBank, FaBookOpen, FaWifi, FaBuilding,
-  FaChartLine, FaNewspaper, FaExchangeAlt, FaRedditAlien
+  FaChartLine, FaNewspaper, FaExchangeAlt, FaRedditAlien, FaShieldAlt
 } from 'react-icons/fa';
 import { Card } from './Card';
 import { Button } from './Button';
@@ -24,6 +24,7 @@ const iconMap = {
   FaNewspaper: <FaNewspaper className="text-4xl mb-2 mx-auto" />,
   FaExchangeAlt: <FaExchangeAlt className="text-4xl mb-2 mx-auto" />,
   FaRedditAlien: <FaRedditAlien className="text-4xl mb-2 mx-auto" />,
+  FaShieldAlt: <FaShieldAlt className="text-4xl mb-2 mx-auto" />,
   FaRocket: <FaRocket className="text-4xl mb-2 mx-auto" />,
 };
 

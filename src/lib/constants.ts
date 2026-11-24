@@ -91,6 +91,16 @@ export const ENTERPRISE_PROJECTS: Project[] = [
 // Personal Projects & Innovations
 export const PERSONAL_PROJECTS: Project[] = [
   {
+    id: 'agentradar',
+    title: 'AgentRadar',
+    description: 'On-chain trust oracle for the AI agent economy. One HTTP call scores any agent or contract across seven independent signals (identity, reputation, health, scam, fidelity, external risk, authenticity) and writes the verdict on-chain as an EAS attestation on Base. Paid per call in USDC over x402, with an MCP server for use inside Cursor and Claude.',
+    technologies: ['ERC-8004', 'x402', 'EAS', 'Base', 'USDC', 'MCP', 'Edge Workers'],
+    liveUrl: 'https://www.vvpro.ai',
+    featured: true,
+    image: '/projects/agentradar.jpg',
+    icon: 'FaShieldAlt',
+  },
+  {
     id: 'assetradars',
     title: 'AssetRadars.com',
     description: 'Revolutionary cryptocurrency market analysis platform with real-time data processing, advanced 50+ indicators calculations, global trends, correlations, alerts engine and AI-powered analytics.',
