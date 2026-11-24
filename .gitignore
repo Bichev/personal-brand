@@ -46,6 +46,10 @@ yarn-error.log*
 # root-level screenshots (dev/test artifacts)
 /*.png
 
+# article research: raw downloads stay local, the markdown ledgers are committed
+/research/*/originals/
+/research/*/sources/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
