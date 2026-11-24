@@ -166,6 +166,7 @@
         .ref-author { color: var(--text-primary); }
         .credits { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-muted); line-height: 1.8; margin-top: 16px; }
         .credits span { display: block; }
+        .credits a { color: inherit; text-decoration: underline dotted rgba(201,162,39,0.4); text-underline-offset: 3px; }
         footer { text-align: center; padding: 60px 24px; color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.9; }
         footer a { color: var(--accent); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
@@ -299,7 +300,7 @@
         figure.solo figcaption { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 10px 4px; line-height: 1.6; }
         .postcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 36px 0 8px; }
         .postcards figure { margin: 0; background: var(--bg-secondary); border: 1px solid var(--border-subtle); }
-        .postcards img { width: 100%; display: block; }
+        .postcards img { width: 100%; height: 230px; object-fit: cover; object-position: center 25%; display: block; }
         .postcards figcaption { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-muted); padding: 8px 10px 10px; line-height: 1.55; }
         .postcards figcaption b { color: var(--text-secondary); font-weight: 400; }
 
@@ -418,6 +419,7 @@
             .pair { grid-template-columns: 1fr; }
             .pair img { height: 230px; }
             .lag-axis { margin-left: 0; margin-right: 46px; }
+            .lag-axis .mh { display: none; }
             .lag-row { grid-template-columns: 1fr 46px; }
             .lag-row .lb { grid-column: 1 / -1; padding-top: 7px; white-space: normal; }
             .open-row { grid-template-columns: 1fr; gap: 8px; }
@@ -615,10 +617,10 @@
                 A footnote that surprised me. The Nights tales that everybody knows, Aladdin and the flying
                 carpet, are <a href="https://en.wikipedia.org/wiki/Aladdin" target="_blank" rel="noopener">not in the Arabic manuscripts at all</a>.
                 They entered the book in French, from Diyab's telling. The tales that are in the Arabic are the
-                ones full of machinery: a <a href="https://www.gutenberg.org/ebooks/3440" target="_blank" rel="noopener">City of Brass</a>
+                ones full of machinery: a <a href="https://en.wikipedia.org/wiki/The_City_of_Brass" target="_blank" rel="noopener">City of Brass</a>
                 where a brass horseman turns and points the road when you rub his hand, a brass boatman who rows
                 for days without tiring, and a fisherman who rubs on an ointment and
-                <a href="https://www.gutenberg.org/ebooks/3443" target="_blank" rel="noopener">walks about on the sea floor</a>.
+                <a href="https://en.wikipedia.org/wiki/One_Thousand_and_One_Nights#Fantasy_and_science_fiction_elements" target="_blank" rel="noopener">walks about on the sea floor</a>.
             </p>
         </section>
 
@@ -1270,7 +1272,7 @@
             }).join('');
             var pcs = (C.postcards || []).filter(function (p) { return has(p.img); });
             $('postcards').innerHTML = pcs.map(function (p) {
-                return '<figure><img src="' + img(p.img) + '" alt="' + esc(p.alt) + '" loading="lazy"><figcaption><b>' + esc(p.cap) + '</b> ' + esc(p.verdict) + '</figcaption></figure>';
+                return '<figure><img src="' + img(p.img) + '" alt="' + esc(p.alt) + '" loading="lazy"' + (p.pos ? ' style="object-position:' + p.pos + '"' : '') + '><figcaption><b>' + esc(p.cap) + '</b> ' + esc(p.verdict) + '</figcaption></figure>';
             }).join('');
             $('postcards-note').innerHTML = pcs.length ? C.postcardsNote : '';
         })();
@@ -1281,7 +1283,7 @@
             var END = 2040;
             function X(y) { var lo = Math.log(END - 2026), hi = Math.log(END + 1900); return (1 - (Math.log(END - y) - lo) / (hi - lo)) * 100; }
             var ticks = [-1500, 0, 1000, 1500, 1800, 1900, 1950, 1990, 2020];
-            var html = '<div class="lag-axis">' + ticks.map(function (t) { return '<span style="left:' + X(t).toFixed(2) + '%">' + (t < 0 ? (-t) + ' BCE' : (t === 0 ? '1 CE' : t)) + '</span>'; }).join('') + '</div>';
+            var html = '<div class="lag-axis">' + ticks.map(function (t) { return '<span' + ([0, 1500, 1900, 1990].indexOf(t) >= 0 ? ' class="mh"' : '') + ' style="left:' + X(t).toFixed(2) + '%">' + (t < 0 ? (-t) + ' BCE' : (t === 0 ? '1 CE' : t)) + '</span>'; }).join('') + '</div>';
             var eras = [{ n: 'Written before 1500', a: -9999, b: 1500 }, { n: '1500 to 1899', a: 1500, b: 1900 }, { n: '1900 onward', a: 1900, b: 9999 }];
             var med = [];
             eras.forEach(function (er) {
@@ -1390,7 +1392,7 @@
                     var best = m.nums[m.nums.length - 1], pct = 0;
                     if (n != null && best != null) { pct = m.up ? n / best * 100 : (n > 0 ? best / n * 100 : 100); }
                     if (m.log && n != null) { var lo = Math.log(m.log[0]), hi = Math.log(m.log[1]); pct = (Math.log(n) - lo) / (hi - lo) * 100; if (!m.up) pct = 100 - pct; }
-                    el.querySelector('.fill').style.width = Math.max(1.5, Math.min(100, pct)).toFixed(1) + '%';
+                    el.querySelector('.fill').style.width = (n == null ? 0 : Math.max(1.5, Math.min(100, pct))).toFixed(1) + '%';
                     el.classList.toggle('good', i === D.years.length - 1);
                 });
             }

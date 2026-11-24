@@ -40,8 +40,9 @@ function splitRow(ln) {
   const s = ln.trim().replace(/^\|/, '').replace(/\|$/, '');
   return s.split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, '|'));
 }
-const firstUrl = (s) => ((s || '').match(/https?:\/\/[^\s;,)]+/) || [''])[0];
-const allUrls = (s) => (s || '').match(/https?:\/\/[^\s;,)]+/g) || [];
+const clean = (u) => u.replace(/[;,]+$/, '').replace(/\)$/, (m) => (u.includes('(') ? m : ''));
+const allUrls = (s) => ((s || '').match(/https?:\/\/[^\s"<>|\\]+/g) || []).map(clean);
+const firstUrl = (s) => allUrls(s)[0] || '';
 const num = (s) => { const m = String(s || '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; };
 
 /* ---------- tales ---------- */
@@ -80,8 +81,8 @@ for (const f of taleFiles) {
 
 /* ---------- people ---------- */
 const people = fs.existsSync(P('people.md')) ? parseTables(read(P('people.md'))) : {};
-const numbers = fs.existsSync(P('numbers.md')) ? parseTables(read(P('numbers.md'))) : {};
 const images = fs.existsSync(P('images.md')) ? parseTables(read(P('images.md'))) : {};
+const numbers = fs.existsSync(P('numbers.md')) ? parseTables(read(P('numbers.md'))) : {};
 const linkify = (v) => typeof v === 'string'
   ? v.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, (m, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`)
   : Array.isArray(v) ? v.map(linkify)
@@ -92,7 +93,17 @@ const curated = linkify(curatedRaw);
 // image credits: only files that were actually converted into the assets folder
 const assetDir = path.join(root, 'public/blog/wish-ledger-assets');
 const assets = fs.existsSync(assetDir) ? new Set(fs.readdirSync(assetDir)) : new Set();
-curated.credits = Object.fromEntries(Object.entries(curatedRaw.credits || {}).filter(([f]) => assets.has(f)));
+const used = JSON.parse(read(path.join(here, 'images-used.json')));
+const imgRows = Object.values(images).flat();
+curated.credits = {};
+for (const [file, opt] of Object.entries(used)) {
+  const name = (opt.as || file.replace(/\.[a-z]+$/i, '')) + '.webp';
+  const row = imgRows.find((r) => (r.file || '').trim() === file);
+  if (!assets.has(name)) continue;
+  if (!row || !row.credit_line) { console.warn('no credit for', file); continue; }
+  const page = firstUrl(row.commons_or_source_page_url);
+  curated.credits[name] = page ? `<a href="${page}" target="_blank" rel="noopener">${row.credit_line}</a>` : row.credit_line;
+}
 const peoples = new Set(tales.map((t) => t.p.split(/[\/(,;]/)[0].trim().toLowerCase()));
 
 const DATA = { tales, curated };

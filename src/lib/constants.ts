@@ -163,6 +163,19 @@ export const PROJECTS: Project[] = [...ENTERPRISE_PROJECTS, ...PERSONAL_PROJECTS
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: 'wish-ledger',
+    title: "The Wish Ledger: You Live Inside Your Ancestors' Fairy Tales",
+    excerpt: 'Flying carpets, mirrors that answer, servants made of bronze, water that heals. I collected 125 wishes from the myths and fairy tales of more than 40 peoples, sorted them into ten kinds and checked each against the record. Eight have been granted, mostly to everybody. Nine interactive visuals, from a wish atlas to a year dial, with a source link on every claim and a last section on the wishes still open.',
+    content: '',
+    date: '2026-11-24',
+    readTime: '22 min read',
+    tags: ['History', 'Mythology', 'Science Fiction', 'Technology', 'Interactive', 'Essay'],
+    published: true,
+    source: 'internal',
+    localPath: '/blog/wish-ledger.html',
+    featured: true,
+  },
+  {
     id: 'fat-tails',
     title: 'Fat Tails: The Hidden Shape of Risk',
     excerpt: 'A bell curve says an 8-sigma day in the S&P 500 arrives once every 216 ages of the universe. I measured 8,437 trading days and found one every 5.6 years. Power laws, self-organised criticality and contagion, measured across 186 crypto pairs, 180 stocks and 33 years of index data, with five interactive visuals you can play with. Includes the part where I tried to trade it and the market said no.',
