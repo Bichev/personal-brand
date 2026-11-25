@@ -330,6 +330,32 @@
         .lag-row.on .tip { display: block; }
         .lag-row { cursor: pointer; }
         .lag-sep { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); padding: 14px 0 5px; }
+        /* ---- made mind ---- */
+        .mind-strip { position: relative; margin: 6px 0 4px; }
+        .mind-lane { position: relative; height: 26px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .mind-lane .ln { position: absolute; left: 0; top: 6px; width: 74px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+        .mind-lane .tk { position: absolute; left: 80px; right: 8px; top: 0; bottom: 0; }
+        .mind-lane button { position: absolute; top: 8px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--mc); opacity: 0.85; }
+        .mind-lane button:hover, .mind-lane button.on { opacity: 1; box-shadow: 0 0 0 3px rgba(255,255,255,0.18); }
+        .mind-axis { position: relative; height: 18px; margin-left: 80px; margin-right: 8px; }
+        .mind-axis span { position: absolute; top: 4px; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+        .k-wish { --mc: var(--accent); } .k-idea { --mc: var(--cyan); } .k-built { --mc: var(--green); } .k-warn { --mc: var(--red); }
+        .mind-list { margin-top: 16px; }
+        .mind-row { display: grid; grid-template-columns: 74px 84px 1fr; gap: 12px; padding: 10px 6px; border-bottom: 1px solid var(--border-subtle); align-items: baseline; }
+        .mind-row.on { background: rgba(255,255,255,0.04); }
+        .mind-row .y { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--accent); }
+        .mind-row .kd { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--mc); }
+        .mind-row .kd::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--mc); margin-right: 6px; }
+        .mind-row .tx { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
+        .mind-row .tx b { display: block; font-family: 'Cormorant Garamond', serif; font-size: 1.12rem; font-weight: 600; color: var(--text-primary); line-height: 1.25; margin-bottom: 2px; }
+        .mind-row .tx a { color: inherit; text-decoration: underline dotted rgba(201,162,39,0.65); text-underline-offset: 3px; }
+        .mind-row.hide { display: none; }
+        .gauge3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin-top: 6px; }
+        .gauge3 i { height: 7px; background: rgba(255,255,255,0.08); display: block; }
+        .gauge3.g2 i.on { background: var(--green); } .gauge3.g1 i.on { background: var(--accent); } .gauge3.g0 i.on { background: var(--red); }
+        .open-row .w small a { color: inherit; text-decoration: underline dotted rgba(201,162,39,0.65); text-underline-offset: 3px; }
+        .lag.mind-only .lag-row:not(.mm), .lag.mind-only .lag-sep { opacity: 0.22; }
+
 
         /* 05 people */
         .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
@@ -430,6 +456,9 @@
             .lag-row { grid-template-columns: 1fr 46px; }
             .lag-row .lb { grid-column: 1 / -1; padding-top: 7px; white-space: normal; }
             .open-row { grid-template-columns: 1fr; gap: 8px; }
+            .mind-row { grid-template-columns: 74px 1fr; gap: 4px 12px; }
+            .mind-row .tx { grid-column: 1 / -1; }
+            .mind-lane .ln { width: 58px; font-size: 8px; } .mind-lane .tk { left: 62px; } .mind-axis { margin-left: 62px; } .mind-axis .mh { display: none; }
             .open-row .gz { max-width: 220px; }
             .dial-year { font-size: 2.5rem; min-width: 0; }
         }
@@ -460,6 +489,7 @@
             <li><a href="#fantasts" title="The fantasts"></a></li>
             <li><a href="#king" title="Richer than a king"></a></li>
             <li><a href="#rhymes" title="Rhymes and fine print"></a></li>
+            <li><a href="#mind" title="The made mind"></a></li>
             <li><a href="#open" title="The open ledger"></a></li>
         </ul>
     </nav>
@@ -703,6 +733,7 @@
             <div class="viz" id="viz-lag">
                 <div class="viz-title">Visual 04 &nbsp;/&nbsp; The Lag</div>
                 <div class="viz-sub">Hollow dot: the year the wish was written down. Green dot: the year something real answered it. The number is the wait in years. The time axis is stretched towards the present, or the last two centuries would be a smudge. Tap a row for what answered it.</div>
+                <div class="viz-controls"><button class="viz-btn" id="lag-mind">HIGHLIGHT THE MADE MIND</button></div>
                 <div class="lag" id="lag-chart"></div>
                 <div class="viz-readouts" id="lag-read"></div>
                 <div class="viz-caption">I picked these rows. Wishes that never came true are not on the chart, and they get their own section at the end. The shrinking wait describes this list and may not hold beyond it.</div>
@@ -743,8 +774,7 @@
             <p>
                 My favourite entry is Ada Lovelace, because she made both of the opposing claims in one set of notes. In 1843 she wrote that Babbage's engine "might compose elaborate and scientific pieces
                 of music of any degree of complexity or extent". A few pages later she wrote that it "has no
-                pretensions whatever to originate any thing". We are still arguing about which of the two
-                sentences describes the machines of the 2020s.
+                pretensions whatever to originate any thing". We are still arguing about which of the two sentences describes the machines of the 2020s, and I follow that argument <a href="#mind">from Homer to this year</a> further down.
             </p>
 
             <h3>Experts who said never</h3>
@@ -938,6 +968,53 @@
                 they can see everything on Earth, near and far. The gods decide this is too much like being
                 gods, and breathe a mist over human eyes, the way breath clouds a mirror. I read that as the same wish the saucer and the apple grant, seen from the gods' side.
             </p>
+
+            <h3 id="mind">The wish for a made mind</h3>
+            <p>
+                One wish in the ledger is being answered while I write this. Around 700 BCE Homer gave the
+                smith god Hephaestus handmaids made of gold, and said of them:
+                <a href="https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0134%3Abook%3D18%3Acard%3D388" target="_blank" rel="noopener">"In them is understanding in their hearts, and in them speech and strength."</a>
+                He was describing a made thing that understands and speaks, about 2,700 years before anyone
+                called it artificial intelligence. That name comes from
+                <a href="https://en.wikipedia.org/wiki/Dartmouth_workshop" target="_blank" rel="noopener">a funding proposal written in 1955</a>.
+            </p>
+            <p>
+                Made servants are the largest group in the ledger, 20 of the __N_TALES__ entries. A Chinese text
+                has an artificer whose figure walks and sings. A Buddhist text from Burma has mechanical
+                warriors guarding relics. A twelfth-century English chronicle has a brass head that answers
+                any question. Below, the tales share one timeline with the people who sketched the idea, the
+                machines that were built, and the warnings.
+            </p>
+
+            <div class="viz" id="viz-mind">
+                <div class="viz-title">Visual 09 &nbsp;/&nbsp; The Made Mind</div>
+                <div class="viz-sub">Twenty-six entries from 1850 BCE to November 2026, in four lanes. Tap a dot to find its entry in the list, or pick a lane to filter. The time axis is stretched towards the present.</div>
+                <div class="viz-controls" id="mind-chips"></div>
+                <div class="mind-strip" id="mind-strip"></div>
+                <div class="mind-list" id="mind-list"></div>
+                <div class="viz-caption">Dates for tales are the earliest written source. The Golem is dated to its first printing; the idea is in the Talmud.</div>
+            </div>
+
+            <p>
+                The second table audits the wish: what the tales wanted from a made mind, and which parts have arrived.
+            </p>
+            <div class="viz" id="viz-mind-audit">
+                <div class="viz-title">The made mind, audited</div>
+                <div class="viz-sub">Eight things the tales and the early thinkers asked for. Three bars: granted. Two: partly. One: still open.</div>
+                <div id="mind-audit"></div>
+                <div class="viz-caption">The 40-hour figure is an estimate for tasks finished with 50% reliability, and its own error bars run from 12 hours to more than a thousand. The home-robot row rests on a public tracker and may be out of date by the time you read it.</div>
+            </div>
+            <p>
+                The machine now holds a conversation, answers questions, writes music and draws, and it weaves and welds, but it does not yet keep house. Left alone with a task that would take a person about forty hours, it finishes half the time, by one uncertain estimate.
+            </p>
+            <p>
+                Three of the eight warnings in the table above belong to this wish. The apprentice cannot
+                stop his servant, the Golem's maker forgets to switch his off, and the Maya's tools answer
+                back. In 1960 Norbert Wiener
+                <a href="https://www.lesswrong.com/posts/2rWfmahhqASnFcYLr/norbert-wiener-s-paper-some-moral-and-technical-consequences" target="_blank" rel="noopener">wrote the same warning for engineers</a>: "we had better be quite sure that
+                the purpose put into the machine is the purpose which we really desire". That row of the audit is still open.
+            </p>
+
         </section>
 
         <!-- ================= IX ================= -->
@@ -955,7 +1032,7 @@
                 away. Every granted wish in this article was once on a list like this one.
             </p>
             <div class="viz" id="viz-open">
-                <div class="viz-title">Visual 09 &nbsp;/&nbsp; The Open Ledger</div>
+                <div class="viz-title">Visual 10 &nbsp;/&nbsp; The Open Ledger</div>
                 <div class="viz-sub">Wishes from myth and fiction that have not been granted. The gauge has five steps: no known path, theory only, laboratory demonstration, prototype, early product. Sorted from furthest along to least.</div>
                 <div id="open-list"></div>
                 <div class="viz-caption">A first step is not a promise. Several of these may never arrive, and at least one (travel into the past) has no known route at all.</div>
@@ -980,11 +1057,9 @@
                 <h3>The count</h3>
                 <p>
                     I went looking for evidence that we live in the world our ancestors wished for, and the
-                    count came out as follows. Of ten wishes that turn up in the stories of more than forty cultures, eight have been granted outright and are now so ordinary that we are bored by
-                    them: flight, sight at a distance, speech at a distance, made servants, the full table,
+                    count came out as follows. Of ten wishes that turn up in the stories of more than forty cultures, seven have been granted outright and are now so ordinary that we are bored by them: flight, sight at a distance, speech at a distance, the full table,
                     speed and light, the Moon, the library of everything. One, healing, has been granted to
-                    a degree no king ever enjoyed and still cannot prevent death. One, a life under the
-                    sea, we tried and chose not to pursue.
+                    a degree no king ever enjoyed and still cannot prevent death. One, a life under the sea, we tried and chose not to pursue. One, the made servant, is being granted now: it weaves, welds and answers questions, and it cannot yet be left to keep house.
                 </p>
                 <p>
                     The tales predicted none of it. Their use was to keep the list. People told the same ten wishes on every continent for three thousand years,
@@ -1029,7 +1104,7 @@
             { id: 'fly', label: 'To fly', s: 'Fly', col: '#c9a227' },
             { id: 'see', label: 'To see far away', s: 'See far', col: '#5eead4' },
             { id: 'speak', label: 'To be heard far away', s: 'Speak far', col: '#7dd3fc' },
-            { id: 'servants', label: 'Servants that are made', s: 'Made servants', col: '#a78bfa' },
+            { id: 'servants', label: 'Servants and minds that are made', s: 'Made servants', col: '#a78bfa' },
             { id: 'food', label: 'Food without end', s: 'Endless food', col: '#4ade80' },
             { id: 'heal', label: 'To heal and stay young', s: 'Healing', col: '#f87171' },
             { id: 'speed', label: 'To outrun distance and command the light', s: 'Speed and light', col: '#fb923c' },
@@ -1243,7 +1318,7 @@
                 html += '<div class="lag-sep">' + er.n + '</div>';
                 sub.forEach(function (r) {
                     var x1 = X(r.y), x2 = X(r.r);
-                    html += '<div class="lag-row"><div class="lb">' + a(r.n, r.u) + '</div>' +
+                    html += '<div class="lag-row' + (r.m ? ' mm' : '') + '"><div class="lb">' + a(r.n, r.u) + '</div>' +
                         '<div class="tr"><span class="bar" style="left:' + x1.toFixed(2) + '%;width:' + Math.max(x2 - x1, 0.3).toFixed(2) + '%"></span>' +
                         '<span class="a" style="left:' + x1.toFixed(2) + '%"></span><span class="b" style="left:' + x2.toFixed(2) + '%"></span></div>' +
                         '<div class="yrs">' + (r.r - r.y).toLocaleString('en-GB') + '</div>' +
@@ -1252,6 +1327,7 @@
             });
             $('lag-chart').innerHTML = html;
             $('lag-chart').addEventListener('click', function (e) { if (e.target.tagName === 'A') return; var r = e.target.closest('.lag-row'); if (r) r.classList.toggle('on'); });
+            $('lag-mind').addEventListener('click', function () { this.classList.toggle('active', $('lag-chart').classList.toggle('mind-only')); });
             $('lag-read').innerHTML = med.map(function (m) { return '<div class="ro"><span class="k">' + m.n + ' &nbsp;(' + m.c + ' rows)</span><span class="v">median wait ' + m.m.toLocaleString('en-GB') + ' yrs</span></div>'; }).join('');
             if (med.length === 3) {
                 $('lag-finding').innerHTML = 'The median wait for a wish written down before 1500 is <strong>' + med[0].m.toLocaleString('en-GB') + ' years</strong>. For one written between 1500 and 1899 it is <strong>' + med[1].m + '</strong>. For the twentieth century it is <strong>' + med[2].m + '</strong>. The wait fell from the scale of civilisations to about a lifetime, and then roughly halved. A twentieth-century vision still took most of a working life to arrive.';
@@ -1368,7 +1444,54 @@
                 }).join('') + '</tbody>';
         })();
 
-        /* ---------- 09 open ledger ---------- */
+        
+        /* ---------- 09 made mind ---------- */
+        (function () {
+            var M = C.mind; if (!M) return;
+            var K = [{ id: 'wish', l: 'Tale' }, { id: 'idea', l: 'Idea' }, { id: 'built', l: 'Machine' }, { id: 'warn', l: 'Warning' }];
+            var KI = {}; K.forEach(function (k) { KI[k.id] = k; });
+            var rows = M.timeline.slice().sort(function (p, q) { return p.y - q.y; });
+            var END = 2030, LO = Math.log(END - 2026), HI = Math.log(END + 1900);
+            function X(y) { return (1 - (Math.log(END - y) - LO) / (HI - LO)) * 100; }
+            var strip = K.map(function (k) {
+                return '<div class="mind-lane k-' + k.id + '"><span class="ln">' + k.l + '</span><div class="tk">' + rows.map(function (r, i) {
+                    return r.k === k.id ? '<button data-i="' + i + '" style="left:' + X(r.y).toFixed(2) + '%" aria-label="' + esc(yr(r.y) + ': ' + r.t) + '" title="' + esc(yr(r.y) + ': ' + r.t) + '"></button>' : '';
+                }).join('') + '</div></div>';
+            }).join('');
+            strip += '<div class="mind-axis">' + [-1500, 1, 1500, 1900, 1990, 2020].map(function (t) { return '<span' + (t === 1 ? ' class="mh"' : '') + ' style="left:' + X(t).toFixed(2) + '%">' + (t < 0 ? (-t) + ' BCE' : (t === 1 ? '1 CE' : t)) + '</span>'; }).join('') + '</div>';
+            $('mind-strip').innerHTML = strip;
+            $('mind-list').innerHTML = rows.map(function (r, i) {
+                return '<div class="mind-row k-' + r.k + '" data-i="' + i + '" data-k="' + r.k + '"><span class="y">' + yr(r.y) + '</span><span class="kd">' + KI[r.k].l + '</span>' +
+                    '<div class="tx"><b>' + a(r.t, r.u) + '</b>' + esc(r.d) + '</div></div>';
+            }).join('');
+            var chips = $('mind-chips');
+            chips.innerHTML = '<button class="viz-btn active" data-k="">ALL</button>' + K.map(function (k) {
+                return '<button class="viz-btn k-' + k.id + '" data-k="' + k.id + '"><i style="background:var(--mc)"></i>' + k.l + 's</button>';
+            }).join('');
+            function filter(k) {
+                [].forEach.call(chips.querySelectorAll('.viz-btn'), function (c) { c.classList.toggle('active', c.dataset.k === k); });
+                [].forEach.call($('mind-list').children, function (r) { r.classList.toggle('hide', !!k && r.dataset.k !== k); });
+            }
+            chips.addEventListener('click', function (e) { var b = e.target.closest('.viz-btn'); if (b) filter(b.dataset.k); });
+            $('mind-strip').addEventListener('click', function (e) {
+                var b = e.target.closest('button'); if (!b) return;
+                filter('');
+                [].forEach.call(document.querySelectorAll('#mind-strip button.on, #mind-list .mind-row.on'), function (x) { x.classList.remove('on'); });
+                b.classList.add('on');
+                var row = $('mind-list').querySelector('.mind-row[data-i="' + b.dataset.i + '"]');
+                row.classList.add('on');
+                if (row.scrollIntoView) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            });
+            var GL = ['still open', 'partly', 'granted'];
+            $('mind-audit').innerHTML = M.audit.map(function (o) {
+                var g = ''; for (var k = 0; k < 3; k++) g += '<i' + (k <= o.g ? ' class="on"' : '') + '></i>';
+                return '<div class="open-row"><div class="w">' + esc(o.ask) + '<small>' + o.old + '</small></div>' +
+                    '<div class="gz"><div class="gauge3 g' + o.g + '">' + g + '</div><div class="stage">' + GL[o.g] + '</div></div>' +
+                    '<div class="st"><em>' + esc(o.year) + '</em>' + o.step + '<small>' + o.caveat + '</small></div></div>';
+            }).join('');
+        })();
+
+        /* ---------- 10 open ledger ---------- */
         (function () {
             var ST = ['no known path', 'theory only', 'lab demonstration', 'prototype', 'early product'];
             var rows = C.open.slice().sort(function (p, q) { return q.stage - p.stage; });

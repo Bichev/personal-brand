@@ -488,6 +488,27 @@ Every link cited in the research ledger and the article, grouped by the ledger f
 - https://www.who.int/health-topics/smallpox
 - https://www2.telegeography.com/submarine-cable-faqs-frequently-asked-questions
 
+## made-mind.md
+
+- https://arxiv.org/abs/2503.23674
+- https://arxiv.org/abs/2503.23674).
+- https://en.wikipedia.org/wiki/1X_Technologies
+- https://en.wikipedia.org/wiki/AI_alignment
+- https://en.wikipedia.org/wiki/Attention_Is_All_You_Need
+- https://en.wikipedia.org/wiki/DALL-E
+- https://en.wikipedia.org/wiki/Dartmouth_workshop
+- https://en.wikipedia.org/wiki/ELIZA
+- https://en.wikipedia.org/wiki/Golem)
+- https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)).
+- https://en.wikipedia.org/wiki/History_of_robots)
+- https://en.wikipedia.org/wiki/Illiac_Suite
+- https://en.wikipedia.org/wiki/Karakuri_puppet)
+- https://en.wikipedia.org/wiki/Suno_(platform))
+- https://humanoidsforhome.com/
+- https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/).
+- https://metr.org/blog/2026-11-20-q4-2026-capability-update/
+- https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0134%3Abook%3D18%3Acard%3D388
+
 ## images.md
 
 - https://commons.wikimedia.org/wiki/File:%22Kai_Kavus_Ascends_to_the_Sky%22,_Folio_134r_from_the_Shahnama_(Book_of_Kings)_of_Shah_Tahmasp_MET_DP107137.jpg
@@ -624,9 +645,12 @@ Every link cited in the research ledger and the article, grouped by the ledger f
 - https://en.wikipedia.org/wiki/Age_of_Earth
 - https://en.wikipedia.org/wiki/Atomic_theory
 - https://en.wikipedia.org/wiki/En_L%27An_2000
+- https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)
 - https://en.wikipedia.org/wiki/Ring_of_Gyges
+- https://en.wikipedia.org/wiki/Suno_(platform)
 - https://en.wikipedia.org/wiki/The_City_of_Brass
 - https://en.wikipedia.org/wiki/Wright_Flyer
+- https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/
 - https://ourworldindata.org/
 - https://ru.wikipedia.org/wiki/Ковёр-самолёт_(картина)
 - https://ru.wikisource.org/wiki/Народные_русские_сказки_(Афанасьев)

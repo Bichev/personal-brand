@@ -125,7 +125,7 @@ const outFile = path.join(root, 'public/blog/wish-ledger.html');
 fs.writeFileSync(outFile, html);
 
 /* ---------- research.md + SOURCES.md ---------- */
-const order = ['tales-europe.md', 'tales-asia.md', 'tales-africa-oceania-americas.md', 'people.md', 'numbers.md', 'images.md'];
+const order = ['tales-europe.md', 'tales-asia.md', 'tales-africa-oceania-americas.md', 'people.md', 'numbers.md', 'made-mind.md', 'images.md'];
 let research = '# The Wish Ledger: research ledger\n\nSource of truth for `public/blog/wish-ledger.html`. Edit the files in `parts/` (and `curated.json` for the hand-picked rows), then run `node research/wish-ledger/build.mjs`, which rebuilds the article, this file and `SOURCES.md`.\n\nCompiled 24 November 2026. Each row was checked against the page linked beside it. Rows marked UNVERIFIED or DOUBTFUL are either left out of the article or shown with that label.\n';
 const urls = new Map();
 for (const f of order) {

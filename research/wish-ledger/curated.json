@@ -869,7 +869,8 @@
       "y": -1850,
       "r": 1961,
       "d": "a spell so a figurine does your field work",
-      "a": "Unimate, the first robot on a factory line"
+      "a": "Unimate, the first robot on a factory line",
+      "m": 1
     },
     {
       "n": "Etana and the eagle",
@@ -885,7 +886,8 @@
       "y": -720,
       "r": 1961,
       "d": "serving machines that roll in by themselves",
-      "a": "Unimate"
+      "a": "Unimate",
+      "m": 1
     },
     {
       "n": "Chang'e flies to the Moon",
@@ -925,7 +927,8 @@
       "y": 1125,
       "r": 2022,
       "d": "a head that answers any question",
-      "a": "a chatbot anyone can ask"
+      "a": "a chatbot anyone can ask",
+      "m": 1
     },
     {
       "n": "The Ebony Horse",
@@ -1005,7 +1008,8 @@
       "y": 1843,
       "r": 1957,
       "d": "a calculating engine writing music",
-      "a": "the Illiac Suite, composed by computer"
+      "a": "the Illiac Suite, composed by computer",
+      "m": 1
     },
     {
       "n": "Verne: round the Moon from Florida",
@@ -1069,7 +1073,8 @@
       "y": 1920,
       "r": 1961,
       "d": "factory-made artificial workers",
-      "a": "Unimate"
+      "a": "Unimate",
+      "m": 1
     },
     {
       "n": "Tesla's pocket instrument",
@@ -1109,7 +1114,8 @@
       "y": 1946,
       "r": 1995,
       "d": "a terminal in every home answering anything",
-      "a": "home computers on the internet"
+      "a": "home computers on the internet",
+      "m": 1
     },
     {
       "n": "Turing's five-minute test",
@@ -1117,7 +1123,8 @@
       "y": 1950,
       "r": 2025,
       "d": "a machine taken for human in a text chat",
-      "a": "a language model judged human 73% of the time"
+      "a": "a language model judged human 73% of the time",
+      "m": 1
     },
     {
       "n": "Bradbury's seashell radios",
@@ -2588,6 +2595,13 @@
       "n": "How a drum carries a sentence."
     },
     {
+      "y": "1960",
+      "a": "Norbert Wiener",
+      "t": "Some Moral and Technical Consequences of Automation",
+      "u": "https://www.lesswrong.com/posts/2rWfmahhqASnFcYLr/norbert-wiener-s-paper-some-moral-and-technical-consequences",
+      "n": "The sorcerer's apprentice, restated for machines that act faster than we can intervene."
+    },
+    {
       "y": "1996",
       "a": "William Nordhaus",
       "t": "Do Real-Output and Real-Wage Measures Capture Reality? The History of Lighting Suggests Not",
@@ -2616,6 +2630,20 @@
       "n": "Every number on the Year Dial."
     },
     {
+      "y": "2025",
+      "a": "Jones and Bergen",
+      "t": "Large Language Models Pass the Turing Test",
+      "u": "https://arxiv.org/abs/2503.23674",
+      "n": "GPT-4.5 with a persona prompt judged human 73% of the time."
+    },
+    {
+      "y": "2026",
+      "a": "METR",
+      "t": "Q4 2026 capability update",
+      "u": "https://metr.org/blog/2026-11-20-q4-2026-capability-update/",
+      "n": "How long a task the leading models can finish alone, with its error bars."
+    },
+    {
       "y": "2026",
       "a": "Wikiquote",
       "t": "Incorrect predictions",
@@ -2623,5 +2651,257 @@
       "n": "Which famous expert blunders are real and which are invented."
     }
   ],
+  "mind": {
+    "timeline": [
+      {
+        "y": -1850,
+        "k": "wish",
+        "t": "Shabti servant figures",
+        "u": "https://en.wikipedia.org/wiki/Ushabti",
+        "d": "Egypt. Figurines buried with the dead, with a spell so that they answer the call to field labour in the afterlife."
+      },
+      {
+        "y": -720,
+        "k": "wish",
+        "t": "Hephaestus's golden handmaids",
+        "u": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0134%3Abook%3D18%3Acard%3D388",
+        "d": "Homer, Iliad 18: \"In them is understanding in their hearts, and in them speech and strength.\" (A. T. Murray's translation, 1924.)"
+      },
+      {
+        "y": -322,
+        "k": "idea",
+        "t": "Aristotle's self-weaving shuttle",
+        "u": "https://en.wikipedia.org/wiki/History_of_robots",
+        "d": "If tools did their own work when ordered, he writes, masters would need no slaves. He meant it as an impossibility."
+      },
+      {
+        "y": -250,
+        "k": "wish",
+        "t": "Talos, the bronze guardian",
+        "u": "https://en.wikipedia.org/wiki/Talos",
+        "d": "Greece. A man of bronze circles Crete and drives off ships until his single vein is opened."
+      },
+      {
+        "y": 150,
+        "k": "warn",
+        "t": "The sorcerer's apprentice",
+        "u": "https://en.wikipedia.org/wiki/The_Sorcerer's_Apprentice",
+        "d": "Lucian. An apprentice animates a household object to fetch water and cannot make it stop."
+      },
+      {
+        "y": 370,
+        "k": "wish",
+        "t": "Yan Shi's automaton",
+        "u": "https://en.wikipedia.org/wiki/King_Mu_of_Zhou",
+        "d": "China, in the Liezi. A life-size figure walks, sings and flirts. Opened up, it is leather, wood, glue and lacquer."
+      },
+      {
+        "y": 1100,
+        "k": "wish",
+        "t": "Robot guards of the Buddha's relics",
+        "u": "https://theconversation.com/robots-guarded-buddhas-relics-in-a-legend-of-ancient-india-110078",
+        "d": "A Pali text from Burma, the Lokapannatti. Mechanical warriors guard the relics underground."
+      },
+      {
+        "y": 1125,
+        "k": "wish",
+        "t": "The Brazen Head",
+        "u": "https://en.wikipedia.org/wiki/Brazen_head",
+        "d": "William of Malmesbury. A brass head, owned by a scholar, that correctly answers any question put to it."
+      },
+      {
+        "y": 1206,
+        "k": "built",
+        "t": "Al-Jazari's programmable musicians",
+        "u": "https://en.wikipedia.org/wiki/Ismail_al-Jazari",
+        "d": "A boat of four mechanical musicians driven by a drum with movable pegs. Change the pegs and they play a different rhythm."
+      },
+      {
+        "y": 1554,
+        "k": "warn",
+        "t": "The revolt of the tools",
+        "u": "https://en.wikipedia.org/wiki/Popol_Vuh",
+        "d": "K'iche' Maya, Popol Vuh. The wooden people are made without hearts, and their pots, grinding stones and dogs turn on them."
+      },
+      {
+        "y": 1804,
+        "k": "built",
+        "t": "The Jacquard loom",
+        "u": "https://en.wikipedia.org/wiki/Jacquard_machine",
+        "d": "Chains of punched cards set the pattern. The shuttle now weaves by instruction."
+      },
+      {
+        "y": 1837,
+        "k": "warn",
+        "t": "The Golem of Prague",
+        "u": "https://en.wikipedia.org/wiki/Golem",
+        "d": "In print from 1837, with roots in the Talmud. A clay servant grows dangerous when its maker forgets to switch it off."
+      },
+      {
+        "y": 1843,
+        "k": "idea",
+        "t": "Ada Lovelace's notes",
+        "u": "https://en.wikisource.org/wiki/Scientific_Memoirs/3/Sketch_of_the_Analytical_Engine_invented_by_Charles_Babbage,_Esq./Notes_by_the_Translator",
+        "d": "The engine \"might compose elaborate and scientific pieces of music\". It also \"has no pretensions whatever to originate any thing\"."
+      },
+      {
+        "y": 1920,
+        "k": "warn",
+        "t": "Karel Čapek's R.U.R.",
+        "u": "https://en.wikipedia.org/wiki/R.U.R.",
+        "d": "Factory-made workers replace human labour and then revolt. The play gave the world the word robot."
+      },
+      {
+        "y": 1946,
+        "k": "idea",
+        "t": "Murray Leinster's home logics",
+        "u": "https://en.wikipedia.org/wiki/A_Logic_Named_Joe",
+        "d": "A screen and keyboard in every home that answers any question. One of them loses its filters."
+      },
+      {
+        "y": 1950,
+        "k": "idea",
+        "t": "Alan Turing's test",
+        "u": "https://en.wikipedia.org/wiki/Turing_test",
+        "d": "He guessed that in about fifty years a machine would fool an average questioner in a five-minute written conversation three times in ten."
+      },
+      {
+        "y": 1955,
+        "k": "idea",
+        "t": "The name \"artificial intelligence\"",
+        "u": "https://en.wikipedia.org/wiki/Dartmouth_workshop",
+        "d": "A funding proposal by McCarthy, Minsky, Rochester and Shannon for a summer workshop at Dartmouth in 1956 is credited with introducing the term."
+      },
+      {
+        "y": 1960,
+        "k": "warn",
+        "t": "Norbert Wiener in Science",
+        "u": "https://www.lesswrong.com/posts/2rWfmahhqASnFcYLr/norbert-wiener-s-paper-some-moral-and-technical-consequences",
+        "d": "\"We had better be quite sure that the purpose put into the machine is the purpose which we really desire and not merely a colorful imitation of it.\""
+      },
+      {
+        "y": 1961,
+        "k": "built",
+        "t": "Unimate, the first factory robot",
+        "u": "https://en.wikipedia.org/wiki/Unimate",
+        "d": "Installed at a General Motors plant in New Jersey."
+      },
+      {
+        "y": 1966,
+        "k": "built",
+        "t": "ELIZA",
+        "u": "https://en.wikipedia.org/wiki/ELIZA",
+        "d": "Joseph Weizenbaum at MIT. One of the first chatbots."
+      },
+      {
+        "y": 1997,
+        "k": "built",
+        "t": "Deep Blue beats Kasparov",
+        "u": "https://en.wikipedia.org/wiki/Deep_Blue_versus_Garry_Kasparov",
+        "d": "New York, 3½ to 2½. Kasparov had won the first match a year earlier."
+      },
+      {
+        "y": 2016,
+        "k": "built",
+        "t": "AlphaGo beats Lee Sedol",
+        "u": "https://en.wikipedia.org/wiki/AlphaGo_versus_Lee_Sedol",
+        "d": "Seoul, four games to one."
+      },
+      {
+        "y": 2017,
+        "k": "built",
+        "t": "The transformer",
+        "u": "https://en.wikipedia.org/wiki/Attention_Is_All_You_Need",
+        "d": "A paper by eight Google researchers introduces the architecture behind today's language models."
+      },
+      {
+        "y": 2022,
+        "k": "built",
+        "t": "ChatGPT",
+        "u": "https://en.wikipedia.org/wiki/ChatGPT",
+        "d": "Released on 30 November 2022. It reported 900 million weekly users in February 2026."
+      },
+      {
+        "y": 2025,
+        "k": "built",
+        "t": "A language model passes Turing's test",
+        "u": "https://arxiv.org/abs/2503.23674",
+        "d": "Jones and Bergen: GPT-4.5, prompted to adopt a humanlike persona, \"was judged to be the human 73% of the time\"."
+      },
+      {
+        "y": 2026,
+        "k": "built",
+        "t": "About 40 hours alone",
+        "u": "https://metr.org/blog/2026-11-20-q4-2026-capability-update/",
+        "d": "METR's estimate, 20 November 2026, of the task length the leading models finish with 50% reliability. Its error bars start at 12 hours and pass 1,000."
+      }
+    ],
+    "audit": [
+      {
+        "ask": "Speak and understand",
+        "old": "[[Hephaestus's golden handmaids|https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0134%3Abook%3D18%3Acard%3D388]], about 700 BCE",
+        "g": 2,
+        "year": "2025",
+        "step": "In a controlled test a language model [[was judged to be the human 73% of the time|https://arxiv.org/abs/2503.23674]].",
+        "caveat": "It had been prompted to play a human persona. Turing guessed this would happen around 2000."
+      },
+      {
+        "ask": "Do the heavy work",
+        "old": "[[Shabti figures|https://en.wikipedia.org/wiki/Ushabti]] and [[Aristotle's shuttle|https://en.wikipedia.org/wiki/History_of_robots]]",
+        "g": 2,
+        "year": "1804",
+        "step": "The [[Jacquard loom|https://en.wikipedia.org/wiki/Jacquard_machine]], then [[Unimate|https://en.wikipedia.org/wiki/Unimate]] in 1961. There are now [[4.66 million industrial robots|https://ifr.org/ifr-press-releases/news/global-robot-demand-in-factories-doubles-over-10-years]] at work.",
+        "caveat": "Granted in factories, where the task repeats."
+      },
+      {
+        "ask": "Make music and pictures",
+        "old": "[[Ada Lovelace|https://en.wikipedia.org/wiki/Ada_Lovelace]], 1843",
+        "g": 2,
+        "year": "1957",
+        "step": "The [[Illiac Suite|https://en.wikipedia.org/wiki/Illiac_Suite]] is generally agreed to be the first score composed by an electronic computer. Pictures from a written description came with [[DALL-E|https://en.wikipedia.org/wiki/DALL-E]] in 2021 and songs with voices with [[Suno|https://en.wikipedia.org/wiki/Suno_(platform)]] in 2023.",
+        "caveat": "Whether any of it counts as originating something is argued two rows from the end."
+      },
+      {
+        "ask": "Answer any question",
+        "old": "[[The Brazen Head|https://en.wikipedia.org/wiki/Brazen_head]], about 1125",
+        "g": 1,
+        "year": "2022",
+        "step": "[[ChatGPT|https://en.wikipedia.org/wiki/ChatGPT]] answers when spoken to, and reported 900 million weekly users in February 2026.",
+        "caveat": "The Brazen Head answered correctly. The machines also [[state things that are false|https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)]]."
+      },
+      {
+        "ask": "Work a long task alone",
+        "old": "[[Aladdin's jinn|https://en.wikipedia.org/wiki/Aladdin]] and the [[Menehune|https://en.wikipedia.org/wiki/Menehune]], who build in a single night",
+        "g": 1,
+        "year": "2026",
+        "step": "[[METR|https://metr.org/blog/2026-11-20-q4-2026-capability-update/]] puts the leading models at about 40 hours of human work, up from about [[one hour in March 2025|https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/]].",
+        "caveat": "That is the length they finish half the time, measured on a set of test tasks, and the estimate is very uncertain."
+      },
+      {
+        "ask": "Keep house",
+        "old": "[[Emelya's walking buckets|https://en.wikipedia.org/wiki/At_the_Pike's_Behest]] and the tea-carrying [[karakuri doll|https://en.wikipedia.org/wiki/Karakuri_puppet]]",
+        "g": 1,
+        "year": "2002",
+        "step": "The washing machine and the [[Roomba|https://en.wikipedia.org/wiki/Roomba]] each do one chore. [[1X|https://en.wikipedia.org/wiki/1X_Technologies]] opened orders for a $20,000 home humanoid in October 2025.",
+        "caveat": "At that launch most of its tasks were done by a remote human operator. As of November 2026 I found [[no independently verified delivery|https://humanoidsforhome.com/]] of a general-purpose home robot to a paying household."
+      },
+      {
+        "ask": "Originate something",
+        "old": "[[Lovelace's objection|https://en.wikipedia.org/wiki/Computing_Machinery_and_Intelligence]], 1843",
+        "g": 0,
+        "year": "1950",
+        "step": "Turing answered her by name in 1950, under the heading \"Lady Lovelace's Objection\".",
+        "caveat": "Still argued. I do not think the audit can settle it."
+      },
+      {
+        "ask": "Stop when told, and do what was meant",
+        "old": "[[The sorcerer's apprentice|https://en.wikipedia.org/wiki/The_Sorcerer's_Apprentice]], [[Midas|https://en.wikipedia.org/wiki/Midas]] and [[the Golem|https://en.wikipedia.org/wiki/Golem]]",
+        "g": 0,
+        "year": "1960",
+        "step": "[[Wiener|https://www.lesswrong.com/posts/2rWfmahhqASnFcYLr/norbert-wiener-s-paper-some-moral-and-technical-consequences]] restated the problem for automatic machines. Stuart Russell built [[a book|https://en.wikipedia.org/wiki/Human_Compatible]] on it in 2019.",
+        "caveat": "It is now a research field, [[AI alignment|https://en.wikipedia.org/wiki/AI_alignment]], and it is not solved."
+      }
+    ]
+  },
   "credits": {}
 }

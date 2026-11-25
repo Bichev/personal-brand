@@ -10,7 +10,9 @@ I wanted to know how far that goes, so I made a list. 125 wishes from the myths 
 
 Then I checked each one against what exists today.
 
-Eight of the ten have been granted, mostly to everybody. The oldest waited about 3,500 years. Jules Verne's Moon shot waited 103. Arthur C. Clarke's satellite waited 19.
+Seven of the ten have been granted outright, mostly to everybody. The oldest waited about 3,500 years. Jules Verne's Moon shot waited 103. Arthur C. Clarke's satellite waited 19.
+
+One is being answered while I write this. Around 700 BCE Homer gave a god servants made of gold with "understanding in their hearts, and in them speech". The essay follows that wish to this month's AI benchmarks.
 
 I did not expect the warnings. The same people who wrote down the wish usually wrote down the bill. The sorcerer's apprentice is from about 150 CE. The Maya have a day when the cooking pots turn on their owners.
 
