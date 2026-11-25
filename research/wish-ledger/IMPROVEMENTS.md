@@ -60,3 +60,21 @@ Raised by Vladimir, 25 November 2026: too much scrolling on a phone.
 **Still possible.** The lag chart (3.3 screens), the morning cards (2.5), the year dial (2.6) and the naysayers table (2.2) are the largest blocks left. The phone folds use a class toggle, so find-in-page does not open them.
 
 **Status.** Done.
+
+## 4. Scroll animation
+
+Raised by Vladimir, 25 November 2026, with The Atlantic's online features as the reference.
+
+**Rule adopted.** Motion has to mean something. Each animation runs once, the page never takes over the scroll, nothing is hidden if scripts fail or the reader has "reduce motion" on, and there are no libraries.
+
+**Done.**
+- Visual 01: each moment turns into its tale as the card crosses the middle of the screen. A tap turns it back.
+- Lag chart: each line grows from the year written to the year granted as its row arrives.
+- Hero: the carpet drifts slightly to the right over the first 700 px of scrolling.
+- Visuals, picture pairs and the gallery fade in as they arrive. In each pair the real picture follows the imagined one by half a second.
+- Made-mind strip: the dots appear in date order.
+- Year Dial replaced by the Year Table, on Vladimir's design: five year columns that fill in from left to right as the reader scrolls, each figure showing its change from the column before. Tapping a year shows who lived in it. It is also shorter on a phone than the dial was (1,219 px against 2,138).
+
+**Not done, by choice.** Count-up numbers, animated paragraphs, parallax on other pictures, and a pinned scene that holds the screen while content changes.
+
+**Status.** Done. Checked in a desktop and a phone-sized browser window. That window throttles scroll events, so the carpet drift and the smoothness of the table reveal are best judged on a real device.
