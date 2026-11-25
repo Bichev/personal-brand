@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { 
   FaGithub, FaExternalLinkAlt, FaRocket, FaPlane, FaRobot, 
   FaTv, FaLink, FaPiggyBank, FaBookOpen, FaWifi, FaBuilding,
-  FaChartLine, FaNewspaper, FaExchangeAlt, FaRedditAlien, FaShieldAlt
+  FaChartLine, FaNewspaper, FaExchangeAlt, FaRedditAlien, FaShieldAlt, FaHandshake, FaProjectDiagram, FaFileAlt
 } from 'react-icons/fa';
 import { Card } from './Card';
 import { Button } from './Button';
@@ -25,6 +25,8 @@ const iconMap = {
   FaExchangeAlt: <FaExchangeAlt className="text-4xl mb-2 mx-auto" />,
   FaRedditAlien: <FaRedditAlien className="text-4xl mb-2 mx-auto" />,
   FaShieldAlt: <FaShieldAlt className="text-4xl mb-2 mx-auto" />,
+  FaHandshake: <FaHandshake className="text-4xl mb-2 mx-auto" />,
+  FaProjectDiagram: <FaProjectDiagram className="text-4xl mb-2 mx-auto" />,
   FaRocket: <FaRocket className="text-4xl mb-2 mx-auto" />,
 };
 
@@ -72,113 +74,8 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
           </p>
         </motion.div>
 
-        {/* Enterprise Projects */}
-        <div className="mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <FaBuilding className="text-[#c9a84c] text-xl" />
-              <h3 className="font-serif text-2xl sm:text-3xl font-normal text-gray-900 dark:text-white">
-                Enterprise Solutions
-              </h3>
-            </div>
-            <p className="text-gray-500 dark:text-[#6b6860] text-sm max-w-xl mx-auto">
-              Large-scale transformations and AI implementations for Fortune 500 companies
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {featuredEnterpriseProjects.map((project: Project, index: number) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="h-full"
-              >
-                <Card padding="none" className="overflow-hidden group h-full flex flex-col">
-                  <div className={`relative h-48 bg-gradient-to-r ${project.color || 'from-gray-700 to-gray-800'}`}>
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <div className="text-white text-center">
-                        {getIcon(project.icon!, true)}
-                        <h3 className="text-xl font-bold">{project.title}</h3>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                      {project.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-[#8a8780] mb-4">
-                      {project.description}
-                    </p>
-
-                    <div className="flex flex-wrap gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {project.technologies.map((tech: string) => (
-                        <span
-                          key={tech}
-                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {otherEnterpriseProjects.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {otherEnterpriseProjects.map((project: Project, index: number) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="h-full"
-                >
-                  <Card className="h-full flex flex-col group">
-                    <div className="flex-grow">
-                      <div className="flex items-start gap-3 mb-3">
-                        {getSmallIcon(project.icon!)}
-                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
-                          {project.title}
-                        </h4>
-                      </div>
-                      <p className="text-sm text-gray-500 dark:text-[#8a8780] mb-4">
-                        {project.description}
-                      </p>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {project.technologies.map((tech: string) => (
-                        <span
-                          key={tech}
-                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* Personal Projects */}
-        <div>
+        <div className="mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -275,6 +172,12 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                           Live Demo
                         </Button>
                       )}
+                      {project.overviewUrl && (
+                        <Button variant="outline" size="sm" href={project.overviewUrl} external>
+                          <FaFileAlt className="mr-2" size={12} />
+                          Overview
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -339,6 +242,111 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                           </Button>
                         )}
                       </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Enterprise Projects */}
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <FaBuilding className="text-[#c9a84c] text-xl" />
+              <h3 className="font-serif text-2xl sm:text-3xl font-normal text-gray-900 dark:text-white">
+                Enterprise Solutions
+              </h3>
+            </div>
+            <p className="text-gray-500 dark:text-[#6b6860] text-sm max-w-xl mx-auto">
+              Large-scale transformations and AI implementations for Fortune 500 companies
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            {featuredEnterpriseProjects.map((project: Project, index: number) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="h-full"
+              >
+                <Card padding="none" className="overflow-hidden group h-full flex flex-col">
+                  <div className={`relative h-48 bg-gradient-to-r ${project.color || 'from-gray-700 to-gray-800'}`}>
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <div className="text-white text-center">
+                        {getIcon(project.icon!, true)}
+                        <h3 className="text-xl font-bold">{project.title}</h3>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-[#8a8780] mb-4">
+                      {project.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {project.technologies.map((tech: string) => (
+                        <span
+                          key={tech}
+                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {otherEnterpriseProjects.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {otherEnterpriseProjects.map((project: Project, index: number) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="h-full"
+                >
+                  <Card className="h-full flex flex-col group">
+                    <div className="flex-grow">
+                      <div className="flex items-start gap-3 mb-3">
+                        {getSmallIcon(project.icon!)}
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                          {project.title}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-[#8a8780] mb-4">
+                        {project.description}
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {project.technologies.map((tech: string) => (
+                        <span
+                          key={tech}
+                          className="font-mono text-[10px] text-gray-400 dark:text-[#6b6860] bg-gray-100 dark:bg-white/[0.04] px-2 py-0.5 rounded"
+                        >
+                          {tech}
+                        </span>
+                      ))}
                     </div>
                   </Card>
                 </motion.div>
