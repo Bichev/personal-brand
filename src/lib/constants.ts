@@ -165,7 +165,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: 'wish-ledger',
     title: "The Wish Ledger: You Live Inside Your Ancestors' Fairy Tales",
-    excerpt: 'Flying carpets, mirrors that answer, servants made of bronze, water that heals. I collected 125 wishes from the myths and fairy tales of more than 40 cultures and checked each one against the record. Most have been granted, usually to everybody, and you used several of them before breakfast.',
+    excerpt: 'Flying carpets, mirrors that answer, servants made of bronze, water that heals. I collected 125 wishes from the myths and fairy tales of more than 40 cultures and checked each one against what exists today. Most of them have come true, for nearly everyone, and you used several before breakfast.',
     content: '',
     date: '2026-11-24',
     readTime: '22 min read',
