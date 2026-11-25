@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Tailwind 4 ties `dark:` to the OS setting unless told otherwise. The site toggles a
+   `.dark` class on <html>, so point the variant at that class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f5f0e8;
   --foreground: #1a1a1a;
