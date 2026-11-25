@@ -219,6 +219,14 @@
             display: flex; flex-direction: column; transition: border-color 0.2s, background 0.2s;
         }
         .mcard:hover { border-color: var(--border); }
+        .mclock { position: sticky; top: 46px; z-index: 3; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; align-items: baseline; background: var(--bg-secondary); padding: 10px 0 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
+        .mclock .tm { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+        .mclock .lb { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+        .mclock .pb { grid-column: 1 / -1; height: 2px; background: rgba(255,255,255,0.07); margin-top: 6px; display: block; }
+        .mclock .pb i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.5s ease; }
+        .mcard .t { transition: color 0.4s; }
+        .mcard.seen .t { color: var(--accent); }
+        .mcard.cur { border-color: var(--border); }
         .mcard .t { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--text-muted); }
         .mcard .now { font-size: 14.5px; color: var(--text-primary); line-height: 1.5; margin-top: 8px; }
         .mcard .hint { margin-top: auto; padding-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 1px; color: var(--accent); opacity: 0.75; text-transform: uppercase; }
@@ -551,6 +559,7 @@
             details.trow summary::after { grid-column: 2; grid-row: 1 / span 2; }
 
             .only-desk { display: none; } .only-phone { display: inline; }
+            .mcard { min-height: 0; } .mcard .hint { margin-top: 0; }
             .mf { position: relative; cursor: pointer; }
             .mf .mf-body { display: none; }
             .mf.open .mf-body { display: block; cursor: auto; }
@@ -682,11 +691,12 @@
 
             <div class="viz" id="viz-morning">
                 <div class="viz-title">Visual 01 &nbsp;/&nbsp; The Translation</div>
-                <div class="viz-sub">Ten moments of an ordinary day. Each one turns into the tale it comes from as you scroll past it. Tap a card to turn it back.</div>
+                <div class="viz-sub">Ten moments of an ordinary day, in the order they happen. Tap a card to see the tale it comes from, who told it, and when it was first written down.</div>
                 <div class="viz-controls">
                     <button class="viz-btn" id="m-all">SHOW ALL TALES</button>
                     <button class="viz-btn" id="m-none">BACK TO THE MORNING</button>
                 </div>
+                <div class="mclock" id="mclock" aria-hidden="true"><span class="tm">06:30</span><span class="lb"></span><span class="pb"><i></i></span></div>
                 <div class="morning" id="morning-grid"></div>
                 <div class="viz-caption">One card for each of the ten wishes in this article. The dates are the earliest written source I could verify. The stories are older than their first written copy.</div>
             </div>
@@ -1772,15 +1782,32 @@
         (function () {
             var cards = [].slice.call(document.querySelectorAll('#morning-grid .mcard'));
             if (!('IntersectionObserver' in window)) return;
-            /* Visual 01: each moment turns into its tale as it crosses the middle of the screen. */
+            /* Visual 01: a clock follows the reader through the day. Cards open on a tap, not on scroll. */
+            var clock = $('mclock'), tm = clock.querySelector('.tm'), lb = clock.querySelector('.lb'), bar = clock.querySelector('.pb i');
+            var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            function mins(i) { var p = C.morning[i].time.split(':'); return (+p[0]) * 60 + (+p[1]); }
+            function fmt(m) { m = Math.round(m); return ('0' + Math.floor(m / 60)).slice(-2) + ':' + ('0' + (m % 60)).slice(-2); }
+            var DAY0 = mins(0), DAY1 = mins(C.morning.length - 1), shownM = DAY0, raf = 0, curI = -1, settle = 0;
+            function goTo(i) {
+                if (i === curI) return; curI = i;
+                cards.forEach(function (c, k) { c.classList.toggle('cur', k === i); if (k <= i) c.classList.add('seen'); });
+                lb.textContent = WI[C.morning[i].w].s;
+                bar.style.width = ((mins(i) - DAY0) / (DAY1 - DAY0) * 100).toFixed(1) + '%';
+                var from = shownM, to = mins(i), t0 = null;
+                cancelAnimationFrame(raf); clearTimeout(settle);
+                settle = setTimeout(function () { if (curI === i) { shownM = to; tm.textContent = fmt(to); } }, 600);
+                if (still) { shownM = to; tm.textContent = fmt(to); return; }
+                (function tick(ts) {
+                    if (t0 === null) t0 = ts || 0;
+                    var k = Math.min(1, ((ts || 0) - t0) / 450);
+                    shownM = from + (to - from) * k; tm.textContent = fmt(shownM);
+                    if (k < 1) raf = requestAnimationFrame(tick);
+                })();
+            }
+            goTo(0);
             var mio = new IntersectionObserver(function (es) {
-                var k = 0;
-                es.forEach(function (e) {
-                    if (!e.isIntersecting) return;
-                    mio.unobserve(e.target);
-                    setTimeout(function () { e.target.classList.add('on'); }, 140 * k++);
-                });
-            }, { rootMargin: '-30% 0px -42% 0px' });
+                es.forEach(function (e) { if (e.isIntersecting) goTo(cards.indexOf(e.target)); });
+            }, { rootMargin: '-44% 0px -44% 0px' });
             cards.forEach(function (c) { mio.observe(c); });
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             document.documentElement.classList.add('anim');

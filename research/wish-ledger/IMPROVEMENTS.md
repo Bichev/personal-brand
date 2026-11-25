@@ -68,7 +68,7 @@ Raised by Vladimir, 25 November 2026, with The Atlantic's online features as the
 **Rule adopted.** Motion has to mean something. Each animation runs once, the page never takes over the scroll, nothing is hidden if scripts fail or the reader has "reduce motion" on, and there are no libraries.
 
 **Done.**
-- Visual 01: each moment turns into its tale as the card crosses the middle of the screen. A tap turns it back.
+- Visual 01: a clock pinned above the cards runs from 06:30 to 22:40 as the reader scrolls through the day, with a thin bar for progress. Cards open on a tap. (The first version opened each card automatically on scroll; Vladimir asked for tap back, because opened cards made the section long.)
 - Lag chart: each line grows from the year written to the year granted as its row arrives.
 - Hero: the carpet drifts slightly to the right over the first 700 px of scrolling.
 - Visuals, picture pairs and the gallery fade in as they arrive. In each pair the real picture follows the imagined one by half a second.
