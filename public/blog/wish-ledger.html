@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Wish Ledger: You Live Inside Your Ancestors' Fairy Tales</title>
-    <meta name="description" content="Flying carpets, mirrors that answer, servants made of bronze, water that heals. I collected 125 wishes from the myths and fairy tales of more than 40 peoples, sorted them into ten kinds and checked each against the record. Nine interactive visuals and a source link on every claim.">
+    <meta name="description" content="Flying carpets, mirrors that answer, servants made of bronze, water that heals. I collected 125 wishes from the myths and fairy tales of more than 40 cultures and checked each one against the record. Most have been granted, usually to everybody, and you used several of them before breakfast.">
     <link rel="canonical" href="https://vladbichev.com/blog/wish-ledger.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://vladbichev.com/blog/wish-ledger.html">
     <meta property="og:title" content="The Wish Ledger: You Live Inside Your Ancestors' Fairy Tales">
-    <meta property="og:description" content="125 wishes from the myths of more than 40 peoples, audited one by one. The flying carpet, the mirror that answers and the self-setting table have all been delivered. A few wishes are still open.">
+    <meta property="og:description" content="125 wishes from the myths of more than 40 cultures, audited one by one. The flying carpet, the mirror that answers and the self-setting table have all been delivered. A few wishes are still open.">
     <meta property="og:image" content="https://vladbichev.com/blog/wish-ledger-assets/og-wish-ledger.jpg">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="The Wish Ledger: You Live Inside Your Ancestors' Fairy Tales">
-    <meta name="twitter:description" content="125 wishes from the myths of more than 40 peoples, audited one by one. Most have been granted. A few are still open.">
+    <meta name="twitter:description" content="125 wishes from the myths of more than 40 cultures, audited one by one. Most have been granted. A few are still open.">
     <meta name="twitter:image" content="https://vladbichev.com/blog/wish-ledger-assets/og-wish-ledger.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -462,9 +462,7 @@
         <h1>The Wish Ledger<br><em>You Live Inside Your Ancestors' Fairy Tales</em></h1>
         <p class="hero-subtitle">
             Flying carpets, mirrors that answer, servants made of bronze, water that heals.
-            I collected 125 wishes from the myths and fairy tales of more than 40 peoples, sorted them into
-            ten kinds and checked each one against the record. Most have been granted, usually to everybody.
-            Nine things to play with, and a source behind every link.
+            I collected 125 wishes from the myths and fairy tales of more than 40 cultures and checked each one against the record. Most have been granted, usually to everybody, and you used several of them before breakfast.
         </p>
         <div class="hero-meta">
             <span>November 24, 2026</span>
@@ -547,7 +545,7 @@
                 He is in the ledger with a warning label.
             </p>
             <p>
-                What remained is 125 tales and objects from more than 40 peoples. They sorted themselves into ten
+                What remained is 125 tales and objects from more than 40 cultures. They sorted themselves into ten
                 wishes with very little forcing.
             </p>
 
@@ -620,7 +618,7 @@
         <!-- ================= III ================= -->
         <section id="same">
             <span class="section-label">III. The Map</span>
-            <h2>Which peoples shared which wishes</h2>
+            <h2>Which cultures shared which wishes</h2>
             <p>
                 Put the tales on a map and no wish stays inside one culture. The flying carpet I grew up thinking of as Russian is also Arabian, and the
                 self-setting tablecloth has a German cousin, an Irish one and a Sanskrit one.
@@ -656,7 +654,7 @@
                 are made rather than born seems to arrive everywhere with the same worry attached.
             </p>
 
-            <h3>Three peoples who skipped the wish and built the thing</h3>
+            <h3>Three cultures that skipped the wish and built the thing</h3>
             <p>
                 Not every row in the ledger is a tale. In the 1730s Francis Moore noted a
                 <a href="https://archive.org/details/travelsintoinlan00moor" target="_blank" rel="noopener">Mandinka town drum</a>
@@ -995,8 +993,7 @@
                 <h3>The count</h3>
                 <p>
                     I went looking for evidence that we live in the world our ancestors wished for, and the
-                    count came out as follows. Of ten wishes that turn up in the stories of more than forty
-                    peoples, eight have been granted outright and are now so ordinary that we are bored by
+                    count came out as follows. Of ten wishes that turn up in the stories of more than forty cultures, eight have been granted outright and are now so ordinary that we are bored by
                     them: flight, sight at a distance, speech at a distance, made servants, the full table,
                     speed and light, the Moon, the library of everything. One, healing, has been granted to
                     a degree no king ever enjoyed and still ends where it always did. One, a life under the
@@ -1201,7 +1198,7 @@
                 if (wid) {
                     var list = T.filter(function (t) { return t.w === wid; }).slice().sort(function (p, q) { return p.y - q.y; });
                     var cultures = {}; list.forEach(function (t) { cultures[t.p] = 1; });
-                    det.innerHTML = '<h4>' + esc(WI[wid].label) + ' &nbsp;/&nbsp; ' + list.length + ' entries from ' + Object.keys(cultures).length + ' peoples, oldest first</h4>' + grantedLine(wid) +
+                    det.innerHTML = '<h4>' + esc(WI[wid].label) + ' &nbsp;/&nbsp; ' + list.length + ' entries from ' + Object.keys(cultures).length + ' cultures, oldest first</h4>' + grantedLine(wid) +
                         '<div class="tales" style="margin-top:14px">' + list.map(taleCard).join('') + '</div>';
                 } else {
                     det.innerHTML = '<h4>' + T.length + ' entries. Pick a wish above, or tap any dot.</h4>';
