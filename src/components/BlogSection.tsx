@@ -54,7 +54,7 @@ export function BlogSection({ className, id = 'blog' }: SectionProps) {
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center text-xs text-gray-400 dark:text-[#6b6860] font-mono">
                           <FaClock className="mr-1.5" size={10} />
-                          {formatDate(post.date)} &bull; {post.readTime}
+                          {formatDate(post.date)}, {post.readTime}
                         </div>
                         {isLocal && (
                           <span className="bg-[#c9a84c]/10 text-[#c9a84c] px-2 py-0.5 rounded text-[10px] font-mono font-medium tracking-wider uppercase">

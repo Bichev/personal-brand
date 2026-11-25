@@ -1088,7 +1088,7 @@
             var ms = (C.milestones || {})[wid]; if (!ms) return '';
             return '<div class="granted"><b>Granted</b>' + ms.map(function (m) {
                 return '<em>' + esc(m.y) + '</em> ' + a(m.t, m.u);
-            }).join(' &nbsp;&middot;&nbsp; ') + '</div>';
+            }).join('; ') + '</div>';
         }
 
         /* ---------- 01 morning ---------- */
