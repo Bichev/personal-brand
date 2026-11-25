@@ -485,6 +485,87 @@
             .tales { grid-template-columns: 1fr; }
             .people { grid-template-columns: 1fr; }
         }
+
+        /* ---- tale rows: one line each, open on tap ---- */
+        .trows { border-top: 1px solid var(--border-subtle); }
+        details.trow { border-bottom: 1px solid var(--border-subtle); border-left: 2px solid var(--wc); }
+        details.trow summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr auto 12px; gap: 12px; align-items: baseline; padding: 9px 10px 9px 12px; }
+        details.trow summary::-webkit-details-marker { display: none; }
+        details.trow summary:hover { background: rgba(255,255,255,0.03); }
+        details.trow summary::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid var(--text-muted); border-bottom: 1.5px solid var(--text-muted); transform: rotate(45deg); transition: transform 0.2s; align-self: center; }
+        details.trow[open] summary::after { transform: rotate(225deg); }
+        details.trow .n { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--text-primary); line-height: 1.25; }
+        details.trow .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); text-align: right; }
+        details.trow .b { padding: 0 12px 12px; }
+        details.trow .b .d { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
+        details.trow .b .s { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.6; }
+        details.trow .b a { color: var(--accent); text-decoration: underline dotted; text-underline-offset: 3px; }
+        .f-list { display: none; }
+        .only-phone { display: none; }
+
+        /* ---- phone layout: summaries visible, detail on tap, pictures side by side or swiped ---- */
+        @media (max-width: 760px) {
+            details.trow summary { grid-template-columns: 1fr 12px; gap: 2px 10px; }
+            details.trow .m { grid-column: 1; grid-row: 2; text-align: left; }
+            details.trow summary::after { grid-column: 2; grid-row: 1 / span 2; }
+
+            .only-desk { display: none; } .only-phone { display: inline; }
+            .mf { position: relative; cursor: pointer; }
+            .mf .mf-body { display: none; }
+            .mf.open .mf-body { display: block; cursor: auto; }
+            .mf::after { content: ''; position: absolute; right: 6px; top: 20px; width: 6px; height: 6px; border-right: 1.5px solid var(--text-muted); border-bottom: 1.5px solid var(--text-muted); transform: rotate(45deg); transition: transform 0.2s; }
+            .mf.open::after { transform: rotate(225deg); }
+
+            .open-row.mf { padding: 12px 24px 12px 0; gap: 4px; }
+            .open-row.mf:not(.open) .w small { display: none; }
+            .open-row.mf .w { font-size: 1.08rem; }
+            .open-row.mf .st { margin-top: 8px; }
+
+            .mind-row.mf { padding-right: 24px; }
+            .mind-row.mf .tx b { margin-bottom: 0; }
+            .mind-row.mf.open .tx b { margin-bottom: 3px; }
+
+            .people { gap: 8px; }
+            .person.mf { padding-right: 30px; }
+            .person.mf::after { right: 14px; top: 30px; }
+            .person.mf .mf-body { margin-top: 12px; }
+            .person.mf:not(.open) .top { margin-bottom: 0; }
+            .match .items a { display: inline-block; }
+
+            .rc.mf { padding-right: 30px; }
+            .rc.mf::after { right: 14px; top: 24px; }
+            .rc.mf:not(.open) h4 { margin-top: 0; }
+
+            .match.mf { padding-right: 30px; }
+            .match.mf::after { right: 14px; top: 22px; }
+
+            #viz-fantasts .table-scroll { display: none; }
+            .f-list { display: block; border-top: 1px solid var(--border-subtle); margin-top: 6px; }
+            .frow { border-bottom: 1px solid var(--border-subtle); padding: 10px 24px 10px 0; }
+            .frow .fh { display: grid; grid-template-columns: 42px 1fr auto; gap: 10px; align-items: start; }
+            .frow .fh .num { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--accent); padding-top: 3px; }
+            .frow .fh b { font-family: 'Cormorant Garamond', serif; font-size: 1.08rem; font-weight: 600; color: var(--text-primary); display: block; line-height: 1.25; }
+            .frow .fh b a { color: inherit; text-decoration: none; }
+            .frow .fh small { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px; line-height: 1.5; }
+            .frow .mf-body { padding: 8px 0 2px 52px; }
+            .frow .mf-body p { font-size: 13.5px; line-height: 1.55; margin: 0 0 6px; color: var(--text-secondary); }
+            .frow .mf-body p b { display: block; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 400; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+            .frow .mf-body .fm { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--text-muted); }
+            .frow .mf-body a { color: var(--accent); text-decoration: underline dotted; text-underline-offset: 3px; }
+
+            .references .mf h3 { margin-top: 0 !important; padding: 14px 24px 14px 0; border-bottom: 1px solid var(--border-subtle); }
+            .references .mf.open h3 { margin-bottom: 14px; }
+
+            /* imagined and real stay on screen together */
+            .pair { grid-template-columns: 1fr 1fr; }
+            .pair img { height: 150px; }
+            .pair .tag { font-size: 8px; letter-spacing: 1px; padding: 3px 6px; top: 6px; left: 6px; }
+            .pair figcaption { font-size: 9.5px; padding: 7px 8px 9px; }
+
+            /* the gallery swipes sideways */
+            .postcards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px; margin-right: -24px; padding-right: 24px; -webkit-overflow-scrolling: touch; }
+            .postcards figure { flex: 0 0 76%; scroll-snap-align: start; }
+        }
     </style>
 </head>
 <body>
@@ -600,7 +681,7 @@
 
             <div class="viz" id="viz-atlas">
                 <div class="viz-title">Visual 02 &nbsp;/&nbsp; The Wish Atlas</div>
-                <div class="viz-sub">Ten wishes down the side, twelve regions across. Each dot is one tale or object. Tap a cell to read its tales, or a wish name to see everyone who made that wish and when it was granted.</div>
+                <div class="viz-sub"><span class="only-desk">Ten wishes down the side, twelve regions across. Each dot is one tale or object. Tap a cell to read its tales, or a wish name to see everyone who made that wish and when it was granted.</span><span class="only-phone">Pick a wish to see everyone who made it and when it was granted. Tap a tale to open it.</span></div>
                 <div class="atlas" id="atlas"></div>
                 <div class="atlas-mobile">
                     <div class="viz-controls" id="atlas-chips"></div>
@@ -881,11 +962,12 @@
 
             <div class="viz" id="viz-fantasts">
                 <div class="viz-title">Visual 06 &nbsp;/&nbsp; The Fantasts' Scorecard</div>
-                <div class="viz-sub">Tap a column heading to sort. "Years off" is the gap between publication and arrival. HIT means the thing arrived roughly as described. PARTIAL means the idea arrived and the mechanism was wrong. OPEN means not yet.</div>
+                <div class="viz-sub"><span class="only-desk">Tap a column heading to sort.</span><span class="only-phone">Tap a row for what it described and what arrived.</span> "Years off" is the gap between publication and arrival. HIT means the thing arrived roughly as described. PARTIAL means the idea arrived and the mechanism was wrong. OPEN means not yet.</div>
                 <div class="viz-controls" id="f-chips"></div>
                 <div class="table-scroll">
                     <table class="ledger" id="f-table" style="min-width:820px"></table>
                 </div>
+                <div class="f-list" id="f-list"></div>
                 <div class="viz-readouts" id="f-read"></div>
                 <div class="viz-caption">Works after 1930 are described in my own words. I dropped several names I wanted (Efremov, Tezuka, Philip K. Dick) because I could not verify a clean claim. I also dropped one legend that its own hero denied: Martin Cooper, who made the first mobile phone call in 1973, said in 2021 that his inspiration "wasn't Star Trek, it was Dick Tracy".</div>
             </div>
@@ -1139,10 +1221,10 @@
             </div>
 
             <div class="references">
-                <h3>Where this comes from</h3>
-                <ul class="ref-list" id="refs"></ul>
-                <h3 style="margin-top:40px">Picture credits</h3>
-                <div class="credits" id="credits"></div>
+                <div class="mf"><h3>Where this comes from</h3>
+                <ul class="ref-list mf-body" id="refs"></ul></div>
+                <div class="mf"><h3 style="margin-top:40px">Picture credits</h3>
+                <div class="credits mf-body" id="credits"></div></div>
             </div>
         </section>
     </div>
@@ -1223,6 +1305,20 @@
                 '<div class="d">' + esc(t.d) + '</div>' +
                 '<div class="s">First written: ' + esc(t.s) + (t.y != null ? ' (' + yr(t.y) + ')' : '') + '</div></div>';
         }
+        function taleRow(t, group) {
+            var w = WI[t.w];
+            var flag = t.f === 'real' ? ' <span class="pill real">real</span>' : (t.f === 'doubtful' ? ' <span class="pill doubtful">modern legend</span>' : '');
+            return '<details class="trow" name="' + group + '" style="--wc:' + w.col + '">' +
+                '<summary><span class="n">' + esc(t.n) + flag + '</span><span class="m">' + esc(t.p) + (t.y != null ? ', ' + yr(t.y) : '') + '</span></summary>' +
+                '<div class="b"><div class="d">' + esc(t.d) + '</div>' +
+                '<div class="s">First written: ' + esc(t.s) + (t.y != null ? ' (' + yr(t.y) + ')' : '') + (t.u ? ' &nbsp;/&nbsp; ' + a('Source', t.u) : '') + '</div></div></details>';
+        }
+        /* Full cards for a handful of tales, one-line rows that open on tap for a longer list. */
+        function taleList(list, group, rows) {
+            if (!rows && list.length <= 4) return '<div class="tales">' + list.map(taleCard).join('') + '</div>';
+            return '<div class="trows">' + list.map(function (t) { return taleRow(t, group); }).join('') + '</div>';
+        }
+        function openFirst(el) { var f = el.querySelector('details.trow'); if (f) f.open = true; }
         function grantedLine(wid) {
             var ms = (C.milestones || {})[wid]; if (!ms) return '';
             return '<div class="granted"><b>Granted</b>' + ms.map(function (m) {
@@ -1271,15 +1367,16 @@
                 var w = WI[wid], title = w.label;
                 if (gid) { title += ' &nbsp;/&nbsp; ' + esc(G.filter(function (g) { return g.id === gid; })[0].label); }
                 var body;
-                if (gid) { body = '<div class="tales">' + list.map(taleCard).join('') + '</div>'; }
+                if (gid) { body = taleList(list, 'atlas'); }
                 else {
                     body = G.map(function (g) {
                         var sub = list.filter(function (t) { return t.g === g.id; });
                         if (!sub.length) return '';
-                        return '<h4 style="color:var(--text-muted);margin-top:18px">' + esc(g.label) + '</h4><div class="tales">' + sub.map(taleCard).join('') + '</div>';
+                        return '<h4 style="color:var(--text-muted);margin-top:18px">' + esc(g.label) + '</h4>' + taleList(sub, 'atlas', true);
                     }).join('');
                 }
                 det.innerHTML = '<h4>' + title + ' &nbsp;/&nbsp; ' + list.length + (list.length === 1 ? ' entry' : ' entries') + '</h4>' + grantedLine(wid) + body;
+                openFirst(det);
                 [].forEach.call(el.querySelectorAll('.cell,.rh'), function (c) {
                     c.classList.toggle('active', c.dataset.w === wid && (c.dataset.g || '') === (gid || ''));
                 });
@@ -1324,7 +1421,8 @@
                     var list = T.filter(function (t) { return t.w === wid; }).slice().sort(function (p, q) { return p.y - q.y; });
                     var cultures = {}; list.forEach(function (t) { cultures[t.p] = 1; });
                     det.innerHTML = '<h4>' + esc(WI[wid].label) + ' &nbsp;/&nbsp; ' + list.length + ' entries from ' + Object.keys(cultures).length + ' cultures, oldest first</h4>' + grantedLine(wid) +
-                        '<div class="tales" style="margin-top:14px">' + list.map(taleCard).join('') + '</div>';
+                        '<div style="margin-top:14px">' + taleList(list, 'map', true) + '</div>';
+                    openFirst(det);
                 } else {
                     det.innerHTML = '<h4>' + T.length + ' entries. Pick a wish above, or tap any dot.</h4>';
                 }
@@ -1346,7 +1444,7 @@
         /* ---------- matches, pairs, postcards ---------- */
         (function () {
             $('matches').innerHTML = (C.matches || []).map(function (m) {
-                return '<div class="match"><h4>' + esc(m.title) + '</h4><div class="items">' + m.items.map(function (it) {
+                return '<div class="match mf"><h4>' + esc(m.title) + '</h4><div class="items mf-body">' + m.items.map(function (it) {
                     return '<a href="' + esc(it.u) + '" target="_blank" rel="noopener">' + esc(it.n) + '<small>' + esc(it.who) + '</small></a>';
                 }).join('') + '</div><div class="g"><b>Answered by</b>' + esc(m.granted) + '</div></div>';
             }).join('');
@@ -1406,11 +1504,11 @@
         (function () {
             $('people').innerHTML = C.scientists.map(function (p) {
                 var pic = has(p.img) ? '<img src="' + img(p.img) + '" alt="Portrait of ' + esc(p.name) + '" loading="lazy">' : '<div class="ph">' + esc(p.name.split(' ').pop().charAt(0)) + '</div>';
-                return '<div class="person"><div class="top">' + pic + '<div><div class="nm">' + a(p.name, p.url) + '</div>' +
+                return '<div class="person mf"><div class="top">' + pic + '<div><div class="nm">' + a(p.name, p.url) + '</div>' +
                     '<div class="meta">' + esc(p.lived) + '<br>' + esc(p.where) + '</div></div></div>' +
-                    '<div class="q' + (p.exact ? '' : ' para') + '">' + (p.exact ? '&ldquo;' + esc(p.said) + '&rdquo;' : esc(p.said)) + '</div>' +
+                    '<div class="mf-body"><div class="q' + (p.exact ? '' : ' para') + '">' + (p.exact ? '&ldquo;' + esc(p.said) + '&rdquo;' : esc(p.said)) + '</div>' +
                     '<div class="wk">' + a(p.work, p.src) + ', ' + esc(p.year) + '</div>' +
-                    '<div class="out"><span class="pill ' + p.grade + '">' + p.grade + '</span>' + esc(p.came) + ' <em>' + esc(p.off) + '</em></div></div>';
+                    '<div class="out"><span class="pill ' + p.grade + '">' + p.grade + '</span>' + esc(p.came) + ' <em>' + esc(p.off) + '</em></div></div></div>';
             }).join('');
             var rows = C.naysayers.slice().sort(function (p, q) { return p.gapn - q.gapn; });
             $('never').innerHTML = '<thead><tr><th>Who</th><th>Year</th><th>The verdict</th><th>What happened</th><th>Time to be wrong</th></tr></thead><tbody>' +
@@ -1446,6 +1544,10 @@
                         return '<tr><td><span class="num">' + r.y + '</span></td><td><b>' + a(r.a, r.au) + '</b><small>' + a(r.w, r.wu) + '</small></td><td>' + esc(r.c) + '</td>' +
                             '<td>' + esc(r.d) + '</td><td>' + esc(r.arr) + '</td><td><span class="num">' + esc(r.off) + '</span></td><td><span class="pill ' + r.g + '">' + r.g + '</span></td></tr>';
                     }).join('') + '</tbody>';
+                $('f-list').innerHTML = list.map(function (r, i) {
+                    return '<div class="frow mf' + (i ? '' : ' open') + '"><div class="fh"><span class="num">' + r.y + '</span><div><b>' + a(r.a, r.au) + '</b><small>' + esc(r.w) + '</small></div><span class="pill ' + r.g + '">' + r.g + '</span></div>' +
+                        '<div class="mf-body"><p><b>Described</b>' + esc(r.d) + '</p><p><b>Arrived</b>' + esc(r.arr) + '</p><p class="fm">' + esc(r.c) + ' &nbsp;/&nbsp; years off: ' + esc(r.off) + ' &nbsp;/&nbsp; ' + a('the work', r.wu) + '</p></div></div>';
+                }).join('');
                 var hits = rows.filter(function (r) { return r.g === 'hit'; }), offs = hits.filter(function (r) { return r.offn != null; }).map(function (r) { return r.offn; }).sort(function (p, q) { return p - q; });
                 var medn = offs.length ? offs[Math.floor(offs.length / 2)] : 0;
                 var cnt = {}; rows.forEach(function (r) { cnt[r.g] = (cnt[r.g] || 0) + 1; });
@@ -1501,10 +1603,10 @@
         /* ---------- 08 resonance + warnings ---------- */
         (function () {
             $('reso').innerHTML = C.resonance.map(function (r) {
-                return '<div class="rc">' + (has(r.img) ? '<img src="' + img(r.img) + '" alt="' + esc(r.alt || r.old) + '" loading="lazy">' : '') +
-                    '<h4>' + a(r.old, r.u) + '</h4><div class="src">' + esc(r.src) + '</div>' +
+                return '<div class="rc mf">' + (has(r.img) ? '<img class="mf-body" src="' + img(r.img) + '" alt="' + esc(r.alt || r.old) + '" loading="lazy">' : '') +
+                    '<h4>' + a(r.old, r.u) + '</h4><div class="src mf-body">' + esc(r.src) + '</div>' +
                     '<div class="arrow">rhymes with: ' + a(r.modern, r.mu) + '</div>' +
-                    '<p class="doc"><b>Documented</b>' + r.doc + '</p><p class="exa"><b>Overreach</b>' + r.exa + '</p></div>';
+                    '<p class="doc mf-body"><b>Documented</b>' + r.doc + '</p><p class="exa mf-body"><b>Overreach</b>' + r.exa + '</p></div>';
             }).join('');
             $('warn').innerHTML = '<thead><tr><th>Tale</th><th>The warning</th><th>The modern echo</th></tr></thead><tbody>' +
                 C.warnings.map(function (w) {
@@ -1529,8 +1631,8 @@
             strip += '<div class="mind-axis">' + [-1500, 1, 1500, 1900, 1990, 2020].map(function (t) { return '<span' + (t === 1 ? ' class="mh"' : '') + ' style="left:' + X(t).toFixed(2) + '%">' + (t < 0 ? (-t) + ' BCE' : (t === 1 ? '1 CE' : t)) + '</span>'; }).join('') + '</div>';
             $('mind-strip').innerHTML = strip;
             $('mind-list').innerHTML = rows.map(function (r, i) {
-                return '<div class="mind-row k-' + r.k + '" data-i="' + i + '" data-k="' + r.k + '"><span class="y">' + yr(r.y) + '</span><span class="kd">' + KI[r.k].l + '</span>' +
-                    '<div class="tx"><b>' + a(r.t, r.u) + '</b>' + esc(r.d) + '</div></div>';
+                return '<div class="mind-row mf k-' + r.k + '" data-i="' + i + '" data-k="' + r.k + '"><span class="y">' + yr(r.y) + '</span><span class="kd">' + KI[r.k].l + '</span>' +
+                    '<div class="tx"><b>' + a(r.t, r.u) + '</b><span class="mf-body">' + esc(r.d) + '</span></div></div>';
             }).join('');
             var chips = $('mind-chips');
             chips.innerHTML = '<button class="viz-btn active" data-k="">ALL</button>' + K.map(function (k) {
@@ -1547,15 +1649,15 @@
                 [].forEach.call(document.querySelectorAll('#mind-strip button.on, #mind-list .mind-row.on'), function (x) { x.classList.remove('on'); });
                 b.classList.add('on');
                 var row = $('mind-list').querySelector('.mind-row[data-i="' + b.dataset.i + '"]');
-                row.classList.add('on');
+                row.classList.add('on'); row.classList.add('open');
                 if (row.scrollIntoView) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
             });
             var GL = ['still open', 'partly', 'granted'];
             $('mind-audit').innerHTML = M.audit.map(function (o) {
                 var g = ''; for (var k = 0; k < 3; k++) g += '<i' + (k <= o.g ? ' class="on"' : '') + '></i>';
-                return '<div class="open-row"><div class="w">' + esc(o.ask) + '<small>' + o.old + '</small></div>' +
+                return '<div class="open-row mf"><div class="w">' + esc(o.ask) + '<small>' + o.old + '</small></div>' +
                     '<div class="gz"><div class="gauge3 g' + o.g + '">' + g + '</div><div class="stage">' + GL[o.g] + '</div></div>' +
-                    '<div class="st"><em>' + esc(o.year) + '</em>' + o.step + '<small>' + o.caveat + '</small></div></div>';
+                    '<div class="st mf-body"><em>' + esc(o.year) + '</em>' + o.step + '<small>' + o.caveat + '</small></div></div>';
             }).join('');
         })();
 
@@ -1565,9 +1667,9 @@
             var rows = C.open.slice().sort(function (p, q) { return q.stage - p.stage; });
             $('open-list').innerHTML = rows.map(function (o) {
                 var g = ''; for (var k = 0; k < 5; k++) g += '<i' + (k <= o.stage ? ' class="on"' : '') + '></i>';
-                return '<div class="open-row"><div class="w">' + esc(o.wish) + '<small>' + o.old + '</small></div>' +
+                return '<div class="open-row mf"><div class="w">' + esc(o.wish) + '<small>' + o.old + '</small></div>' +
                     '<div class="gz"><div class="gauge5 s' + o.stage + '">' + g + '</div><div class="stage">' + ST[o.stage] + '</div></div>' +
-                    '<div class="st"><em>' + esc(o.year) + '</em>' + o.step + '<small>' + esc(o.caveat) + '</small></div></div>';
+                    '<div class="st mf-body"><em>' + esc(o.year) + '</em>' + o.step + '<small>' + esc(o.caveat) + '</small></div></div>';
             }).join('');
         })();
 
@@ -1581,6 +1683,27 @@
             var seen = {}, out = '';
             used.forEach(function (f) { if (C.credits[f] && !seen[f]) { seen[f] = 1; out += '<span>' + C.credits[f] + '</span>'; } });
             $('credits').innerHTML = out;
+        })();
+
+        /* ---------- phone: lists fold to one line and open on tap ---------- */
+        (function () {
+            var phone = window.matchMedia('(max-width: 760px)');
+            ['open-list', 'mind-audit', 'mind-list', 'people', 'reso', 'matches'].forEach(function (id) {
+                var f = $(id) && $(id).querySelector('.mf'); if (f) f.classList.add('open');
+            });
+            function toggle(row) {
+                var willOpen = !row.classList.contains('open');
+                [].forEach.call(row.parentNode.children, function (x) { if (x !== row) x.classList.remove('open'); });
+                row.classList.toggle('open', willOpen);
+            }
+            document.addEventListener('click', function (e) {
+                if (!phone.matches) return;
+                var row = e.target.closest('.mf'); if (!row || e.target.closest('.mf-body')) return;
+                var link = e.target.closest('a');
+                if (link && row.classList.contains('open')) return;   // an open row's title link works as a link
+                if (link) e.preventDefault();                         // a closed row opens first
+                toggle(row);
+            });
         })();
     })();
     </script>

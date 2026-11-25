@@ -40,3 +40,23 @@ Raised by Vladimir, 25 November 2026: the text before the map is dense, and the 
 - At his suggestion the "Old pictures beside the real thing" pairs were blended in: four of the six imagined-and-real pairs now sit directly under the story they match (screen, carpet, first flight, made servant). The two Moon pairs and the gallery follow under "More old pictures beside the real thing", still in section II.
 - Only one of the five unused illustrations was used, Ford's bazaar scene for the three princes. The two Batten pictures for the Enchanted Horse show no horse, and the other two Ford pictures show later scenes.
 - The saucer story has no picture of its own; the Robida and Baird pair stands in.
+
+## 3. A separate phone layout
+
+Raised by Vladimir, 25 November 2026: too much scrolling on a phone.
+
+**Measured before.** At 375 px wide the page was about 91 screens long (74,081 px). Prose was about 19 of them; the visuals were the rest.
+
+**Rule adopted.** Laptop shows everything. Phone shows the summary line and opens the detail on a tap; picture sets sit side by side or swipe. Prose is never hidden. One page, one file.
+
+**Done.**
+- Atlas and map lists: one line per tale, opening on tap, on both screen sizes whenever a list has more than four entries. Built on the browser's own `<details>` element, so find-in-page still reaches the text. The source link moved inside the opened row.
+- Phone only, rows that open on tap: open ledger, made-mind audit, made-mind timeline, scientists, resonance cards, matches, and the science-fiction scorecard (a list in place of the wide table). The first row of each starts open; opening one closes the others. A closed row's title link opens the row first and works as a link on the second tap.
+- Phone only: imagined-and-real pairs stay side by side; the gallery swipes sideways; sources and picture credits are folded closed.
+- Left alone: morning cards, year dial, the map, the lag chart, the naysayers and warnings tables.
+
+**Measured after.** About 66 screens (53,460 px), a cut of 28%.
+
+**Still possible.** The lag chart (3.3 screens), the morning cards (2.5), the year dial (2.6) and the naysayers table (2.2) are the largest blocks left. The phone folds use a class toggle, so find-in-page does not open them.
+
+**Status.** Done.
