@@ -18,6 +18,8 @@ I did not expect the warnings. The same people who wrote down the wish usually w
 
 Every claim links to its source, and the last section covers the wishes still open.
 
+I researched and wrote it with Claude Fable 5.2 by Anthropic, which makes the essay one of its own examples.
+
 vladbichev.com/blog/wish-ledger.html
 
 #History #Technology #Mythology #ScienceFiction #DataVisualization #Progress #AI #Storytelling

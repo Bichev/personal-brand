@@ -2,7 +2,7 @@
 
 Source of truth for `public/blog/wish-ledger.html`. Edit the files in `parts/` (and `curated.json` for the hand-picked rows), then run `node research/wish-ledger/build.mjs`, which rebuilds the article, this file and `SOURCES.md`.
 
-Compiled 24 November 2026. Each row was checked against the page linked beside it. Rows marked UNVERIFIED or DOUBTFUL are either left out of the article or shown with that label.
+Compiled 24 and 25 November 2026 with Claude Fable 5.2 (Anthropic), directed and reviewed by Vladimir Bichev. Each row was checked against the page linked beside it. Rows marked UNVERIFIED or DOUBTFUL are either left out of the article or shown with that label.
 
 
 ---
