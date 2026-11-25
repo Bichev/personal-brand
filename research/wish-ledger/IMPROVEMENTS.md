@@ -18,7 +18,7 @@ Raised by Vladimir, 25 November 2026: the text before the map is dense, and the 
 
 **Cost.** The stories are some of the best writing in the piece, and this moves them from about a fifth of the way down to about a third. Entry 2 is the answer to that cost.
 
-**Status.** Parked for consideration.
+**Status.** Parked. Part 2 is less pressing now that the stories carry pictures (see entry 2). Part 1, shrinking the rules, is still open.
 
 ## 2. Make the stories block more inviting where it stands
 
@@ -35,4 +35,8 @@ Raised by Vladimir, 25 November 2026: the text before the map is dense, and the 
 
 **Cost.** One new card layout, three or four more images on the page (about 300 KB), and one picture to source for the saucer.
 
-**Status.** Proposed, not started.
+**Status.** Done on 25 November 2026, with changes agreed with Vladimir:
+- Options 1, 2 and 3 are applied. All six stories are kept (option 4 was not taken).
+- At his suggestion the "Old pictures beside the real thing" pairs were blended in: four of the six imagined-and-real pairs now sit directly under the story they match (screen, carpet, first flight, made servant). The two Moon pairs and the gallery follow under "More old pictures beside the real thing", still in section II.
+- Only one of the five unused illustrations was used, Ford's bazaar scene for the three princes. The two Batten pictures for the Enchanted Horse show no horse, and the other two Ford pictures show later scenes.
+- The saucer story has no picture of its own; the Robida and Baird pair stands in.

@@ -305,6 +305,18 @@
         figure.solo { margin: 36px 0; }
         figure.solo img { width: 100%; display: block; border: 1px solid var(--border-subtle); }
         figure.solo figcaption { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); padding: 10px 4px; line-height: 1.6; }
+
+        .story { margin: 34px 0 10px; padding: 4px 0 4px 20px; border-left: 2px solid var(--border); }
+        .story p:last-of-type { margin-bottom: 14px; }
+        .story.has-fig { display: grid; grid-template-columns: 240px 1fr; gap: 22px; align-items: start; }
+        .story figure { margin: 4px 0 0; background: #f3efe6; border: 1px solid var(--border-subtle); }
+        .story figure img { width: 100%; display: block; }
+        .story figcaption { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); padding: 8px 10px 10px; line-height: 1.55; background: var(--bg-secondary); }
+        .listing { margin: 0 0 6px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.7; }
+        .listing div { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 5px 0; border-top: 1px solid var(--border-subtle); }
+        .listing dt { color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; font-size: 9.5px; padding-top: 2px; }
+        .listing dd { margin: 0; color: var(--accent); }
+        .story + .pairs { margin-top: 18px; }
         .postcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 36px 0 8px; }
         .postcards figure { margin: 0; background: var(--bg-secondary); border: 1px solid var(--border-subtle); }
         .postcards img { width: 100%; height: 230px; object-fit: cover; object-position: center 25%; display: block; }
@@ -450,6 +462,8 @@
             .atlas { display: none; }
             .atlas-mobile { display: block; }
             .pair { grid-template-columns: 1fr; }
+            .story.has-fig { grid-template-columns: 1fr; } .story figure { max-width: 260px; }
+            .listing div { grid-template-columns: 104px 1fr; }
             .pair img { height: 230px; }
             .lag-axis { margin-left: 0; margin-right: 46px; }
             .lag-axis .mh { display: none; }
@@ -597,56 +611,103 @@
 
             <h3>Tales that read like product descriptions</h3>
             <p>
-                In a
-                <a href="https://ru.wikisource.org/wiki/Народные_русские_сказки_(Афанасьев)/Сказка_о_серебряном_блюдечке_и_наливном_яблочке" target="_blank" rel="noopener">Russian tale printed in 1838</a>,
-                a girl rolls a ripe apple around a silver saucer, says a rhyme, and the saucer shows her
-                cities, ships at sea and regiments on the march. Later the tsar is asked what he would like to
-                see. English readers met it in 1916 through Arthur Ransome's
-                <a href="https://en.wikipedia.org/wiki/Old_Peter%27s_Russian_Tales" target="_blank" rel="noopener">Old Peter's Russian Tales</a>.
+                Six tales, each set beside the old picture and the real thing where I have both.
             </p>
-            <p>
-                In the Arabian Nights, <a href="https://en.wikipedia.org/wiki/Ahmed_and_Paribanou" target="_blank" rel="noopener">three princes go shopping</a>.
-                Ali buys an ivory tube a foot long, with glass at each end, that shows whatever its owner
-                wishes to see. Houssain buys a carpet that takes you anywhere at once. Ahmed buys an artificial
-                apple that cures any illness. Ali looks through the tube and sees the
-                princess dying, Houssain flies all three brothers to her, Ahmed cures her, and the Sultan
-                cannot decide who has earned her hand, because the rescue fails if you remove any one of the
-                three. It is a fair description of a video consultation, an air ambulance and a pharmacy, and
-                it was told in Paris on 22 May 1709 by a Syrian traveller named
-                <a href="https://en.wikipedia.org/wiki/Hanna_Diyab" target="_blank" rel="noopener">Hanna Diyab</a>.
-            </p>
-            <p>
-                <a href="https://en.wikipedia.org/wiki/The_Ebony_Horse" target="_blank" rel="noopener">The Ebony Horse</a>,
-                in Arabic manuscript since the 1230s, is a mechanical horse with a pin on the right shoulder to
-                climb and a pin on the left to come down. The prince takes off before the inventor has
-                explained the second pin. Anyone who has been handed new software on a Friday afternoon will
-                recognise the scene.
-            </p>
-            <p>
-                Homer gives the <a href="https://en.wikipedia.org/wiki/Phaeacians" target="_blank" rel="noopener">Phaeacians</a> ships
-                with no helmsman, which know every city and understand what the crew intends. A
-                <a href="https://en.wikipedia.org/wiki/Lludd_and_Llefelys" target="_blank" rel="noopener">Welsh tale</a> has a people
-                who hear every word the wind touches, so that two kings can only plan against them by speaking
-                through a long bronze horn. That is a surveillance problem solved with a secure line, written
-                down about eight hundred years ago.
-            </p>
-            <blockquote>
-                If every tool could do its own work when ordered, if the shuttle wove and the plectrum touched
-                the lyre without a hand to guide them, chief workmen would not want servants, nor masters slaves.
-                <cite><a href="https://en.wikisource.org/wiki/Politics_(Jowett)/Book_1" target="_blank" rel="noopener">Aristotle, Politics, Book 1, about 322 BCE</a> (after Jowett's translation, shortened)</cite>
-            </blockquote>
-            <p>
-                Aristotle was thinking of the self-moving tripods that
-                <a href="https://en.wikipedia.org/wiki/Hephaestus" target="_blank" rel="noopener">Hephaestus</a> builds in the Iliad,
-                and he meant the sentence as something that could never happen. About 2,100 years later the power loom wove without a hand to guide it.
-            </p>
-            <p>
-                The Nights tales that everybody knows, Aladdin and the flying carpet, are <a href="https://en.wikipedia.org/wiki/Aladdin" target="_blank" rel="noopener">not in the Arabic manuscripts at all</a>, which I had not known. They entered the book in French, from Diyab's telling. The tales that are in the Arabic are the
-                ones full of machinery: a <a href="https://en.wikipedia.org/wiki/The_City_of_Brass" target="_blank" rel="noopener">City of Brass</a>
-                where a brass horseman turns and points the road when you rub his hand, a brass boatman who rows
-                for days without tiring, and a fisherman who rubs on an ointment and
-                <a href="https://en.wikipedia.org/wiki/One_Thousand_and_One_Nights#Fantasy_and_science_fiction_elements" target="_blank" rel="noopener">walks about on the sea floor</a>.
-            </p>
+
+            <div class="story">
+                <p>
+                    <strong>The saucer and the apple, Russia, 1838.</strong> In a
+                    <a href="https://ru.wikisource.org/wiki/Народные_русские_сказки_(Афанасьев)/Сказка_о_серебряном_блюдечке_и_наливном_яблочке" target="_blank" rel="noopener">Russian tale</a>
+                    a girl rolls a ripe apple around a silver saucer, says a rhyme, and the saucer shows her
+                    cities, ships at sea and regiments on the march. Later the tsar is asked what he would like to
+                    see. English readers met it in 1916 through Arthur Ransome's
+                    <a href="https://en.wikipedia.org/wiki/Old_Peter%27s_Russian_Tales" target="_blank" rel="noopener">Old Peter's Russian Tales</a>.
+                </p>
+                <dl class="listing"><div><dt>First printed</dt><dd>1838</dd></div><div><dt>Arrived as</dt><dd>the television in 1926, and later the screen in your pocket</dd></div></dl>
+            </div>
+            <div class="pairs" data-pair="screen"></div>
+
+            <div class="story has-fig">
+                <figure>
+                    <img src="/blog/wish-ledger-assets/ford-prince-ahmed-p349.webp" alt="Line drawing of a crier in a crowded bazaar holding a small round object above his head" loading="lazy">
+                    <figcaption>H. J. Ford, for Prince Ahmed and the Fairy Paribanou, The Blue Fairy Book, 1889. A crier holds his goods up to the crowd.</figcaption>
+                </figure>
+                <div>
+                    <p>
+                        <strong>The three princes' shopping, Arabian Nights, 1709.</strong>
+                        <a href="https://en.wikipedia.org/wiki/Ahmed_and_Paribanou" target="_blank" rel="noopener">Three princes go shopping</a>.
+                        Ali buys an ivory tube a foot long, with glass at each end, that shows whatever its owner
+                        wishes to see. Houssain buys a carpet that takes you anywhere at once. Ahmed buys an artificial
+                        apple that cures any illness. Ali looks through the tube and sees the
+                        princess dying, Houssain flies all three brothers to her, Ahmed cures her, and the Sultan
+                        cannot decide who has earned her hand, because the rescue fails if you remove any one of the
+                        three. The tale was told in Paris on 22 May 1709 by a Syrian traveller named
+                        <a href="https://en.wikipedia.org/wiki/Hanna_Diyab" target="_blank" rel="noopener">Hanna Diyab</a>.
+                    </p>
+                    <dl class="listing"><div><dt>First told</dt><dd>1709</dd></div><div><dt>The ivory tube</dt><dd>the video call</dd></div><div><dt>The carpet</dt><dd>the air ambulance</dd></div><div><dt>The apple</dt><dd>the pharmacy</dd></div></dl>
+                </div>
+            </div>
+            <div class="pairs" data-pair="carpet"></div>
+
+            <div class="story">
+                <p>
+                    <strong>The Ebony Horse, Arabic manuscript, 1230s.</strong>
+                    <a href="https://en.wikipedia.org/wiki/The_Ebony_Horse" target="_blank" rel="noopener">The Ebony Horse</a>
+                    is a mechanical horse with a pin on the right shoulder to
+                    climb and a pin on the left to come down. The prince takes off before the inventor has
+                    explained the second pin. Anyone who has been handed new software on a Friday afternoon will
+                    recognise the scene.
+                </p>
+                <dl class="listing"><div><dt>First written</dt><dd>1230s</dd></div><div><dt>Arrived as</dt><dd>a flying machine with controls, 1903</dd></div></dl>
+            </div>
+            <div class="pairs" data-pair="icarus"></div>
+
+            <div class="story">
+                <p>
+                    <strong>Ships that steer themselves, and a people who hear everything.</strong>
+                    Homer gives the <a href="https://en.wikipedia.org/wiki/Phaeacians" target="_blank" rel="noopener">Phaeacians</a> ships
+                    with no helmsman, which know every city and understand what the crew intends. A
+                    <a href="https://en.wikipedia.org/wiki/Lludd_and_Llefelys" target="_blank" rel="noopener">Welsh tale</a> has a people
+                    who hear every word the wind touches, so that two kings can only plan against them by speaking
+                    through a long bronze horn. That is a surveillance problem solved with a secure line, written
+                    down about eight hundred years ago.
+                </p>
+                <dl class="listing"><div><dt>First written</dt><dd>about 700 BCE, and about 1200 CE</dd></div><div><dt>Arrived as</dt><dd>the autopilot, and the encrypted line</dd></div></dl>
+            </div>
+
+            <div class="story">
+                <p><strong>Tools that work by themselves, Athens, about 322 BCE.</strong></p>
+                <blockquote>
+                    If every tool could do its own work when ordered, if the shuttle wove and the plectrum touched
+                    the lyre without a hand to guide them, chief workmen would not want servants, nor masters slaves.
+                    <cite><a href="https://en.wikisource.org/wiki/Politics_(Jowett)/Book_1" target="_blank" rel="noopener">Aristotle, Politics, Book 1</a> (after Jowett's translation, shortened)</cite>
+                </blockquote>
+                <p>
+                    Aristotle was thinking of the self-moving tripods that
+                    <a href="https://en.wikipedia.org/wiki/Hephaestus" target="_blank" rel="noopener">Hephaestus</a> builds in the Iliad,
+                    and he meant the sentence as something that could never happen. About 2,100 years later the power loom wove without a hand to guide it.
+                </p>
+                <dl class="listing"><div><dt>First written</dt><dd>about 322 BCE</dd></div><div><dt>Arrived as</dt><dd>the power loom</dd></div></dl>
+            </div>
+            <div class="pairs" data-pair="shabti"></div>
+
+            <div class="story">
+                <p>
+                    <strong>What the Arabic manuscripts hold.</strong>
+                    The Nights tales that everybody knows, Aladdin and the flying
+                    carpet, are <a href="https://en.wikipedia.org/wiki/Aladdin" target="_blank" rel="noopener">not in the Arabic manuscripts at all</a>, which I had not known.
+                    They entered the book in French, from Diyab's telling. The tales that are in the Arabic are the
+                    ones full of machinery: a <a href="https://en.wikipedia.org/wiki/The_City_of_Brass" target="_blank" rel="noopener">City of Brass</a>
+                    where a brass horseman turns and points the road when you rub his hand, a brass boatman who rows
+                    for days without tiring, and a fisherman who rubs on an ointment and
+                    <a href="https://en.wikipedia.org/wiki/One_Thousand_and_One_Nights#Fantasy_and_science_fiction_elements" target="_blank" rel="noopener">walks about on the sea floor</a>.
+                </p>
+            </div>
+
+            <h3>More old pictures beside the real thing</h3>
+            <div class="pairs" id="pairs"></div>
+            <div class="postcards" id="postcards"></div>
+            <p id="postcards-note"></p>
         </section>
 
         <!-- ================= III ================= -->
@@ -706,10 +767,7 @@
                 The runners did the work of seven-league boots, and the cords did the work of an archive.
             </p>
 
-            <h3>Old pictures beside the real thing</h3>
-            <div class="pairs" id="pairs"></div>
-            <div class="postcards" id="postcards"></div>
-            <p id="postcards-note"></p>
+            
         </section>
 
         <!-- ================= IV ================= -->
@@ -1296,9 +1354,13 @@
                 return '<figure><span class="tag">' + tag + '</span><img src="' + img(side.img) + '" alt="' + esc(side.alt) + '" loading="lazy">' +
                     '<figcaption><b>' + esc(side.cap) + '</b></figcaption></figure>';
             }
-            $('pairs').innerHTML = (C.pairs || []).filter(function (p) { return has(p.then.img) && has(p.now.img); }).map(function (p) {
-                return '<div class="pair">' + fig(p.then, 'Imagined ' + esc(p.then.year)) + fig(p.now, 'Real ' + esc(p.now.year)) + '<div class="ptext">' + p.text + '</div></div>';
-            }).join('');
+            function pairHtml(p) { return '<div class="pair">' + fig(p.then, 'Imagined ' + esc(p.then.year)) + fig(p.now, 'Real ' + esc(p.now.year)) + '<div class="ptext">' + p.text + '</div></div>'; }
+            var okPairs = (C.pairs || []).filter(function (p) { return has(p.then.img) && has(p.now.img); }), placed = {};
+            [].forEach.call(document.querySelectorAll('.pairs[data-pair]'), function (slot) {
+                var p = okPairs.filter(function (q) { return q.k === slot.dataset.pair; })[0];
+                if (p) { slot.innerHTML = pairHtml(p); placed[p.k] = 1; }
+            });
+            $('pairs').innerHTML = okPairs.filter(function (p) { return !placed[p.k]; }).map(pairHtml).join('');
             var pcs = (C.postcards || []).filter(function (p) { return has(p.img); });
             $('postcards').innerHTML = pcs.map(function (p) {
                 return '<figure><img src="' + img(p.img) + '" alt="' + esc(p.alt) + '" loading="lazy"' + (p.pos ? ' style="object-position:' + p.pos + '"' : '') + '><figcaption><b>' + esc(p.cap) + '</b> ' + esc(p.verdict) + '</figcaption></figure>';

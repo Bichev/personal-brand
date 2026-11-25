@@ -150,5 +150,9 @@
   "leibniz-bouvet-hexagrams.jpg": {
     "w": 700,
     "as": "leibniz-hexagrams"
+  },
+  "ford-prince-ahmed-p349.jpg": {
+    "w": 760,
+    "q": 60
   }
 }
