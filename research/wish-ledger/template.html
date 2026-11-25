@@ -72,10 +72,17 @@
             text-align: center;
             padding: 110px 24px 80px;
             position: relative;
-            background:
-                linear-gradient(180deg, rgba(10,10,15,0.55) 0%, rgba(10,10,15,0.78) 55%, var(--bg-primary) 100%),
-                url('/blog/wish-ledger-assets/vasnetsov-flying-carpet.webp') center 30% / cover no-repeat;
         }
+        /* The painting starts below the fixed nav bar and is pinned to its top edge,
+           so the rider's head stays in frame at every screen shape. */
+        .hero::before {
+            content: ''; position: absolute; top: 46px; left: 0; right: 0; bottom: 0; z-index: 0;
+            background:
+                linear-gradient(180deg, rgba(10,10,15,0.45) 0%, rgba(10,10,15,0.78) 55%, var(--bg-primary) 100%),
+                url('/blog/wish-ledger-assets/vasnetsov-flying-carpet.webp') center top / cover no-repeat;
+        }
+        .hero > * { z-index: 1; }
+        .hero > *:not(.hero-credit) { position: relative; }
         .hero-badge {
             font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 3px;
             text-transform: uppercase; color: var(--accent);
