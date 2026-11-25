@@ -12,7 +12,7 @@ Then I checked each one against the record.
 
 Eight of the ten have been granted, mostly to everybody. The oldest waited about 3,500 years. Jules Verne's Moon shot waited 103. Arthur C. Clarke's satellite waited 19.
 
-The part I did not expect: the same people who wrote down the wish usually wrote down the bill. The sorcerer's apprentice is from about 150 CE. The Maya have a day when the cooking pots turn on their owners.
+I did not expect the warnings. The same people who wrote down the wish usually wrote down the bill. The sorcerer's apprentice is from about 150 CE. The Maya have a day when the cooking pots turn on their owners.
 
 Nine interactive visuals, a source link on every claim, and a last section on the wishes still open.
 

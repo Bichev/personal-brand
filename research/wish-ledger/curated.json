@@ -591,7 +591,7 @@
     },
     {
       "title": "Tools that turn on their owners",
-      "granted": "Not a wish. A warning, recorded on three continents, that came attached to the one above.",
+      "granted": "A warning recorded on three continents, attached to the wish above.",
       "items": [
         {
           "n": "The wooden people",
@@ -2446,7 +2446,7 @@
       "year": "2024",
       "stage": 2,
       "step": "Project CETI analysed about 9,000 sperm whale calls and found [[a combinatorial system|https://news.mit.edu/2024/csail-ceti-explores-sperm-whale-alphabet-0507]] of rhythm, tempo and ornament.",
-      "caveat": "Structure has been found. Meaning has not. Nobody has translated a single whale sentence."
+      "caveat": "Structure has been found, but nobody has translated a single whale sentence."
     },
     {
       "wish": "A cap of invisibility",
@@ -2510,7 +2510,7 @@
       "year": "2024",
       "stage": 1,
       "step": "The complete [[wiring diagram of a fruit fly's brain|https://en.wikipedia.org/wiki/Drosophila_connectome]], about 140,000 neurons.",
-      "caveat": "A map is not a mind. A human brain has roughly a million times more neurons."
+      "caveat": "The map does not run as a mind, and a human brain has roughly a million times more neurons."
     },
     {
       "wish": "To be somewhere else at once",
