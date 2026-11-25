@@ -207,7 +207,16 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                 viewport={{ once: true }}
                 className="h-full"
               >
-                <Card padding="none" className="overflow-hidden group h-full flex flex-col">
+                <Card padding="none" className="relative overflow-hidden group h-full flex flex-col">
+                  {(project.liveUrl || project.githubUrl) && (
+                    <a
+                      href={project.liveUrl || project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open ${project.title}`}
+                      className="absolute inset-0 z-[1] rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c9a84c]"
+                    />
+                  )}
                   <div className="relative h-48 flex-shrink-0">
                     {project.image ? (
                       <>
@@ -253,7 +262,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                       ))}
                     </div>
 
-                    <div className="flex gap-3 mt-auto">
+                    <div className="relative z-[2] flex gap-3 mt-auto">
                       {project.githubUrl && (
                         <Button variant="outline" size="sm" href={project.githubUrl} external>
                           <FaGithub className="mr-2" size={14} />
@@ -284,7 +293,16 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                   viewport={{ once: true }}
                   className="h-full"
                 >
-                  <Card className="h-full flex flex-col group">
+                  <Card className="relative h-full flex flex-col group">
+                    {(project.liveUrl || project.githubUrl) && (
+                      <a
+                        href={project.liveUrl || project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${project.title}`}
+                        className="absolute inset-0 z-[1] rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c9a84c]"
+                      />
+                    )}
                     <div className="flex-grow">
                       <div className="flex items-start gap-3 mb-3">
                         {getSmallIcon(project.icon!)}
@@ -309,7 +327,7 @@ export function ProjectsSection({ className, id = 'projects' }: SectionProps) {
                         ))}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="relative z-[2] flex gap-2">
                         {project.githubUrl && (
                           <Button variant="ghost" size="sm" href={project.githubUrl} external>
                             <FaGithub size={16} />
